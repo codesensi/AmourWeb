@@ -57,21 +57,6 @@ export type UserInfoResult = {
   data: UserInfo;
 };
 
-type ResultTable = {
-  code: number;
-  message: string;
-  data?: {
-    /** 列表数据 */
-    list: Array<any>;
-    /** 总条目数 */
-    total?: number;
-    /** 每页显示条目个数 */
-    pageSize?: number;
-    /** 当前页数 */
-    currentPage?: number;
-  };
-};
-
 /** 登录 */
 export const getLogin = (data?: object) => {
   return http.request<UserResult>("post", "/login", { data });
@@ -90,4 +75,19 @@ export const getMine = (data?: object) => {
 /** 账户设置-个人安全日志 */
 export const getMineLogs = (data?: object) => {
   return http.request<ResultTable>("get", "/mine-logs", { data });
+};
+
+type ResultTable = {
+  code: number;
+  message: string;
+  data?: {
+    /** 列表数据 */
+    list: Array<any>;
+    /** 总条目数 */
+    total?: number;
+    /** 每页显示条目个数 */
+    pageSize?: number;
+    /** 当前页数 */
+    currentPage?: number;
+  };
 };

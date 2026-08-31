@@ -6,7 +6,8 @@ export default {
   redirect: "/error/403",
   meta: {
     icon: "ri/information-line",
-    // showLink: false,
+    // 错误页为功能性基础设施(404 兜底/权限跳转依赖),仅隐藏菜单,路由保留
+    showLink: false,
     title: $t("menus.pureAbnormal"),
     rank: error
   },
