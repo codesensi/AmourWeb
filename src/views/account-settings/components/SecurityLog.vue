@@ -55,8 +55,8 @@ const columns: TableColumnList = [
 
 async function onSearch() {
   loading.value = true;
-  const { code, data } = await getMineLogs();
-  if (code === 0) {
+  const { success, data } = await getMineLogs();
+  if (success) {
     dataList.value = data.list;
     pagination.total = data.total;
     pagination.pageSize = data.pageSize;

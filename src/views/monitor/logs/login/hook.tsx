@@ -129,8 +129,8 @@ export function useRole(tableRef: Ref) {
 
   async function onSearch() {
     loading.value = true;
-    const { code, data } = await getLoginLogsList(toRaw(form));
-    if (code === 0) {
+    const { success, data } = await getLoginLogsList(toRaw(form));
+    if (success) {
       dataList.value = data.list;
       pagination.total = data.total;
       pagination.pageSize = data.pageSize;

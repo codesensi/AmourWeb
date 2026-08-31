@@ -1,4 +1,4 @@
-// 根据角色动态生成路由
+// 登录
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
 export default defineFakeRoute([
@@ -6,39 +6,30 @@ export default defineFakeRoute([
     url: "/login",
     method: "post",
     response: ({ body }) => {
-      if (body.username === "admin") {
-        return {
-          code: 0,
-          message: "操作成功",
-          data: {
-            avatar: "https://avatars.githubusercontent.com/u/44761321",
-            username: "admin",
-            nickname: "小铭",
-            // 一个用户可能有多个角色
-            roles: ["admin"],
-            // 按钮级别权限
-            permissions: ["*:*:*"],
-            accessToken: "eyJhbGciOiJIUzUxMiJ9.admin",
-            refreshToken: "eyJhbGciOiJIUzUxMiJ9.adminRefresh",
-            expires: "2030/10/30 00:00:00"
-          }
-        };
-      } else {
-        return {
-          code: 0,
-          message: "操作成功",
-          data: {
-            avatar: "https://avatars.githubusercontent.com/u/52823142",
-            username: "common",
-            nickname: "小林",
-            roles: ["common"],
-            permissions: ["permission:btn:add", "permission:btn:edit"],
-            accessToken: "eyJhbGciOiJIUzUxMiJ9.common",
-            refreshToken: "eyJhbGciOiJIUzUxMiJ9.commonRefresh",
-            expires: "2030/10/30 00:00:00"
-          }
-        };
-      }
+      // 模拟 admin 与 common 两种角色
+      const isAdmin = body?.username === "admin";
+      return {
+        success: true,
+        code: 200,
+        msg: "操作成功",
+        timestamp: Date.now(),
+        data: {
+          avatar: isAdmin
+            ? "https://avatars.githubusercontent.com/u/44761321"
+            : "https://avatars.githubusercontent.com/u/52823142",
+          username: isAdmin ? "admin" : "common",
+          nickname: isAdmin ? "小铭" : "小林",
+          roles: [isAdmin ? "admin" : "common"],
+          permissions: isAdmin
+            ? ["*:*:*"]
+            : ["permission:btn:add", "permission:btn:edit"],
+          accessToken: isAdmin
+            ? "eyJhbGciOiJIUzUxMiJ9.admin"
+            : "eyJhbGciOiJIUzUxMiJ9.common",
+          // 访问令牌过期时间（毫秒时间戳，模拟 30 天有效期）
+          expires: Date.now() + 30 * 24 * 60 * 60 * 1000
+        }
+      };
     }
   }
 ]);

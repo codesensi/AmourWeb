@@ -1,10 +1,7 @@
 import { http } from "@/utils/http";
+import type { ApiResult } from "@/api/types";
 
-type Result = {
-  code: number;
-  message: string;
-  data: Array<any>;
-};
+type Result = ApiResult<Array<any>>;
 
 export const getAsyncRoutes = () => {
   return http.request<Result>("get", "/get-async-routes");

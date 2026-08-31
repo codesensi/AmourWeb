@@ -8,8 +8,10 @@ export default defineFakeRoute([
     method: "get",
     response: () => {
       return {
-        code: 0,
-        message: "操作成功",
+        success: true,
+        code: 200,
+        msg: "操作成功",
+        timestamp: Date.now(),
         data: {
           avatar: "https://avatars.githubusercontent.com/u/44761321",
           username: "admin",
@@ -47,8 +49,10 @@ export default defineFakeRoute([
         }
       ];
       return {
-        code: 0,
-        message: "操作成功",
+        success: true,
+        code: 200,
+        msg: "操作成功",
+        timestamp: Date.now(),
         data: {
           list,
           total: list.length, // 总条目数

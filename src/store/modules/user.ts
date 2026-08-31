@@ -7,12 +7,7 @@ import {
   routerArrays,
   storageLocal
 } from "../utils";
-import {
-  type UserResult,
-  type RefreshTokenResult,
-  getLogin,
-  refreshTokenApi
-} from "@/api/user";
+import { type UserResult, getLogin } from "@/api/user";
 import { useMultiTagsStoreHook } from "./multiTags";
 import { type DataInfo, setToken, removeToken, userKey } from "@/utils/auth";
 
@@ -79,12 +74,12 @@ export const useUserStore = defineStore("pure-user", {
     async loginByUsername(data) {
       return new Promise<UserResult>((resolve, reject) => {
         getLogin(data)
-          .then(data => {
-            if (data.code === 0) {
-              setToken(data.data);
-              resolve(data);
+          .then(res => {
+            if (res.success) {
+              setToken(res.data);
+              resolve(res);
             } else {
-              reject(data.message);
+              reject(res.msg);
             }
           })
           .catch(error => {
@@ -102,22 +97,19 @@ export const useUserStore = defineStore("pure-user", {
       resetRouter();
       router.push("/login");
     },
-    /** 刷新`token` */
-    async handRefreshToken(data) {
-      return new Promise<RefreshTokenResult>((resolve, reject) => {
-        refreshTokenApi(data)
-          .then(data => {
-            if (data.code === 0) {
-              setToken(data.data);
-              resolve(data);
-            } else {
-              reject(data.message);
-            }
-          })
-          .catch(error => {
-            reject(error);
-          });
-      });
+    /** 同步当前登录用户信息（来自 getCurrentUser 接口） */
+    syncUserInfo(userInfo: {
+      avatar?: string;
+      username?: string;
+      nickname?: string;
+      roles?: Array<string>;
+      permissions?: Array<string>;
+    }) {
+      this.SET_AVATAR(userInfo.avatar ?? "");
+      this.SET_USERNAME(userInfo.username ?? "");
+      this.SET_NICKNAME(userInfo.nickname ?? "");
+      this.SET_ROLES(userInfo.roles ?? []);
+      this.SET_PERMS(userInfo.permissions ?? []);
     }
   }
 });

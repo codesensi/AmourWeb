@@ -163,8 +163,8 @@ export function useRole(treeRef: Ref) {
 
   async function onSearch() {
     loading.value = true;
-    const { code, data } = await getRoleList(toRaw(form));
-    if (code === 0) {
+    const { success, data } = await getRoleList(toRaw(form));
+    if (success) {
       dataList.value = data.list;
       pagination.total = data.total;
       pagination.pageSize = data.pageSize;
@@ -231,8 +231,8 @@ export function useRole(treeRef: Ref) {
     if (id) {
       curRow.value = row;
       isShow.value = true;
-      const { code, data } = await getRoleMenuIds({ id });
-      if (code === 0) {
+      const { success, data } = await getRoleMenuIds({ id });
+      if (success) {
         treeRef.value.setCheckedKeys(data);
       }
     } else {
@@ -272,8 +272,8 @@ export function useRole(treeRef: Ref) {
 
   onMounted(async () => {
     onSearch();
-    const { code, data } = await getRoleMenu();
-    if (code === 0) {
+    const { success, data } = await getRoleMenu();
+    if (success) {
       treeIds.value = getKeyList(data, "id");
       treeData.value = handleTree(data);
     }

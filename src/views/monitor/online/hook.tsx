@@ -80,8 +80,8 @@ export function useRole() {
 
   async function onSearch() {
     loading.value = true;
-    const { code, data } = await getOnlineLogsList(toRaw(form));
-    if (code === 0) {
+    const { success, data } = await getOnlineLogsList(toRaw(form));
+    if (success) {
       dataList.value = data.list;
       pagination.total = data.total;
       pagination.pageSize = data.pageSize;

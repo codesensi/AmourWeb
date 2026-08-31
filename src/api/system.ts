@@ -1,25 +1,18 @@
 import { http } from "@/utils/http";
+import type { ApiResult } from "@/api/types";
 
-type Result = {
-  code: number;
-  message: string;
-  data?: Array<any>;
-};
+type Result = ApiResult<Array<any>>;
 
-type ResultTable = {
-  code: number;
-  message: string;
-  data?: {
-    /** 列表数据 */
-    list: Array<any>;
-    /** 总条目数 */
-    total?: number;
-    /** 每页显示条目个数 */
-    pageSize?: number;
-    /** 当前页数 */
-    currentPage?: number;
-  };
-};
+type ResultTable = ApiResult<{
+  /** 列表数据 */
+  list: Array<any>;
+  /** 总条目数 */
+  total?: number;
+  /** 每页显示条目个数 */
+  pageSize?: number;
+  /** 当前页数 */
+  currentPage?: number;
+}>;
 
 /** 获取系统管理-用户管理列表 */
 export const getUserList = (data?: object) => {

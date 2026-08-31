@@ -273,8 +273,8 @@ export function useUser(tableRef: Ref, treeRef: Ref) {
 
   async function onSearch() {
     loading.value = true;
-    const { code, data } = await getUserList(toRaw(form));
-    if (code === 0) {
+    const { success, data } = await getUserList(toRaw(form));
+    if (success) {
       dataList.value = data.list;
       pagination.total = data.total;
       pagination.pageSize = data.pageSize;
@@ -502,8 +502,8 @@ export function useUser(tableRef: Ref, treeRef: Ref) {
     onSearch();
 
     // 归属部门
-    const { code, data } = await getDeptList();
-    if (code === 0) {
+    const { success, data } = await getDeptList();
+    if (success) {
       higherDeptOptions.value = handleTree(data);
       treeData.value = handleTree(data);
     }

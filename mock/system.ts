@@ -50,7 +50,8 @@ export default defineFakeRoute([
       if (body.phone) list = list.filter(item => item.phone === body.phone);
       if (body.deptId) list = list.filter(item => item.dept.id === body.deptId);
       return {
-        code: 0,
+        code: 200,
+        success: true,
         message: "操作成功",
         data: {
           list,
@@ -67,7 +68,8 @@ export default defineFakeRoute([
     method: "get",
     response: () => {
       return {
-        code: 0,
+        code: 200,
+        success: true,
         message: "操作成功",
         data: [
           { id: 1, name: "超级管理员" },
@@ -84,13 +86,15 @@ export default defineFakeRoute([
       if (body.userId) {
         if (body.userId == 1) {
           return {
-            code: 0,
+            code: 200,
+            success: true,
             message: "操作成功",
             data: [1]
           };
         } else if (body.userId == 2) {
           return {
-            code: 0,
+            code: 200,
+            success: true,
             message: "操作成功",
             data: [2]
           };
@@ -135,7 +139,8 @@ export default defineFakeRoute([
       );
       if (body.code) list = list.filter(item => item.code === body.code);
       return {
-        code: 0,
+        code: 200,
+        success: true,
         message: "操作成功",
         data: {
           list,
@@ -152,7 +157,8 @@ export default defineFakeRoute([
     method: "post",
     response: () => {
       return {
-        code: 0,
+        code: 200,
+        success: true,
         message: "操作成功",
         data: [
           // 外部页面
@@ -357,7 +363,8 @@ export default defineFakeRoute([
     response: ({ body }) => {
       if (body.id == 1) {
         return {
-          code: 0,
+          code: 200,
+          success: true,
           message: "操作成功",
           data: [
             100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 200, 201,
@@ -367,7 +374,8 @@ export default defineFakeRoute([
         };
       } else if (body.id == 2) {
         return {
-          code: 0,
+          code: 200,
+          success: true,
           message: "操作成功",
           data: [
             100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 404, 500,
@@ -383,7 +391,8 @@ export default defineFakeRoute([
     method: "post",
     response: () => {
       return {
-        code: 0,
+        code: 200,
+        success: true,
         message: "操作成功",
         data: [
           // 外部页面
@@ -1265,7 +1274,8 @@ export default defineFakeRoute([
     method: "post",
     response: () => {
       return {
-        code: 0,
+        code: 200,
+        success: true,
         message: "操作成功",
         data: [
           {
@@ -1429,7 +1439,8 @@ export default defineFakeRoute([
       ];
       list = list.filter(item => item.username.includes(body?.username));
       return {
-        code: 0,
+        code: 200,
+        success: true,
         message: "操作成功",
         data: {
           list,
@@ -1474,7 +1485,8 @@ export default defineFakeRoute([
         String(item.status).includes(String(body?.status))
       );
       return {
-        code: 0,
+        code: 200,
+        success: true,
         message: "操作成功",
         data: {
           list,
@@ -1521,7 +1533,8 @@ export default defineFakeRoute([
         String(item.status).includes(String(body?.status))
       );
       return {
-        code: 0,
+        code: 200,
+        success: true,
         message: "操作成功",
         data: {
           list,
@@ -1580,7 +1593,8 @@ export default defineFakeRoute([
       ];
       list = list.filter(item => item.module.includes(body?.module));
       return {
-        code: 0,
+        code: 200,
+        success: true,
         message: "操作成功",
         data: {
           list,
@@ -1616,7 +1630,8 @@ export default defineFakeRoute([
             "Content-Length": 17019
           },
           responseBody: {
-            code: 0,
+            code: 200,
+            success: true,
             message: "操作成功",
             data: [
               {

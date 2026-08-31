@@ -99,8 +99,8 @@ const onSubmit = async (formEl: FormInstance) => {
 };
 
 onMounted(async () => {
-  const { code, data } = await getMine();
-  if (code === 0) {
+  const { success, data } = await getMine();
+  if (success) {
     Object.assign(userInfos, data);
   }
 });

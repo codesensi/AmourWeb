@@ -112,8 +112,10 @@ export default defineFakeRoute([
     method: "get",
     response: () => {
       return {
-        code: 0,
-        message: "操作成功",
+        success: true,
+        code: 200,
+        msg: "操作成功",
+        timestamp: Date.now(),
         data: [systemManagementRouter, systemMonitorRouter]
       };
     }
