@@ -46,11 +46,21 @@ export default [
     ]
   },
   {
-    path: "/account-settings",
+    path: "/admin/account-settings",
     name: "AccountSettings",
     component: () => import("@/views/account-settings/index.vue"),
     meta: {
       title: "账户设置",
+      showLink: false
+    }
+  },
+  // 过渡重定向：管理端迁入 /admin 后，门户（第 2 期）上线前根路径兜底；
+  // 第 2 期门户首页路由落地时删除此条
+  {
+    path: "/",
+    redirect: "/admin/welcome",
+    meta: {
+      title: "根路径",
       showLink: false
     }
   }

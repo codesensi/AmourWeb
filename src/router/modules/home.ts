@@ -3,10 +3,10 @@ const { VITE_HIDE_HOME } = import.meta.env;
 const Layout = () => import("@/layout/index.vue");
 
 export default {
-  path: "/",
+  path: "/admin",
   name: "Home",
   component: Layout,
-  redirect: "/welcome",
+  redirect: "/admin/welcome",
   meta: {
     icon: "ep/home-filled",
     title: "首页",
@@ -14,7 +14,7 @@ export default {
   },
   children: [
     {
-      path: "/welcome",
+      path: "/admin/welcome",
       name: "Welcome",
       component: () => import("@/views/welcome/index.vue"),
       meta: {

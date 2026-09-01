@@ -220,8 +220,8 @@ function handleAsyncRoutes(routeList) {
           if (!router.hasRoute(v?.name)) router.addRoute(v);
           const flattenRouters: any = router
             .getRoutes()
-            .find(n => n.path === "/");
-          // 保持router.options.routes[0].children与path为"/"的children一致，防止数据不一致导致异常
+            .find(n => n.path === "/admin");
+          // 保持router.options.routes[0].children与path为"/admin"的children一致，防止数据不一致导致异常
           flattenRouters.children = router.options.routes[0].children;
           router.addRoute(flattenRouters);
         }
@@ -288,7 +288,7 @@ function formatTwoStageRoutes(routesList: RouteRecordRaw[]) {
   if (routesList.length === 0) return routesList;
   const newRoutesList: RouteRecordRaw[] = [];
   routesList.forEach((v: RouteRecordRaw) => {
-    if (v.path === "/") {
+    if (v.path === "/admin") {
       newRoutesList.push({
         component: v.component,
         name: v.name,
