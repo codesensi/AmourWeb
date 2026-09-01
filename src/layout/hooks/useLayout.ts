@@ -32,7 +32,6 @@ export function useLayout() {
         grey: $config?.Grey ?? false,
         weak: $config?.Weak ?? false,
         hideTabs: $config?.HideTabs ?? false,
-        hideFooter: $config.HideFooter ?? true,
         showLogo: $config?.ShowLogo ?? true,
         watermark: $config?.Watermark ?? false,
         watermarkText: $config?.WatermarkText ?? "",
