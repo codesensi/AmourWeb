@@ -2,7 +2,6 @@ import { about } from "@/router/enums";
 
 export default {
   path: "/admin/about",
-  redirect: "/admin/about/index",
   meta: {
     icon: "ri/file-info-line",
     title: "关于",
@@ -10,7 +9,7 @@ export default {
   },
   children: [
     {
-      path: "/admin/about/index",
+      path: "/admin/about",
       name: "About",
       component: () => import("@/views/about/index.vue"),
       meta: {
