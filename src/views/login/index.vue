@@ -17,10 +17,10 @@ import LoginRegist from "./components/LoginRegist.vue";
 import LoginUpdate from "./components/LoginUpdate.vue";
 import LoginQrCode from "./components/LoginQrCode.vue";
 import { useUserStoreHook } from "@/store/modules/user";
+import { getCaptchaImage } from "@/api/captcha";
 import { initRouter, getTopMenu } from "@/router/utils";
 import { bg, avatar, illustration } from "./utils/static";
-import { ReImageVerify } from "@/components/ReImageVerify";
-import { ref, toRaw, reactive, watch, computed } from "vue";
+import { ref, toRaw, reactive, watch, computed, onMounted } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { useTranslationLang } from "@/layout/hooks/useTranslationLang";
 import { useDataThemeChange } from "@/layout/hooks/useDataThemeChange";
@@ -38,7 +38,9 @@ defineOptions({
   name: "Login"
 });
 
-const imgCode = ref("");
+const captchaKey = ref("");
+const captchaImg = ref("");
+const captchaEnabled = ref(true);
 const loginDay = ref(7);
 const router = useRouter();
 const loading = ref(false);
@@ -60,8 +62,20 @@ const { locale, translationCh, translationEn } = useTranslationLang();
 const ruleForm = reactive({
   username: "admin",
   password: "admin123",
-  verifyCode: ""
+  captchaValue: ""
 });
+
+/** 获取图形验证码 */
+const getCaptcha = async () => {
+  const res = await getCaptchaImage();
+  if (res.success) {
+    captchaEnabled.value = res.data.enabled !== false;
+    captchaKey.value = res.data.captchaKey;
+    captchaImg.value = res.data.captchaValue;
+  }
+};
+
+onMounted(getCaptcha);
 
 const onLogin = async (formEl: FormInstance | undefined) => {
   if (!formEl) return;
@@ -71,7 +85,9 @@ const onLogin = async (formEl: FormInstance | undefined) => {
       useUserStoreHook()
         .loginByUsername({
           username: ruleForm.username,
-          password: ruleForm.password
+          password: ruleForm.password,
+          captchaKey: captchaKey.value,
+          captchaValue: ruleForm.captchaValue
         })
         .then(async () => {
           // 获取后端路由
@@ -83,6 +99,9 @@ const onLogin = async (formEl: FormInstance | undefined) => {
         })
         .catch(_err => {
           message(t("login.pureLoginFail"), { type: "error" });
+          // 登录失败后自动刷新验证码
+          getCaptcha();
+          ruleForm.captchaValue = "";
         })
         .finally(() => {
           disabled.value = false;
@@ -107,9 +126,6 @@ useEventListener(document, "keydown", ({ code }) => {
     immediateDebounce(ruleFormRef.value);
 });
 
-watch(imgCode, value => {
-  useUserStoreHook().SET_VERIFYCODE(value);
-});
 watch(checked, bool => {
   useUserStoreHook().SET_ISREMEMBERED(bool);
 });
@@ -218,15 +234,20 @@ watch(loginDay, value => {
             </Motion>
 
             <Motion :delay="200">
-              <el-form-item prop="verifyCode">
+              <el-form-item v-if="captchaEnabled" prop="captchaValue">
                 <el-input
-                  v-model="ruleForm.verifyCode"
+                  v-model="ruleForm.captchaValue"
                   clearable
                   :placeholder="t('login.pureVerifyCode')"
                   :prefix-icon="useRenderIcon(Keyhole)"
                 >
                   <template v-slot:append>
-                    <ReImageVerify v-model:code="imgCode" />
+                    <img
+                      :src="captchaImg"
+                      alt="验证码"
+                      class="h-10 cursor-pointer"
+                      @click="getCaptcha"
+                    />
                   </template>
                 </el-input>
               </el-form-item>

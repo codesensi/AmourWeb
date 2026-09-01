@@ -62,3 +62,39 @@ export const getMine = (data?: object) => {
 export const getMineLogs = (data?: object) => {
   return http.request<ResultTable>("get", "/mine-logs", { data });
 };
+
+/** 菜单项(后端扁平 D/M/B 结构) */
+export interface MenuItem {
+  id: string;
+  pid: string;
+  title: string;
+  type: "D" | "M" | "B";
+  path?: string;
+  component?: string;
+  sort: number;
+  icon?: string;
+  perms?: string;
+  status: number;
+  hidden: number;
+  builtin: number;
+}
+
+/** 当前登录用户信息(含菜单) */
+export type CurrentUserResult = ApiResult<{
+  username: string;
+  nickname: string;
+  avatar: string;
+  email?: string;
+  phone?: string;
+  gender?: string;
+  remark?: string;
+  builtin?: number;
+  roles: Array<string>;
+  perms: Array<string>;
+  menus: Array<MenuItem>;
+}>;
+
+/** 获取当前登录用户信息(含菜单) */
+export const getCurrentUser = () => {
+  return http.request<CurrentUserResult>("get", "/sys/user/getCurrentUser");
+};

@@ -16,18 +16,20 @@ import {
   storageLocal,
   isIncludeAllChildren
 } from "@pureadmin/utils";
-import { getConfig } from "@/config";
 import { buildHierarchyTree } from "@/utils/tree";
 import { userKey, type DataInfo } from "@/utils/auth";
 import { type menuType, routerArrays } from "@/layout/types";
 import { useMultiTagsStoreHook } from "@/store/modules/multiTags";
 import { usePermissionStoreHook } from "@/store/modules/permission";
 const IFrame = () => import("@/layout/frame.vue");
+// 目录型动态路由的容器组件(避免 path 兜底匹配到非组件模块)
+const Layout = () => import("@/layout/index.vue");
 // https://cn.vitejs.dev/guide/features.html#glob-import
 const modulesRoutes = import.meta.glob("/src/views/**/*.{vue,tsx}");
 
-// 动态路由
-import { getAsyncRoutes } from "@/api/routes";
+// 动态路由(由当前登录用户菜单装配)
+import { getCurrentUser, type MenuItem } from "@/api/user";
+import { useUserStoreHook } from "@/store/modules/user";
 
 const PAGE_NOT_FOUND_ROUTE_NAME = "PageNotFound" as const;
 
@@ -156,6 +158,46 @@ function addPathMatch() {
 }
 
 /** 处理动态路由（后端返回的路由） */
+/** 将后端菜单项 path 转为路由 name(驼峰) */
+function pathToRouteName(path: string): string {
+  return path
+    .replace(/^\//, "")
+    .split(/[-/]/)
+    .filter(Boolean)
+    .map(segment => segment.charAt(0).toUpperCase() + segment.slice(1))
+    .join("");
+}
+
+/** 后端扁平菜单(D/M/B)转为前端路由树 */
+function transformMenus(menus: Array<MenuItem>): Array<RouteRecordRaw> {
+  const validMenus = menus.filter(item => item.type !== "B" && item.path);
+  const nodeMap = new Map<string, any>();
+  validMenus.forEach(item => {
+    nodeMap.set(item.id, {
+      path: item.path,
+      name: pathToRouteName(item.path),
+      component: item.component,
+      meta: {
+        title: item.title,
+        icon: item.icon,
+        rank: item.sort,
+        showLink: item.hidden !== 1
+      }
+    });
+  });
+  const tree: Array<any> = [];
+  validMenus.forEach(item => {
+    const node = nodeMap.get(item.id);
+    const parent = nodeMap.get(item.pid);
+    if (item.pid !== "0" && parent) {
+      (parent.children ??= []).push(node);
+    } else {
+      tree.push(nodeMap.get(item.id));
+    }
+  });
+  return tree;
+}
+
 function handleAsyncRoutes(routeList) {
   if (routeList.length === 0) {
     usePermissionStoreHook().handleWholeMenus(routeList);
@@ -171,6 +213,7 @@ function handleAsyncRoutes(routeList) {
           return;
         } else {
           // 切记将路由push到routes后还需要使用addRoute，这样路由才能正常跳转
+          if (v?.children && v.children.length) return;
           router.options.routes[0].children.push(v);
           // 最终路由进行升序
           ascending(router.options.routes[0].children);
@@ -199,40 +242,22 @@ function handleAsyncRoutes(routeList) {
 
 /** 初始化路由（`new Promise` 写法防止在异步请求中造成无限循环）*/
 function initRouter() {
-  if (getConfig()?.CachingAsyncRoutes) {
-    // 开启动态路由缓存本地localStorage
-    const key = "async-routes";
-    const asyncRouteList = storageLocal().getItem(key) as any;
-    if (asyncRouteList && asyncRouteList?.length > 0) {
-      return new Promise(resolve => {
-        handleAsyncRoutes(asyncRouteList);
-        resolve(router);
-      });
-    } else {
-      return new Promise(resolve => {
-        getAsyncRoutes().then(({ success, data }) => {
-          if (success) {
-            handleAsyncRoutes(cloneDeep(data));
-            storageLocal().setItem(key, data);
-            resolve(router);
-          } else {
-            resolve(router);
-          }
+  return new Promise(resolve => {
+    getCurrentUser().then(({ success, data }) => {
+      if (success) {
+        // 同步用户信息(perms 映射为 permissions)后装配动态路由
+        useUserStoreHook().syncUserInfo({
+          avatar: data.avatar,
+          username: data.username,
+          nickname: data.nickname,
+          roles: data.roles,
+          permissions: data.perms ?? []
         });
-      });
-    }
-  } else {
-    return new Promise(resolve => {
-      getAsyncRoutes().then(({ success, data }) => {
-        if (success) {
-          handleAsyncRoutes(cloneDeep(data));
-          resolve(router);
-        } else {
-          resolve(router);
-        }
-      });
+        handleAsyncRoutes(cloneDeep(transformMenus(data.menus)));
+      }
+      resolve(router);
     });
-  }
+  });
 }
 
 /**
@@ -329,6 +354,9 @@ function addAsyncRoutes(arrRoutes: Array<RouteRecordRaw>) {
       v.name = (v.children[0].name as string) + "Parent";
     if (v.meta?.frameSrc) {
       v.component = IFrame;
+    } else if (!v.component && v?.children && v.children.length) {
+      // 目录节点无组件时使用 Layout 容器,避免 path 兜底匹配到非组件模块(如 hook.tsx 无 default 导出)
+      v.component = Layout;
     } else {
       // 对后端传component组件路径和不传做兼容（如果后端传component组件路径，那么path可以随便写，如果不传，component组件路径会跟path保持一致）
       const index = v?.component

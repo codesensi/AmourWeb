@@ -70,6 +70,10 @@ declare global {
     VITE_CDN: boolean;
     VITE_HIDE_HOME: string;
     VITE_COMPRESSION: ViteCompression;
+    /** mock 开关（唯一 mock 开关，见 .env.development） */
+    VITE_USE_MOCK: boolean;
+    /** 真接口地址（第 3 期启用；mock 模式下留空） */
+    VITE_API_BASE_URL: string;
   }
 
   /**
