@@ -1,7 +1,7 @@
 import editForm from "../form.vue";
 import { handleTree } from "@/utils/tree";
 import { message } from "@/utils/message";
-import { getMenuList } from "@/api/system";
+import { deleteMenu, getMenuList, insertMenu, updateMenu } from "@/api/system";
 import { transformI18n } from "@/plugins/i18n";
 import { addDialog } from "@/components/ReDialog";
 import { reactive, ref, onMounted, h } from "vue";
@@ -108,7 +108,7 @@ export function useMenu() {
     loading.value = true;
     const { success, data } = await getMenuList(); // 这里是返回一维数组结构，前端自行处理成树结构，返回格式要求：唯一id加父节点parentId，parentId取父节点id
     if (success) {
-      let newData = data;
+      let newData = data.records;
       if (!isAllEmpty(form.title)) {
         // 前端搜索菜单名称
         newData = newData.filter(item =>
@@ -182,24 +182,23 @@ export function useMenu() {
           done(); // 关闭弹框
           onSearch(); // 刷新表格数据
         }
-        FormRef.validate(valid => {
+        FormRef.validate(async valid => {
           if (valid) {
-            console.log("curData", curData);
             // 表单规则校验通过
             if (title === "新增") {
-              // 实际开发先调用新增接口，再进行下面操作
-              chores();
+              await insertMenu(curData);
             } else {
-              // 实际开发先调用修改接口，再进行下面操作
-              chores();
+              await updateMenu(curData);
             }
+            chores();
           }
         });
       }
     });
   }
 
-  function handleDelete(row) {
+  async function handleDelete(row) {
+    await deleteMenu(row.id);
     message(`您删除了菜单名称为${transformI18n(row.title)}的这条数据`, {
       type: "success"
     });

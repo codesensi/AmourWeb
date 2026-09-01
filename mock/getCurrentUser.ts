@@ -16,7 +16,7 @@ interface MenuItem {
   builtin: number;
 }
 
-const menus: MenuItem[] = [
+export const menus: MenuItem[] = [
   // 系统管理
   {
     id: "1000",

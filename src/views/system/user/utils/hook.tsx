@@ -18,11 +18,16 @@ import {
   deviceDetection
 } from "@pureadmin/utils";
 import {
-  getRoleIds,
+  deleteUser,
   getDeptList,
+  getRoleList,
   getUserList,
-  getAllRoleList
+  getUserRoleIds,
+  insertUser,
+  updateUser,
+  assignRoles
 } from "@/api/system";
+import { uploadAvatar } from "@/api/file";
 import {
   ElForm,
   ElInput,
@@ -232,7 +237,8 @@ export function useUser(tableRef: Ref, treeRef: Ref) {
     console.log(row);
   }
 
-  function handleDelete(row) {
+  async function handleDelete(row) {
+    await deleteUser(row.id);
     message(`您删除了用户编号为${row.id}的这条数据`, { type: "success" });
     onSearch();
   }
@@ -275,10 +281,10 @@ export function useUser(tableRef: Ref, treeRef: Ref) {
     loading.value = true;
     const { success, data } = await getUserList(toRaw(form));
     if (success) {
-      dataList.value = data.list;
-      pagination.total = data.total;
+      dataList.value = data.records;
+      pagination.total = data.totalRow;
       pagination.pageSize = data.pageSize;
-      pagination.currentPage = data.currentPage;
+      pagination.currentPage = data.pageNumber;
     }
 
     setTimeout(() => {
@@ -345,17 +351,15 @@ export function useUser(tableRef: Ref, treeRef: Ref) {
           done(); // 关闭弹框
           onSearch(); // 刷新表格数据
         }
-        FormRef.validate(valid => {
+        FormRef.validate(async valid => {
           if (valid) {
-            console.log("curData", curData);
             // 表单规则校验通过
             if (title === "新增") {
-              // 实际开发先调用新增接口，再进行下面操作
-              chores();
+              await insertUser(curData);
             } else {
-              // 实际开发先调用修改接口，再进行下面操作
-              chores();
+              await updateUser(curData);
             }
+            chores();
           }
         });
       }
@@ -376,9 +380,13 @@ export function useUser(tableRef: Ref, treeRef: Ref) {
           imgSrc: row.avatar || userAvatar,
           onCropper: info => (avatarInfo.value = info)
         }),
-      beforeSure: done => {
-        console.log("裁剪后的图片信息：", avatarInfo.value);
-        // 根据实际业务使用avatarInfo.value和row里的某些字段去调用上传头像接口即可
+      beforeSure: async done => {
+        // 调用 mock 上传接口(第 3 期切真接口),用返回的 URL 更新头像
+        const res = await uploadAvatar({ id: row.id, file: avatarInfo.value });
+        if (res.success) {
+          row.avatar = res.data.url;
+          message("头像上传成功", { type: "success" });
+        }
         done(); // 关闭弹框
         onSearch(); // 刷新表格数据
       },
@@ -471,7 +479,7 @@ export function useUser(tableRef: Ref, treeRef: Ref) {
   /** 分配角色 */
   async function handleRole(row) {
     // 选中的角色列表
-    const ids = (await getRoleIds({ userId: row.id })).data ?? [];
+    const ids = (await getUserRoleIds(row.id)).data ?? [];
     addDialog({
       title: `分配 ${row.username} 用户的角色`,
       props: {
@@ -488,10 +496,12 @@ export function useUser(tableRef: Ref, treeRef: Ref) {
       fullscreenIcon: true,
       closeOnClickModal: false,
       contentRenderer: () => h(roleForm),
-      beforeSure: (done, { options }) => {
+      beforeSure: async (done, { options }) => {
         const curData = options.props.formInline as RoleFormItemProps;
-        console.log("curIds", curData.ids);
-        // 根据实际业务使用curData.ids和row里的某些字段去调用修改角色接口即可
+        await assignRoles({ userId: row.id, roleIds: curData.ids });
+        message(`角色名称为${row.username}的用户角色分配成功`, {
+          type: "success"
+        });
         done(); // 关闭弹框
       }
     });
@@ -511,7 +521,7 @@ export function useUser(tableRef: Ref, treeRef: Ref) {
     treeLoading.value = false;
 
     // 角色列表
-    roleOptions.value = (await getAllRoleList()).data ?? [];
+    roleOptions.value = (await getRoleList()).data.records ?? [];
   });
 
   return {

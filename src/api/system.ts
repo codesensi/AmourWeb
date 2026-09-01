@@ -1,80 +1,164 @@
 import { http } from "@/utils/http";
-import type { ApiResult } from "@/api/types";
+import type { ApiResult, PageResult } from "@/api/types";
 
-type Result = ApiResult<Array<any>>;
-
-type ResultTable = ApiResult<{
-  /** 列表数据 */
-  list: Array<any>;
-  /** 总条目数 */
-  total?: number;
-  /** 每页显示条目个数 */
-  pageSize?: number;
-  /** 当前页数 */
-  currentPage?: number;
-}>;
-
-/** 获取系统管理-用户管理列表 */
-export const getUserList = (data?: object) => {
-  return http.request<ResultTable>("post", "/user", { data });
+/** 用户管理-行数据 */
+export type SysUserItem = {
+  id: number;
+  username: string;
+  nickname: string;
+  phone?: string;
+  email?: string;
+  sex?: number;
+  avatar?: string;
+  status?: number;
+  builtin?: number;
+  remark?: string;
+  deptId?: number;
+  dept?: { id: number; name: string };
+  createTime?: number;
 };
 
-/** 系统管理-用户管理-获取所有角色列表 */
-export const getAllRoleList = () => {
-  return http.request<Result>("get", "/list-all-role");
+/** 用户分页查询参数 */
+export type SysUserQuery = {
+  deptId?: string | number;
+  username?: string;
+  phone?: string;
+  status?: string;
 };
 
-/** 系统管理-用户管理-根据userId，获取对应角色id列表（userId：用户id） */
-export const getRoleIds = (data?: object) => {
-  return http.request<Result>("post", "/list-role-ids", { data });
+/** 用户管理-分页查询(GET /sys/user/page) */
+export const getUserList = (params?: SysUserQuery) => {
+  return http.request<ApiResult<PageResult<SysUserItem>>>(
+    "get",
+    "/sys/user/page",
+    { params }
+  );
 };
 
-/** 获取系统管理-角色管理列表 */
-export const getRoleList = (data?: object) => {
-  return http.request<ResultTable>("post", "/role", { data });
+/** 用户管理-新增(POST /sys/user/insert) */
+export const insertUser = (data?: object) => {
+  return http.request<ApiResult<any>>("post", "/sys/user/insert", { data });
 };
 
-/** 获取系统管理-菜单管理列表 */
-export const getMenuList = (data?: object) => {
-  return http.request<Result>("post", "/menu", { data });
+/** 用户管理-修改(PUT /sys/user/update) */
+export const updateUser = (data?: object) => {
+  return http.request<ApiResult<any>>("put", "/sys/user/update", { data });
 };
 
-/** 获取系统管理-部门管理列表 */
+/** 用户管理-删除(DELETE /sys/user/delete/{id}) */
+export const deleteUser = (id: number | string) => {
+  return http.request<ApiResult<any>>("delete", `/sys/user/delete/${id}`);
+};
+
+/** 用户管理-分配角色(PUT /sys/user/assignRoles) */
+export const assignRoles = (data?: object) => {
+  return http.request<ApiResult<any>>("put", "/sys/user/assignRoles", { data });
+};
+
+/** 用户管理-获取用户已有角色 id(GET /sys/user/role-ids/{id}) */
+export const getUserRoleIds = (id: number | string) => {
+  return http.request<ApiResult<Array<number>>>(
+    "get",
+    `/sys/user/role-ids/${id}`
+  );
+};
+
+/** 角色管理-分页查询(GET /sys/role/page) */
+export const getRoleList = (params?: object) => {
+  return http.request<ApiResult<PageResult<any>>>("get", "/sys/role/page", {
+    params
+  });
+};
+
+/** 角色管理-新增(POST /sys/role/insert) */
+export const insertRole = (data?: object) => {
+  return http.request<ApiResult<any>>("post", "/sys/role/insert", { data });
+};
+
+/** 角色管理-修改(PUT /sys/role/update) */
+export const updateRole = (data?: object) => {
+  return http.request<ApiResult<any>>("put", "/sys/role/update", { data });
+};
+
+/** 角色管理-删除(DELETE /sys/role/delete/{id}) */
+export const deleteRole = (id: number | string) => {
+  return http.request<ApiResult<any>>("delete", `/sys/role/delete/${id}`);
+};
+
+/** 角色管理-获取全量菜单树(GET /sys/role/menu-tree,授权弹窗用) */
+export const getRoleMenuTree = () => {
+  return http.request<ApiResult<Array<any>>>("get", "/sys/role/menu-tree");
+};
+
+/** 角色管理-获取角色已勾选菜单 id(GET /sys/role/menu-ids/{id}) */
+export const getRoleMenuIds = (id: number | string) => {
+  return http.request<ApiResult<Array<number>>>(
+    "get",
+    `/sys/role/menu-ids/${id}`
+  );
+};
+
+/** 角色管理-保存菜单授权(PUT /sys/role/assignMenus) */
+export const assignMenus = (data?: object) => {
+  return http.request<ApiResult<any>>("put", "/sys/role/assignMenus", { data });
+};
+
+/** 菜单管理-分页查询(GET /sys/menu/page) */
+export const getMenuList = (params?: object) => {
+  return http.request<ApiResult<PageResult<any>>>("get", "/sys/menu/page", {
+    params
+  });
+};
+
+/** 菜单管理-新增(POST /sys/menu/insert) */
+export const insertMenu = (data?: object) => {
+  return http.request<ApiResult<any>>("post", "/sys/menu/insert", { data });
+};
+
+/** 菜单管理-修改(PUT /sys/menu/update) */
+export const updateMenu = (data?: object) => {
+  return http.request<ApiResult<any>>("put", "/sys/menu/update", { data });
+};
+
+/** 菜单管理-删除(DELETE /sys/menu/delete/{id}) */
+export const deleteMenu = (id: number | string) => {
+  return http.request<ApiResult<any>>("delete", `/sys/menu/delete/${id}`);
+};
+
+/** 部门管理-列表(后端暂无部门表,mock 供数,第 3 期定去留) */
 export const getDeptList = (data?: object) => {
-  return http.request<Result>("post", "/dept", { data });
+  return http.request<ApiResult<Array<any>>>("post", "/dept", { data });
 };
 
-/** 获取系统监控-在线用户列表 */
+/** 系统监控-在线用户列表 */
 export const getOnlineLogsList = (data?: object) => {
-  return http.request<ResultTable>("post", "/online-logs", { data });
+  return http.request<ApiResult<PageResult<any>>>("post", "/online-logs", {
+    data
+  });
 };
 
-/** 获取系统监控-登录日志列表 */
+/** 系统监控-登录日志列表 */
 export const getLoginLogsList = (data?: object) => {
-  return http.request<ResultTable>("post", "/login-logs", { data });
+  return http.request<ApiResult<PageResult<any>>>("post", "/login-logs", {
+    data
+  });
 };
 
-/** 获取系统监控-操作日志列表 */
+/** 系统监控-操作日志列表 */
 export const getOperationLogsList = (data?: object) => {
-  return http.request<ResultTable>("post", "/operation-logs", { data });
+  return http.request<ApiResult<PageResult<any>>>("post", "/operation-logs", {
+    data
+  });
 };
 
-/** 获取系统监控-系统日志列表 */
+/** 系统监控-系统日志列表 */
 export const getSystemLogsList = (data?: object) => {
-  return http.request<ResultTable>("post", "/system-logs", { data });
+  return http.request<ApiResult<PageResult<any>>>("post", "/system-logs", {
+    data
+  });
 };
 
-/** 获取系统监控-系统日志-根据 id 查日志详情 */
+/** 系统监控-系统日志-根据 id 查日志详情 */
 export const getSystemLogsDetail = (data?: object) => {
-  return http.request<Result>("post", "/system-logs-detail", { data });
-};
-
-/** 获取角色管理-权限-菜单权限 */
-export const getRoleMenu = (data?: object) => {
-  return http.request<Result>("post", "/role-menu", { data });
-};
-
-/** 获取角色管理-权限-菜单权限-根据角色 id 查对应菜单 */
-export const getRoleMenuIds = (data?: object) => {
-  return http.request<Result>("post", "/role-menu-ids", { data });
+  return http.request<ApiResult<any>>("post", "/system-logs-detail", { data });
 };

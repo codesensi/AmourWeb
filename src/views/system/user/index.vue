@@ -4,6 +4,7 @@ import tree from "./tree.vue";
 import { useUser } from "./utils/hook";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import { hasPerms } from "@/utils/auth";
 
 import Upload from "~icons/ri/upload-line";
 import Role from "~icons/ri/admin-line";
@@ -117,6 +118,7 @@ const {
       >
         <template #buttons>
           <el-button
+            v-if="hasPerms('system:user:insert')"
             type="primary"
             :icon="useRenderIcon(AddFill)"
             @click="openDialog()"
@@ -171,6 +173,7 @@ const {
           >
             <template #operation="{ row }">
               <el-button
+                v-if="hasPerms('system:user:update')"
                 class="reset-margin"
                 link
                 type="primary"
@@ -186,6 +189,7 @@ const {
               >
                 <template #reference>
                   <el-button
+                    v-if="hasPerms('system:user:delete')"
                     class="reset-margin"
                     link
                     type="primary"
@@ -209,6 +213,7 @@ const {
                   <el-dropdown-menu>
                     <el-dropdown-item>
                       <el-button
+                        v-if="hasPerms('system:user:update')"
                         :class="buttonClass"
                         link
                         type="primary"
@@ -221,6 +226,7 @@ const {
                     </el-dropdown-item>
                     <el-dropdown-item>
                       <el-button
+                        v-if="hasPerms('system:user:update')"
                         :class="buttonClass"
                         link
                         type="primary"
@@ -233,6 +239,7 @@ const {
                     </el-dropdown-item>
                     <el-dropdown-item>
                       <el-button
+                        v-if="hasPerms('system:user:update')"
                         :class="buttonClass"
                         link
                         type="primary"
