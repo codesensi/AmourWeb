@@ -7,7 +7,7 @@ import {
   routerArrays,
   storageLocal
 } from "../utils";
-import { type UserResult, getLogin } from "@/api/user";
+import { type UserResult, getLogin, logoutApi } from "@/api/user";
 import { useMultiTagsStoreHook } from "./multiTags";
 import { type DataInfo, setToken, removeToken, userKey } from "@/utils/auth";
 
@@ -84,6 +84,15 @@ export const useUserStore = defineStore("pure-user", {
       useMultiTagsStoreHook().handleTags("equal", [...routerArrays]);
       resetRouter();
       router.push("/login");
+    },
+    /** 退出系统:先通知后端作废 token(尽力而为,失败不阻塞本地清理),再做前端登出 */
+    async logOutWithServer() {
+      try {
+        await logoutApi();
+      } catch {
+        /* 后端不可用或 token 已失效时忽略,本地清理不受阻 */
+      }
+      this.logOut();
     },
     /** 同步当前登录用户信息（来自 getCurrentUser 接口） */
     syncUserInfo(userInfo: {

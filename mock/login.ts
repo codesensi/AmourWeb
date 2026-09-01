@@ -31,5 +31,17 @@ export default defineFakeRoute([
         }
       };
     }
+  },
+  // 退出系统(POST /logout,第 3 期后端作废当前 token,mock 恒返回成功)
+  {
+    url: "/logout",
+    method: "post",
+    response: () => ({
+      success: true,
+      code: 200,
+      msg: "操作成功",
+      timestamp: Date.now(),
+      data: null
+    })
   }
 ]);

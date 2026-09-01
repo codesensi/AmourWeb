@@ -53,6 +53,11 @@ export const getLogin = (data?: object) => {
   return http.request<UserResult>("post", "/login", { data });
 };
 
+/** 退出系统(通知后端作废当前 token) */
+export const logoutApi = () => {
+  return http.request<ApiResult<null>>("post", "/logout");
+};
+
 /** 账户设置-个人信息 */
 export const getMine = (data?: object) => {
   return http.request<UserInfoResult>("get", "/mine", { data });
