@@ -49,9 +49,9 @@ export default defineFakeRoute([
     method: "put",
     response: () => ({ success: true, code: 200, msg: "操作成功" })
   },
-  // 删除(DELETE /sys/menu/delete/{id})
+  // 删除(DELETE /sys/menu/delete/:id)
   {
-    url: "/sys/menu/delete/{id}",
+    url: "/sys/menu/delete/:id",
     method: "delete",
     response: () => ({ success: true, code: 200, msg: "操作成功" })
   }

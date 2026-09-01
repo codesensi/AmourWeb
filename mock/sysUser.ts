@@ -67,16 +67,16 @@ export default defineFakeRoute([
       };
     }
   },
-  // 用户已有角色 id(GET /sys/user/role-ids/{id})
+  // 用户已有角色 id(GET /sys/user/role-ids/:id)
   {
-    url: "/sys/user/role-ids/{id}",
+    url: "/sys/user/role-ids/:id",
     method: "get",
-    response: ({ query }) => {
+    response: ({ params }) => {
       return {
         success: true,
         code: 200,
         msg: "操作成功",
-        data: rolesByUser[Number(query.id)] ?? []
+        data: rolesByUser[Number(params.id)] ?? []
       };
     }
   },
@@ -92,9 +92,9 @@ export default defineFakeRoute([
     method: "put",
     response: () => ({ success: true, code: 200, msg: "操作成功" })
   },
-  // 删除(DELETE /sys/user/delete/{id})
+  // 删除(DELETE /sys/user/delete/:id)
   {
-    url: "/sys/user/delete/{id}",
+    url: "/sys/user/delete/:id",
     method: "delete",
     response: () => ({ success: true, code: 200, msg: "操作成功" })
   },

@@ -53,12 +53,12 @@ export default defineFakeRoute([
       };
     }
   },
-  // 角色已有菜单 id(GET /sys/role/menu-ids/{id})
+  // 角色已有菜单 id(GET /sys/role/menu-ids/:id)
   {
-    url: "/sys/role/menu-ids/{id}",
+    url: "/sys/role/menu-ids/:id",
     method: "get",
-    response: ({ query }) => {
-      const id = Number(query.id);
+    response: ({ params }) => {
+      const id = Number(params.id);
       return {
         success: true,
         code: 200,
@@ -166,9 +166,9 @@ export default defineFakeRoute([
     method: "put",
     response: () => ({ success: true, code: 200, msg: "操作成功" })
   },
-  // 删除(DELETE /sys/role/delete/{id})
+  // 删除(DELETE /sys/role/delete/:id)
   {
-    url: "/sys/role/delete/{id}",
+    url: "/sys/role/delete/:id",
     method: "delete",
     response: () => ({ success: true, code: 200, msg: "操作成功" })
   },
