@@ -21,7 +21,9 @@ defineProps<{ site: Partial<SysConfigData> }>();
           >{{ site.icpText }}</a
         >
       </p>
-      <p id="footerCopyright">Copyright © {{ site.copyright }} All Rights Reserved.</p>
+      <p id="footerCopyright">
+        Copyright © {{ site.copyright }} All Rights Reserved.
+      </p>
     </div>
   </div>
 </template>

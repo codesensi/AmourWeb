@@ -5,6 +5,7 @@ import PortalHero from "./PortalHero.vue";
 import PortalSidebar from "./PortalSidebar.vue";
 import PortalFooter from "./PortalFooter.vue";
 import { getSysConfig, type SysConfigData } from "@/api/sysConfig";
+import "animate.css";
 // layui 基础样式置前(栅格/表单底座),门户样式整体覆盖;引入顺序对齐原站 layout.html
 import "@/assets/layui/2.13.9/layui.css";
 import "@/assets/portal/index.css";
