@@ -45,5 +45,4 @@ export type userType = {
   permissions?: Array<string>;
   currentPage?: number;
   isRemembered?: boolean;
-  loginDay?: number;
 };

@@ -149,7 +149,7 @@ router.beforeEach((to: ToRouteType, _from) => {
   function toCorrectRoute() {
     return whiteList.includes(to.fullPath) ? _from.fullPath : undefined;
   }
-  if (Cookies.get(multipleTabsKey) && userInfo) {
+  if ((Cookies.get(multipleTabsKey) || userInfo?.remembered) && userInfo) {
     // 无权限跳转403页面
     if (to.meta?.roles && !isOneOfArray(to.meta?.roles, userInfo?.roles)) {
       return { path: "/error/403" };

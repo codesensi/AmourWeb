@@ -17,6 +17,8 @@ export interface DataInfo<T> {
   roles?: Array<string>;
   /** 当前登录用户的按钮级别权限 */
   permissions?: Array<string>;
+  /** 登录页「记住密码」标记:勾选时持久化,前端不过期,失效由后端 401 判定 */
+  remembered?: boolean;
 }
 
 export const userKey = "user-info";
@@ -46,7 +48,7 @@ export function getToken(): DataInfo<number> {
 export function setToken(data: DataInfo<number>) {
   let expires = 0;
   const { accessToken } = data;
-  const { isRemembered, loginDay } = useUserStoreHook();
+  const { isRemembered } = useUserStoreHook();
   // 后端直接返回毫秒时间戳
   expires = Number(data.expires);
   const cookieString = JSON.stringify({ accessToken, expires });
@@ -57,15 +59,14 @@ export function setToken(data: DataInfo<number>) {
       })
     : Cookies.set(TokenKey, cookieString);
 
-  Cookies.set(
-    multipleTabsKey,
-    "true",
-    isRemembered
-      ? {
-          expires: loginDay
-        }
-      : {}
-  );
+  // 「记住密码」语义分离:勾选 → 不写 cookie,登录标记随 user-info 持久化
+  // (localStorage,前端永不过期,失效由后端 401 判定);
+  // 不勾选 → 会话 cookie(不设 expires,浏览器关闭即销毁)
+  if (isRemembered) {
+    Cookies.remove(multipleTabsKey);
+  } else {
+    Cookies.set(multipleTabsKey, "true");
+  }
 
   function setUserKey({ avatar, username, nickname, roles, permissions }) {
     useUserStoreHook().SET_AVATAR(avatar);
@@ -79,7 +80,9 @@ export function setToken(data: DataInfo<number>) {
       username,
       nickname,
       roles,
-      permissions
+      permissions,
+      // 「记住密码」标记:勾选时 true,配合路由守卫实现长期免登录
+      remembered: isRemembered
     });
   }
 

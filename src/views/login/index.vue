@@ -43,7 +43,6 @@ const captchaKey = ref("");
 const captchaImg = ref("");
 /** 验证码显隐开关:由 /sys/config 下发决定,缺省关闭 */
 const captchaEnabled = ref(false);
-const loginDay = ref(7);
 const router = useRouter();
 const loading = ref(false);
 const checked = ref(false);
@@ -138,9 +137,6 @@ useEventListener(document, "keydown", ({ code }) => {
 
 watch(checked, bool => {
   useUserStoreHook().SET_ISREMEMBERED(bool);
-});
-watch(loginDay, value => {
-  useUserStoreHook().SET_LOGINDAY(value);
 });
 </script>
 
@@ -268,20 +264,6 @@ watch(loginDay, value => {
                 <div class="w-full h-5 flex-bc">
                   <el-checkbox v-model="checked">
                     <span class="flex">
-                      <select
-                        v-model="loginDay"
-                        :style="{
-                          width: loginDay < 10 ? '10px' : '16px',
-                          outline: 'none',
-                          background: 'none',
-                          appearance: 'none',
-                          border: 'none'
-                        }"
-                      >
-                        <option value="1">1</option>
-                        <option value="7">7</option>
-                        <option value="30">30</option>
-                      </select>
                       {{ t("login.pureRemember") }}
                       <IconifyIconOffline
                         v-tippy="{
