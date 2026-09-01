@@ -31,7 +31,9 @@ export default defineFakeRoute([
     method: "get",
     response: ({ query }) => {
       let records = [...roles];
-      records = records.filter(item => item.name.includes(String(query.name ?? "")));
+      records = records.filter(item =>
+        item.name.includes(String(query.name ?? ""))
+      );
       records = records.filter(item =>
         String(item.status).includes(String(query.status ?? ""))
       );

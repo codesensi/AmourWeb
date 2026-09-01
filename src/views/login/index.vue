@@ -18,6 +18,7 @@ import LoginUpdate from "./components/LoginUpdate.vue";
 import LoginQrCode from "./components/LoginQrCode.vue";
 import { useUserStoreHook } from "@/store/modules/user";
 import { getCaptchaImage } from "@/api/captcha";
+import { getSysConfig } from "@/api/sysConfig";
 import { initRouter, getTopMenu } from "@/router/utils";
 import { bg, avatar, illustration } from "./utils/static";
 import { ref, toRaw, reactive, watch, computed, onMounted } from "vue";
@@ -40,7 +41,8 @@ defineOptions({
 
 const captchaKey = ref("");
 const captchaImg = ref("");
-const captchaEnabled = ref(true);
+/** 验证码显隐开关:由 /sys/config 下发决定,缺省关闭 */
+const captchaEnabled = ref(false);
 const loginDay = ref(7);
 const router = useRouter();
 const loading = ref(false);
@@ -65,17 +67,25 @@ const ruleForm = reactive({
   captchaValue: ""
 });
 
-/** 获取图形验证码 */
+/** 获取图形验证码(纯资源,仅开关开启时调用) */
 const getCaptcha = async () => {
   const res = await getCaptchaImage();
   if (res.success) {
-    captchaEnabled.value = res.data.enabled !== false;
     captchaKey.value = res.data.captchaKey;
     captchaImg.value = res.data.captchaValue;
   }
 };
 
-onMounted(getCaptcha);
+/** 拉取站点公共配置:验证码开关开启时才拉取验证码 */
+const loadSiteConfig = async () => {
+  const res = await getSysConfig();
+  if (res.success) {
+    captchaEnabled.value = res.data.captchaEnabled;
+    if (captchaEnabled.value) await getCaptcha();
+  }
+};
+
+onMounted(loadSiteConfig);
 
 const onLogin = async (formEl: FormInstance | undefined) => {
   if (!formEl) return;
@@ -99,8 +109,8 @@ const onLogin = async (formEl: FormInstance | undefined) => {
         })
         .catch(_err => {
           message(t("login.pureLoginFail"), { type: "error" });
-          // 登录失败后自动刷新验证码
-          getCaptcha();
+          // 登录失败后自动刷新验证码(开关开启时)
+          if (captchaEnabled.value) getCaptcha();
           ruleForm.captchaValue = "";
         })
         .finally(() => {
