@@ -2,7 +2,6 @@
 import { PropType } from "vue";
 import { ListItem } from "../data";
 import NoticeItem from "./NoticeItem.vue";
-import { transformI18n } from "@/plugins/i18n";
 
 defineProps({
   list: {
@@ -25,5 +24,5 @@ defineProps({
       :isLast="index === list.length - 1"
     />
   </div>
-  <el-empty v-else :description="transformI18n(emptyText)" />
+  <el-empty v-else :description="emptyText" />
 </template>

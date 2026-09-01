@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useI18n } from "vue-i18n";
 import Motion from "./utils/motion";
 import { useRouter } from "vue-router";
 import { message } from "@/utils/message";
@@ -9,14 +8,7 @@ import { debounce } from "@pureadmin/utils";
 import { useNav } from "@/layout/hooks/useNav";
 import { useEventListener } from "@vueuse/core";
 import type { FormInstance } from "element-plus";
-import { $t, transformI18n } from "@/plugins/i18n";
-// 步骤 9:隐藏多余登录入口,以下导入保留(注释),便于日后恢复
-// import { operates, thirdParty } from "./utils/enums";
 import { useLayout } from "@/layout/hooks/useLayout";
-// import LoginPhone from "./components/LoginPhone.vue";
-// import LoginRegist from "./components/LoginRegist.vue";
-// import LoginUpdate from "./components/LoginUpdate.vue";
-// import LoginQrCode from "./components/LoginQrCode.vue";
 import { useUserStoreHook } from "@/store/modules/user";
 import { getCaptchaImage } from "@/api/captcha";
 import { getSysConfig } from "@/api/sysConfig";
@@ -24,14 +16,11 @@ import { initRouter, getTopMenu } from "@/router/utils";
 import { bg, avatar, illustration } from "./utils/static";
 import { ref, toRaw, reactive, watch, computed, onMounted } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import { useTranslationLang } from "@/layout/hooks/useTranslationLang";
 import { useDataThemeChange } from "@/layout/hooks/useDataThemeChange";
 
 import dayIcon from "@/assets/svg/day.svg?component";
 import darkIcon from "@/assets/svg/dark.svg?component";
-import globalization from "@/assets/svg/globalization.svg?component";
 import Lock from "~icons/ri/lock-fill";
-import Check from "~icons/ep/check";
 import User from "~icons/ri/user-3-fill";
 import Info from "~icons/ri/information-line";
 import Keyhole from "~icons/ri/shield-keyhole-line";
@@ -53,13 +42,11 @@ const currentPage = computed(() => {
   return useUserStoreHook().currentPage;
 });
 
-const { t } = useI18n();
 const { initStorage } = useLayout();
 initStorage();
 const { dataTheme, themeMode, dataThemeChange } = useDataThemeChange();
 dataThemeChange(themeMode.value);
-const { title, getDropdownItemStyle, getDropdownItemClass } = useNav();
-const { locale, translationCh, translationEn } = useTranslationLang();
+const { title } = useNav();
 
 const ruleForm = reactive({
   username: "admin",
@@ -104,11 +91,11 @@ const onLogin = async (formEl: FormInstance | undefined) => {
           await initRouter();
           disabled.value = true;
           router.push(getTopMenu(true).path).then(() => {
-            message(t("login.pureLoginSuccess"), { type: "success" });
+            message("登录成功", { type: "success" });
           });
         })
         .catch(_err => {
-          message(t("login.pureLoginFail"), { type: "error" });
+          message("登录失败", { type: "error" });
           // 登录失败后自动刷新验证码(开关开启时)
           if (captchaEnabled.value) getCaptcha();
           ruleForm.captchaValue = "";
@@ -153,38 +140,6 @@ watch(checked, bool => {
         :inactive-icon="darkIcon"
         @change="dataThemeChange"
       />
-      <!-- 国际化 -->
-      <el-dropdown trigger="click">
-        <globalization
-          class="hover:text-primary hover:bg-transparent! size-5 ml-1.5 cursor-pointer outline-hidden duration-300"
-        />
-        <template #dropdown>
-          <el-dropdown-menu class="translation">
-            <el-dropdown-item
-              :style="getDropdownItemStyle(locale, 'zh')"
-              :class="['dark:text-white!', getDropdownItemClass(locale, 'zh')]"
-              @click="translationCh"
-            >
-              <IconifyIconOffline
-                v-show="locale === 'zh'"
-                class="check-zh"
-                :icon="Check"
-              />
-              简体中文
-            </el-dropdown-item>
-            <el-dropdown-item
-              :style="getDropdownItemStyle(locale, 'en')"
-              :class="['dark:text-white!', getDropdownItemClass(locale, 'en')]"
-              @click="translationEn"
-            >
-              <span v-show="locale === 'en'" class="check-en">
-                <IconifyIconOffline :icon="Check" />
-              </span>
-              English
-            </el-dropdown-item>
-          </el-dropdown-menu>
-        </template>
-      </el-dropdown>
     </div>
     <div class="login-container">
       <div class="img">
@@ -213,7 +168,7 @@ watch(checked, bool => {
                 :rules="[
                   {
                     required: true,
-                    message: transformI18n($t('login.pureUsernameReg')),
+                    message: '请输入账号',
                     trigger: 'blur'
                   }
                 ]"
@@ -222,7 +177,7 @@ watch(checked, bool => {
                 <el-input
                   v-model="ruleForm.username"
                   clearable
-                  :placeholder="t('login.pureUsername')"
+                  placeholder="账号"
                   :prefix-icon="useRenderIcon(User)"
                 />
               </el-form-item>
@@ -234,7 +189,7 @@ watch(checked, bool => {
                   v-model="ruleForm.password"
                   clearable
                   show-password
-                  :placeholder="t('login.purePassword')"
+                  placeholder="密码"
                   :prefix-icon="useRenderIcon(Lock)"
                 />
               </el-form-item>
@@ -245,7 +200,7 @@ watch(checked, bool => {
                 <el-input
                   v-model="ruleForm.captchaValue"
                   clearable
-                  :placeholder="t('login.pureVerifyCode')"
+                  placeholder="验证码"
                   :prefix-icon="useRenderIcon(Keyhole)"
                 >
                   <template v-slot:append>
@@ -265,10 +220,11 @@ watch(checked, bool => {
                 <div class="w-full h-5 flex-bc">
                   <el-checkbox v-model="checked">
                     <span class="flex">
-                      {{ t("login.pureRemember") }}
+                      记住密码
                       <IconifyIconOffline
                         v-tippy="{
-                          content: t('login.pureRememberInfo'),
+                          content:
+                            '勾选并登录后，登录状态长期保持，登录失效时将自动退出并返回登录页',
                           placement: 'top'
                         }"
                         :icon="Info"
@@ -276,15 +232,6 @@ watch(checked, bool => {
                       />
                     </span>
                   </el-checkbox>
-                  <!-- 步骤 9:隐藏忘记密码入口(代码保留,便于恢复)
-                  <el-button
-                    link
-                    type="primary"
-                    @click="useUserStoreHook().SET_CURRENTPAGE(4)"
-                  >
-                    {{ t("login.pureForget") }}
-                  </el-button>
-                  -->
                 </div>
                 <el-button
                   class="w-full mt-4!"
@@ -294,60 +241,11 @@ watch(checked, bool => {
                   :disabled="disabled"
                   @click="onLogin(ruleFormRef)"
                 >
-                  {{ t("login.pureLogin") }}
+                  登录
                 </el-button>
               </el-form-item>
             </Motion>
-
-            <!-- 步骤 9:隐藏手机登录/二维码登录/注册切换(代码保留,便于恢复)
-            <Motion :delay="300">
-              <el-form-item>
-                <div class="w-full h-5 flex-bc">
-                  <el-button
-                    v-for="(item, index) in operates"
-                    :key="index"
-                    class="w-full mt-4!"
-                    size="default"
-                    @click="useUserStoreHook().SET_CURRENTPAGE(index + 1)"
-                  >
-                    {{ t(item.title) }}
-                  </el-button>
-                </div>
-              </el-form-item>
-            </Motion>
-            -->
           </el-form>
-
-          <!-- 步骤 9:隐藏第三方登录(代码保留,便于恢复)
-          <Motion v-if="currentPage === 0" :delay="350">
-            <el-form-item>
-              <el-divider>
-                <p class="text-gray-500 text-xs">
-                  {{ t("login.pureThirdLogin") }}
-                </p>
-              </el-divider>
-              <div class="w-full flex justify-evenly">
-                <span
-                  v-for="(item, index) in thirdParty"
-                  :key="index"
-                  :title="t(item.title)"
-                >
-                  <IconifyIconOnline
-                    :icon="`ri:${item.icon}-fill`"
-                    width="20"
-                    class="cursor-pointer text-gray-500 hover:text-blue-400"
-                  />
-                </span>
-              </div>
-            </el-form-item>
-          </Motion>
-          -->
-          <!-- 步骤 9:隐藏手机登录/二维码登录/注册/忘记密码组件挂载(代码保留,便于恢复)
-          <LoginPhone v-if="currentPage === 1" />
-          <LoginQrCode v-if="currentPage === 2" />
-          <LoginRegist v-if="currentPage === 3" />
-          <LoginUpdate v-if="currentPage === 4" />
-          -->
         </div>
       </div>
     </div>
@@ -373,21 +271,5 @@ watch(checked, bool => {
 <style lang="scss" scoped>
 :deep(.el-input-group__append, .el-input-group__prepend) {
   padding: 0;
-}
-
-.translation {
-  :deep(.el-dropdown-menu__item) {
-    padding: 5px 40px;
-  }
-
-  .check-zh {
-    position: absolute;
-    left: 20px;
-  }
-
-  .check-en {
-    position: absolute;
-    left: 20px;
-  }
 }
 </style>

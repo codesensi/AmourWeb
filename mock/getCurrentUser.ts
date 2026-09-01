@@ -21,7 +21,7 @@ export const menus: MenuItem[] = [
   {
     id: "1000",
     pid: "0",
-    title: "menus.pureSysManagement",
+    title: "系统管理",
     type: "D",
     path: "/system",
     sort: 1,
@@ -33,7 +33,7 @@ export const menus: MenuItem[] = [
   {
     id: "1200",
     pid: "1000",
-    title: "menus.pureUser",
+    title: "用户管理",
     type: "M",
     path: "/system/user/index",
     component: "system/user/index",
@@ -46,7 +46,7 @@ export const menus: MenuItem[] = [
   {
     id: "1201",
     pid: "1200",
-    title: "buttons.purePageQuery",
+    title: "分页查询",
     type: "B",
     perms: "system:user:page",
     sort: 1,
@@ -57,7 +57,7 @@ export const menus: MenuItem[] = [
   {
     id: "1202",
     pid: "1200",
-    title: "buttons.pureDetail",
+    title: "详情",
     type: "B",
     perms: "system:user:detail",
     sort: 2,
@@ -68,7 +68,7 @@ export const menus: MenuItem[] = [
   {
     id: "1203",
     pid: "1200",
-    title: "buttons.pureEdit",
+    title: "修改",
     type: "B",
     perms: "system:user:update",
     sort: 3,
@@ -79,7 +79,7 @@ export const menus: MenuItem[] = [
   {
     id: "1204",
     pid: "1200",
-    title: "buttons.pureAdd",
+    title: "增加",
     type: "B",
     perms: "system:user:insert",
     sort: 4,
@@ -90,7 +90,7 @@ export const menus: MenuItem[] = [
   {
     id: "1205",
     pid: "1200",
-    title: "buttons.pureDelete",
+    title: "删除",
     type: "B",
     perms: "system:user:delete",
     sort: 5,
@@ -101,7 +101,7 @@ export const menus: MenuItem[] = [
   {
     id: "1300",
     pid: "1000",
-    title: "menus.pureRole",
+    title: "角色管理",
     type: "M",
     path: "/system/role/index",
     component: "system/role/index",
@@ -114,7 +114,7 @@ export const menus: MenuItem[] = [
   {
     id: "1301",
     pid: "1300",
-    title: "buttons.purePageQuery",
+    title: "分页查询",
     type: "B",
     perms: "system:role:page",
     sort: 1,
@@ -125,7 +125,7 @@ export const menus: MenuItem[] = [
   {
     id: "1302",
     pid: "1300",
-    title: "buttons.pureDetail",
+    title: "详情",
     type: "B",
     perms: "system:role:detail",
     sort: 2,
@@ -136,7 +136,7 @@ export const menus: MenuItem[] = [
   {
     id: "1303",
     pid: "1300",
-    title: "buttons.pureEdit",
+    title: "修改",
     type: "B",
     perms: "system:role:update",
     sort: 3,
@@ -147,7 +147,7 @@ export const menus: MenuItem[] = [
   {
     id: "1304",
     pid: "1300",
-    title: "buttons.pureAdd",
+    title: "增加",
     type: "B",
     perms: "system:role:insert",
     sort: 4,
@@ -158,7 +158,7 @@ export const menus: MenuItem[] = [
   {
     id: "1305",
     pid: "1300",
-    title: "buttons.pureDelete",
+    title: "删除",
     type: "B",
     perms: "system:role:delete",
     sort: 5,
@@ -169,7 +169,7 @@ export const menus: MenuItem[] = [
   {
     id: "1400",
     pid: "1000",
-    title: "menus.pureSystemMenu",
+    title: "菜单管理",
     type: "M",
     path: "/system/menu/index",
     component: "system/menu/index",
@@ -182,7 +182,7 @@ export const menus: MenuItem[] = [
   {
     id: "1401",
     pid: "1400",
-    title: "buttons.purePageQuery",
+    title: "分页查询",
     type: "B",
     perms: "system:menu:page",
     sort: 1,
@@ -193,7 +193,7 @@ export const menus: MenuItem[] = [
   {
     id: "1402",
     pid: "1400",
-    title: "buttons.pureDetail",
+    title: "详情",
     type: "B",
     perms: "system:menu:detail",
     sort: 2,
@@ -204,7 +204,7 @@ export const menus: MenuItem[] = [
   {
     id: "1403",
     pid: "1400",
-    title: "buttons.pureEdit",
+    title: "修改",
     type: "B",
     perms: "system:menu:update",
     sort: 3,
@@ -215,7 +215,7 @@ export const menus: MenuItem[] = [
   {
     id: "1404",
     pid: "1400",
-    title: "buttons.pureAdd",
+    title: "增加",
     type: "B",
     perms: "system:menu:insert",
     sort: 4,
@@ -226,7 +226,7 @@ export const menus: MenuItem[] = [
   {
     id: "1405",
     pid: "1400",
-    title: "buttons.pureDelete",
+    title: "删除",
     type: "B",
     perms: "system:menu:delete",
     sort: 5,
@@ -238,7 +238,7 @@ export const menus: MenuItem[] = [
   {
     id: "1100",
     pid: "1000",
-    title: "menus.pureDept",
+    title: "部门管理",
     type: "M",
     path: "/system/dept/index",
     component: "system/dept/index",
@@ -251,7 +251,7 @@ export const menus: MenuItem[] = [
   {
     id: "1101",
     pid: "1100",
-    title: "buttons.purePageQuery",
+    title: "分页查询",
     type: "B",
     perms: "system:dept:page",
     sort: 1,
@@ -262,7 +262,7 @@ export const menus: MenuItem[] = [
   {
     id: "1102",
     pid: "1100",
-    title: "buttons.pureDetail",
+    title: "详情",
     type: "B",
     perms: "system:dept:detail",
     sort: 2,
@@ -273,7 +273,7 @@ export const menus: MenuItem[] = [
   {
     id: "1103",
     pid: "1100",
-    title: "buttons.pureEdit",
+    title: "修改",
     type: "B",
     perms: "system:dept:update",
     sort: 3,
@@ -284,7 +284,7 @@ export const menus: MenuItem[] = [
   {
     id: "1104",
     pid: "1100",
-    title: "buttons.pureAdd",
+    title: "增加",
     type: "B",
     perms: "system:dept:insert",
     sort: 4,
@@ -295,7 +295,7 @@ export const menus: MenuItem[] = [
   {
     id: "1105",
     pid: "1100",
-    title: "buttons.pureDelete",
+    title: "删除",
     type: "B",
     perms: "system:dept:delete",
     sort: 5,
@@ -307,7 +307,7 @@ export const menus: MenuItem[] = [
   {
     id: "3000",
     pid: "0",
-    title: "menus.pureSysMonitor",
+    title: "系统监控",
     type: "D",
     path: "/monitor",
     sort: 2,
@@ -319,7 +319,7 @@ export const menus: MenuItem[] = [
   {
     id: "3100",
     pid: "3000",
-    title: "menus.pureOnlineUser",
+    title: "在线用户",
     type: "M",
     path: "/monitor/online-user",
     component: "monitor/online/index",
@@ -332,7 +332,7 @@ export const menus: MenuItem[] = [
   {
     id: "3200",
     pid: "3000",
-    title: "menus.pureLoginLog",
+    title: "登录日志",
     type: "M",
     path: "/monitor/login-logs",
     component: "monitor/logs/login/index",
@@ -345,7 +345,7 @@ export const menus: MenuItem[] = [
   {
     id: "3300",
     pid: "3000",
-    title: "menus.pureOperationLog",
+    title: "操作日志",
     type: "M",
     path: "/monitor/operation-logs",
     component: "monitor/logs/operation/index",
@@ -358,7 +358,7 @@ export const menus: MenuItem[] = [
   {
     id: "3400",
     pid: "3000",
-    title: "menus.pureSystemLog",
+    title: "系统日志",
     type: "M",
     path: "/monitor/system-logs",
     component: "monitor/logs/system/index",

@@ -1,5 +1,4 @@
 import Sortable from "sortablejs";
-import { $t, transformI18n } from "@/plugins/i18n";
 import type { CheckboxValueType } from "element-plus";
 import { useEpThemeStoreHook } from "@/store/modules/epTheme";
 import { delay, cloneDeep, getKeyList } from "@pureadmin/utils";
@@ -27,7 +26,7 @@ const props = {
   /** 头部最左边的标题 */
   title: {
     type: String,
-    default: $t("tableBar.pureList")
+    default: "列表"
   },
   vxeTableRef: {
     type: Object as PropType<any>
@@ -143,9 +142,7 @@ export default defineComponent({
     }
 
     function handleToggleColumnFixed(fixed, label: string) {
-      const column = dynamicColumns.value.find(
-        item => transformI18n(item.title) === transformI18n(label)
-      );
+      const column = dynamicColumns.value.find(item => item.title === label);
       if (column) {
         column.fixed = fixed;
         reloadColumn();
@@ -174,19 +171,19 @@ export default defineComponent({
             style={getDropdownItemStyle.value("medium")}
             onClick={() => changeSize("medium")}
           >
-            {transformI18n($t("tableBar.pureLarge"))}
+            {"宽松"}
           </el-dropdown-item>
           <el-dropdown-item
             style={getDropdownItemStyle.value("small")}
             onClick={() => changeSize("small")}
           >
-            {transformI18n($t("tableBar.pureDefault"))}
+            {"默认"}
           </el-dropdown-item>
           <el-dropdown-item
             style={getDropdownItemStyle.value("mini")}
             onClick={() => changeSize("mini")}
           >
-            {transformI18n($t("tableBar.pureSmall"))}
+            {"紧凑"}
           </el-dropdown-item>
         </el-dropdown-menu>
       )
@@ -229,9 +226,7 @@ export default defineComponent({
     };
 
     const isFixedColumn = (label: string) => {
-      const column = dynamicColumns.value.find(
-        item => transformI18n(item.title) === transformI18n(label)
-      );
+      const column = dynamicColumns.value.find(item => item.title === label);
       const fixedOption = column?.fixed;
       const left = fixedOption === "left";
       const right = fixedOption === true || fixedOption === "right";
@@ -253,9 +248,7 @@ export default defineComponent({
       reference: () => (
         <SettingIcon
           class={["w-4", iconClass.value]}
-          v-tippy={rendTippyProps(
-            transformI18n($t("tableBar.pureColumnSettings"))
-          )}
+          v-tippy={rendTippyProps("列设置")}
         />
       )
     };
@@ -278,7 +271,7 @@ export default defineComponent({
             {slots?.title ? (
               slots.title()
             ) : (
-              <p class="font-bold truncate">{transformI18n(props.title)}</p>
+              <p class="font-bold truncate">{props.title}</p>
             )}
             <div class="flex-ac">
               {slots?.buttons ? (
@@ -292,9 +285,7 @@ export default defineComponent({
                       transform: isExpandAll.value ? "none" : "rotate(-90deg)"
                     }}
                     v-tippy={rendTippyProps(
-                      isExpandAll.value
-                        ? transformI18n($t("tableBar.pureCollapse"))
-                        : transformI18n($t("tableBar.pureExpand"))
+                      isExpandAll.value ? "折叠" : "展开"
                     )}
                     onClick={() => onExpand()}
                   />
@@ -307,18 +298,14 @@ export default defineComponent({
                   iconClass.value,
                   loading.value ? "animate-spin" : ""
                 ]}
-                v-tippy={rendTippyProps(
-                  transformI18n($t("tableBar.pureRefresh"))
-                )}
+                v-tippy={rendTippyProps("刷新")}
                 onClick={() => onReFresh()}
               />
               <el-divider direction="vertical" />
               <el-dropdown
                 v-slots={dropdown}
                 trigger="click"
-                v-tippy={rendTippyProps(
-                  transformI18n($t("tableBar.pureDensity"))
-                )}
+                v-tippy={rendTippyProps("密度")}
               >
                 <CollapseIcon class={["w-4", iconClass.value]} />
               </el-dropdown>
@@ -334,13 +321,13 @@ export default defineComponent({
                 <div class={[topClass.value]}>
                   <el-checkbox
                     class="-mr-1!"
-                    label={transformI18n($t("tableBar.pureColumnDisplay"))}
+                    label={"列展示"}
                     v-model={checkAll.value}
                     indeterminate={isIndeterminate.value}
                     onChange={value => handleCheckAllChange(value)}
                   />
                   <el-button type="primary" link onClick={() => onReset()}>
-                    {transformI18n($t("tableBar.pureReset"))}
+                    {"重置"}
                   </el-button>
                 </div>
 
@@ -376,10 +363,10 @@ export default defineComponent({
                                 onChange={reloadColumn}
                               >
                                 <span
-                                  title={transformI18n(item)}
+                                  title={item}
                                   class="inline-block w-30 truncate hover:text-text_color_primary"
                                 >
-                                  {transformI18n(item)}
+                                  {item}
                                 </span>
                               </el-checkbox>
                               <iconify-icon-offline
@@ -391,11 +378,7 @@ export default defineComponent({
                                   left ? "text-primary" : ""
                                 ]}
                                 icon={left ? PinAngleFill : PinAngle}
-                                v-tippy={
-                                  left
-                                    ? transformI18n($t("tableBar.pureUnpin"))
-                                    : transformI18n($t("tableBar.purePinLeft"))
-                                }
+                                v-tippy={left ? "取消固定" : "固定在左边"}
                                 onClick={() =>
                                   handleToggleColumnFixed(
                                     left ? false : "left",
@@ -413,11 +396,7 @@ export default defineComponent({
                                   right ? "text-primary" : ""
                                 ]}
                                 icon={right ? PinAngleFill : PinAngle}
-                                v-tippy={
-                                  right
-                                    ? transformI18n($t("tableBar.pureUnpin"))
-                                    : transformI18n($t("tableBar.purePinRight"))
-                                }
+                                v-tippy={right ? "取消固定" : "固定在右边"}
                                 onClick={() =>
                                   handleToggleColumnFixed(
                                     right ? false : "right",
@@ -438,11 +417,7 @@ export default defineComponent({
               <iconify-icon-offline
                 class={["w-4", iconClass.value]}
                 icon={isFullscreen.value ? ExitFullscreen : Fullscreen}
-                v-tippy={
-                  isFullscreen.value
-                    ? transformI18n($t("tableBar.pureExitFullScreen"))
-                    : transformI18n($t("tableBar.pureFullScreen"))
-                }
+                v-tippy={isFullscreen.value ? "退出全屏" : "全屏"}
                 onClick={() => onFullscreen()}
               />
             </div>

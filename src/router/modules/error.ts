@@ -1,4 +1,3 @@
-import { $t } from "@/plugins/i18n";
 import { error } from "@/router/enums";
 
 export default {
@@ -8,7 +7,7 @@ export default {
     icon: "ri/information-line",
     // 错误页为功能性基础设施(404 兜底/权限跳转依赖),仅隐藏菜单,路由保留
     showLink: false,
-    title: $t("menus.pureAbnormal"),
+    title: "异常页面",
     rank: error
   },
   children: [
@@ -17,7 +16,7 @@ export default {
       name: "403",
       component: () => import("@/views/error/403.vue"),
       meta: {
-        title: $t("menus.pureAccessDenied")
+        title: '"403"'
       }
     },
     {
@@ -25,7 +24,7 @@ export default {
       name: "404",
       component: () => import("@/views/error/404.vue"),
       meta: {
-        title: $t("menus.purePageNotFound")
+        title: '"404"'
       }
     },
     {
@@ -33,7 +32,7 @@ export default {
       name: "500",
       component: () => import("@/views/error/500.vue"),
       meta: {
-        title: $t("menus.pureServerError")
+        title: '"500"'
       }
     }
   ]

@@ -20,11 +20,6 @@ export const cdn = importToCDN({
       path: "vue-router.global.min.js"
     },
     {
-      name: "vue-i18n",
-      var: "VueI18n",
-      path: "vue-i18n.runtime.global.prod.min.js"
-    },
-    {
       name: "element-plus",
       var: "ElementPlus",
       path: "index.full.min.js",

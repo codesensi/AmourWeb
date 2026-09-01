@@ -16,7 +16,6 @@ const include = [
   "swiper",
   "qrcode",
   "intro.js",
-  "vue-i18n",
   "deep-chat",
   "vxe-table",
   "vue-types",

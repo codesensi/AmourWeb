@@ -30,7 +30,6 @@ const words = [
   "vue",
   "element-plus",
   "pinia",
-  "vue-i18n",
   "vue-router",
   "@iconify/vue",
   "@vitejs/plugin-vue",

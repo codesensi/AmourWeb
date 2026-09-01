@@ -1,4 +1,3 @@
-import { $t } from "@/plugins/i18n";
 const Layout = () => import("@/layout/index.vue");
 
 export default [
@@ -7,7 +6,7 @@ export default [
     name: "Login",
     component: () => import("@/views/login/index.vue"),
     meta: {
-      title: $t("menus.pureLogin"),
+      title: "登录",
       showLink: false
     }
   },
@@ -17,7 +16,7 @@ export default [
     name: "AccessDenied",
     component: () => import("@/views/error/403.vue"),
     meta: {
-      title: $t("menus.pureAccessDenied"),
+      title: '"403"',
       showLink: false
     }
   },
@@ -27,7 +26,7 @@ export default [
     name: "ServerError",
     component: () => import("@/views/error/500.vue"),
     meta: {
-      title: $t("menus.pureServerError"),
+      title: '"500"',
       showLink: false
     }
   },
@@ -35,7 +34,7 @@ export default [
     path: "/redirect",
     component: Layout,
     meta: {
-      title: $t("status.pureLoad"),
+      title: "加载中...",
       showLink: false
     },
     children: [
@@ -51,7 +50,7 @@ export default [
     name: "AccountSettings",
     component: () => import("@/views/account-settings/index.vue"),
     meta: {
-      title: $t("buttons.pureAccountSettings"),
+      title: "账户设置",
       showLink: false
     }
   }
