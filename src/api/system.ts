@@ -130,35 +130,16 @@ export const getDeptList = (data?: object) => {
   return http.request<ApiResult<Array<any>>>("post", "/dept", { data });
 };
 
-/** 系统监控-在线用户列表 */
-export const getOnlineLogsList = (data?: object) => {
-  return http.request<ApiResult<PageResult<any>>>("post", "/online-logs", {
-    data
-  });
-};
-
-/** 系统监控-登录日志列表 */
+/** 日志管理-登录日志列表 */
 export const getLoginLogsList = (data?: object) => {
   return http.request<ApiResult<PageResult<any>>>("post", "/login-logs", {
     data
   });
 };
 
-/** 系统监控-操作日志列表 */
+/** 日志管理-操作日志列表 */
 export const getOperationLogsList = (data?: object) => {
   return http.request<ApiResult<PageResult<any>>>("post", "/operation-logs", {
     data
   });
-};
-
-/** 系统监控-系统日志列表 */
-export const getSystemLogsList = (data?: object) => {
-  return http.request<ApiResult<PageResult<any>>>("post", "/system-logs", {
-    data
-  });
-};
-
-/** 系统监控-系统日志-根据 id 查日志详情 */
-export const getSystemLogsDetail = (data?: object) => {
-  return http.request<ApiResult<any>>("post", "/system-logs-detail", { data });
 };

@@ -303,28 +303,15 @@ export const menus: MenuItem[] = [
     hidden: 0,
     builtin: 1
   },
-  // 系统监控（对应模板保留的 monitor 页面，第 3 期与后端蓝图对齐）
+  // 日志管理（对应模板保留的 monitor 页面，第 3 期与后端蓝图对齐）
   {
     id: "3000",
     pid: "0",
-    title: "系统监控",
+    title: "日志管理",
     type: "D",
     path: "/monitor",
     sort: 2,
     icon: "ep:monitor",
-    status: 0,
-    hidden: 0,
-    builtin: 1
-  },
-  {
-    id: "3100",
-    pid: "3000",
-    title: "在线用户",
-    type: "M",
-    path: "/monitor/online-user",
-    component: "monitor/online/index",
-    sort: 1,
-    icon: "ri:user-voice-line",
     status: 0,
     hidden: 0,
     builtin: 1
@@ -351,19 +338,6 @@ export const menus: MenuItem[] = [
     component: "monitor/logs/operation/index",
     sort: 3,
     icon: "ri:history-fill",
-    status: 0,
-    hidden: 0,
-    builtin: 1
-  },
-  {
-    id: "3400",
-    pid: "3000",
-    title: "系统日志",
-    type: "M",
-    path: "/monitor/system-logs",
-    component: "monitor/logs/system/index",
-    sort: 4,
-    icon: "ri:file-search-line",
     status: 0,
     hidden: 0,
     builtin: 1

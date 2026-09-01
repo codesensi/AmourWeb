@@ -1,4 +1,4 @@
-// 菜单管理 mock(数据与 getCurrentUser.menus 同源,30 项 D/M/B)
+// 菜单管理 mock(数据与 getCurrentUser.menus 同源,28 项 D/M/B)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 import { menus } from "./getCurrentUser";
 
