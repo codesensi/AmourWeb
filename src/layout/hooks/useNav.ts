@@ -1,5 +1,5 @@
 import { storeToRefs } from "pinia";
-import { getConfig } from "@/config";
+import { getConfig, siteTitle } from "@/config";
 import { useRouter } from "vue-router";
 import { emitter } from "@/utils/mitt";
 import Avatar from "@/assets/user.jpg";
@@ -79,19 +79,16 @@ export function useNav() {
     return pureApp.getDevice;
   });
 
-  const { $storage, $config } = useGlobal<GlobalPropertiesApi>();
+  const { $storage } = useGlobal<GlobalPropertiesApi>();
   const layout = computed(() => {
     return $storage?.layout?.layout;
   });
 
-  const title = computed(() => {
-    return $config.Title;
-  });
+  const title = computed(() => siteTitle.value);
 
   /** 动态title */
   function changeTitle(meta: routeMetaType) {
-    const Title = getConfig().Title;
-    if (Title) document.title = `${meta.title} | ${Title}`;
+    if (siteTitle.value) document.title = `${meta.title} | ${siteTitle.value}`;
     else document.title = meta.title;
   }
 

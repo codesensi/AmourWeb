@@ -1,8 +1,12 @@
 import axios from "axios";
+import { ref } from "vue";
 import type { App } from "vue";
 
 let config: object = {};
 const { VITE_PUBLIC_PATH } = import.meta.env;
+
+/** 站点标题(浏览器标签页名称):出厂值取 platform-config.json 的 Title,启动时由 GET /sys/config 覆盖 */
+export const siteTitle = ref("");
 
 const setConfig = (cfg?: unknown) => {
   config = Object.assign(config, cfg);

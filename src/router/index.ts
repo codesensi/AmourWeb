@@ -1,6 +1,6 @@
 import "@/utils/sso";
 import Cookies from "js-cookie";
-import { getConfig } from "@/config";
+import { siteTitle } from "@/config";
 import NProgress from "@/utils/progress";
 import { buildHierarchyTree } from "@/utils/tree";
 import remainingRouter from "./modules/remaining";
@@ -138,8 +138,8 @@ router.beforeEach((to: ToRouteType, _from) => {
   if (!externalLink) {
     to.matched.some(item => {
       if (!item.meta.title) return "";
-      const Title = getConfig().Title;
-      if (Title) document.title = `${item.meta.title} | ${Title}`;
+      if (siteTitle.value)
+        document.title = `${item.meta.title} | ${siteTitle.value}`;
       else document.title = item.meta.title;
     });
   }

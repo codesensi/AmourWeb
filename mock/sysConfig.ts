@@ -13,7 +13,9 @@ export default defineFakeRoute([
         timestamp: Date.now(),
         data: {
           // 验证码显隐开关(对应后端 sys_config captcha.enabled)
-          captchaEnabled: true
+          captchaEnabled: true,
+          // 站点名称(浏览器标签页/登录页标题)
+          title: "爱慕情侣小站"
         }
       };
     }
