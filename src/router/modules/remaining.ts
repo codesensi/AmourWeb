@@ -54,14 +54,55 @@ export default [
       showLink: false
     }
   },
-  // 过渡重定向：管理端迁入 /admin 后，门户（第 2 期）上线前根路径兜底；
-  // 第 2 期门户首页路由落地时删除此条
+  // 门户公开外壳(第二期):所有门户页面经 PortalLayout 渲染;
+  // public 标记由守卫顶部短路,访客免登录。原过渡重定向(/ → /admin/welcome)随门户首页落地删除
   {
     path: "/",
-    redirect: "/admin/welcome",
+    name: "Portal",
+    component: () => import("@/layout/portal/PortalLayout.vue"),
     meta: {
-      title: "根路径",
-      showLink: false
-    }
+      // 父路由标题留空:浏览器标题取子路由副标题,避免命中「门户」
+      title: "",
+      showLink: false,
+      public: true
+    },
+    children: [
+      {
+        path: "",
+        name: "PortalHome",
+        component: () => import("@/views/portal/home/index.vue"),
+        meta: { title: "首页" }
+      },
+      {
+        path: "/little",
+        name: "PortalLittle",
+        component: () => import("@/views/portal/little/index.vue"),
+        meta: { title: "点点滴滴" }
+      },
+      {
+        path: "/leaving",
+        name: "PortalLeaving",
+        component: () => import("@/views/portal/leaving/index.vue"),
+        meta: { title: "留言板" }
+      },
+      {
+        path: "/about",
+        name: "PortalAbout",
+        component: () => import("@/views/portal/about/index.vue"),
+        meta: { title: "关于我们" }
+      },
+      {
+        path: "/photo",
+        name: "PortalPhoto",
+        component: () => import("@/views/portal/photo/index.vue"),
+        meta: { title: "Love Photo" }
+      },
+      {
+        path: "/list",
+        name: "PortalLoveList",
+        component: () => import("@/views/portal/list/index.vue"),
+        meta: { title: "Love List" }
+      }
+    ]
   }
 ] satisfies Array<RouteConfigsTable>;

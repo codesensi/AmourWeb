@@ -58,6 +58,8 @@ declare global {
     activePath?: string;
     /** 当前页面是否已经加载过 */
     loaded?: boolean;
+    /** 门户公开路由：守卫顶部免登录直接放行 `可选` */
+    public?: boolean;
   }
 
   /**
@@ -98,6 +100,8 @@ declare global {
       showLink?: boolean;
       /** 菜单升序排序，值越高排的越后（只针对顶级路由）`可选` */
       rank?: number;
+      /** 门户公开路由：守卫顶部免登录直接放行 `可选` */
+      public?: boolean;
     };
     /** 子路由配置项 */
     children?: Array<RouteChildrenConfigsTable>;

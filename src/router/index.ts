@@ -133,6 +133,10 @@ router.beforeEach((to: ToRouteType, _from) => {
       handleAliveRoute(to);
     }
   }
+  /** 门户公开路由(meta.public):免登录直接放行,不进入登录校验分支(第二期门户) */
+  if (to.meta?.public) {
+    return true;
+  }
   const userInfo = storageLocal().getItem<DataInfo<number>>(userKey);
   const externalLink = isUrl(to?.name as string);
   if (!externalLink) {

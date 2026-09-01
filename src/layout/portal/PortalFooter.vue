@@ -1,0 +1,27 @@
+<script setup lang="ts">
+import icpSvg from "@/assets/portal/img/icp.svg";
+import type { SysConfigData } from "@/api/sysConfig";
+
+defineOptions({ name: "PortalFooter" });
+
+defineProps<{ site: Partial<SysConfigData> }>();
+</script>
+
+<template>
+  <!-- 页脚:ICP 备案(链接为固定地址,文案由 sys_config 注入)+ 版权行(年份由前端拼接) -->
+  <div class="footer-warp">
+    <div class="footer">
+      <p>
+        <img :src="icpSvg" alt="" />
+        <a
+          id="footerIcpLink"
+          href="https://beian.miit.gov.cn/#/Integrated/index"
+          target="_blank"
+          rel="noopener"
+          >{{ site.icpText }}</a
+        >
+      </p>
+      <p id="footerCopyright">Copyright © {{ site.copyright }} All Rights Reserved.</p>
+    </div>
+  </div>
+</template>

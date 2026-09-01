@@ -1,0 +1,15 @@
+/* 门户样式聚合入口:引入顺序与原站 fragments/layout.html 的 head 片段一致
+ * (layui 基础样式在 PortalLayout 中先行引入,门户样式整体覆盖)
+ * breakpoints 按原站的媒体查询区间挂载 */
+@import "./css/portal.css";
+@import "./css/content.css";
+@import "./css/breakpoints/max-768.css" screen and (max-width: 768px);
+@import "./css/breakpoints/min-768.css" screen and (min-width: 768px);
+@import "./css/breakpoints/min-960.css" screen and (min-width: 960px);
+@import "./css/breakpoints/min-1200.css" screen and (min-width: 1200px);
+@import "./css/pages/moments.css";
+@import "./css/pages/message.css";
+@import "./css/pages/about.css";
+@import "./css/pages/love-photo.css";
+@import "./css/pages/love-list.css";
+@import "./icons/iconfont-list.css";
