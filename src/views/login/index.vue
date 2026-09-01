@@ -10,12 +10,13 @@ import { useNav } from "@/layout/hooks/useNav";
 import { useEventListener } from "@vueuse/core";
 import type { FormInstance } from "element-plus";
 import { $t, transformI18n } from "@/plugins/i18n";
-import { operates, thirdParty } from "./utils/enums";
+// 步骤 9:隐藏多余登录入口,以下导入保留(注释),便于日后恢复
+// import { operates, thirdParty } from "./utils/enums";
 import { useLayout } from "@/layout/hooks/useLayout";
-import LoginPhone from "./components/LoginPhone.vue";
-import LoginRegist from "./components/LoginRegist.vue";
-import LoginUpdate from "./components/LoginUpdate.vue";
-import LoginQrCode from "./components/LoginQrCode.vue";
+// import LoginPhone from "./components/LoginPhone.vue";
+// import LoginRegist from "./components/LoginRegist.vue";
+// import LoginUpdate from "./components/LoginUpdate.vue";
+// import LoginQrCode from "./components/LoginQrCode.vue";
 import { useUserStoreHook } from "@/store/modules/user";
 import { getCaptchaImage } from "@/api/captcha";
 import { getSysConfig } from "@/api/sysConfig";
@@ -275,6 +276,7 @@ watch(checked, bool => {
                       />
                     </span>
                   </el-checkbox>
+                  <!-- 步骤 9:隐藏忘记密码入口(代码保留,便于恢复)
                   <el-button
                     link
                     type="primary"
@@ -282,6 +284,7 @@ watch(checked, bool => {
                   >
                     {{ t("login.pureForget") }}
                   </el-button>
+                  -->
                 </div>
                 <el-button
                   class="w-full mt-4!"
@@ -296,6 +299,7 @@ watch(checked, bool => {
               </el-form-item>
             </Motion>
 
+            <!-- 步骤 9:隐藏手机登录/二维码登录/注册切换(代码保留,便于恢复)
             <Motion :delay="300">
               <el-form-item>
                 <div class="w-full h-5 flex-bc">
@@ -311,8 +315,10 @@ watch(checked, bool => {
                 </div>
               </el-form-item>
             </Motion>
+            -->
           </el-form>
 
+          <!-- 步骤 9:隐藏第三方登录(代码保留,便于恢复)
           <Motion v-if="currentPage === 0" :delay="350">
             <el-form-item>
               <el-divider>
@@ -335,14 +341,13 @@ watch(checked, bool => {
               </div>
             </el-form-item>
           </Motion>
-          <!-- 手机号登录 -->
+          -->
+          <!-- 步骤 9:隐藏手机登录/二维码登录/注册/忘记密码组件挂载(代码保留,便于恢复)
           <LoginPhone v-if="currentPage === 1" />
-          <!-- 二维码登录 -->
           <LoginQrCode v-if="currentPage === 2" />
-          <!-- 注册 -->
           <LoginRegist v-if="currentPage === 3" />
-          <!-- 忘记密码 -->
           <LoginUpdate v-if="currentPage === 4" />
+          -->
         </div>
       </div>
     </div>
