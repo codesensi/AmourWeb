@@ -21,6 +21,11 @@ buttons:
   pureCloseText: Close
   pureWatchMore: Watch More
   pureMarkAsRead: Mark As Read
+  purePageQuery: Page Query
+  pureDetail: Detail
+  pureEdit: Edit
+  pureAdd: Add
+  pureDelete: Delete
 search:
   pureTotal: Total
   pureHistory: History

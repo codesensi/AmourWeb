@@ -21,6 +21,11 @@ buttons:
   pureCloseText: 关
   pureWatchMore: 查看更多
   pureMarkAsRead: 标为已读
+  purePageQuery: 分页查询
+  pureDetail: 详情
+  pureEdit: 修改
+  pureAdd: 增加
+  pureDelete: 删除
 search:
   pureTotal: 共
   pureHistory: 搜索历史

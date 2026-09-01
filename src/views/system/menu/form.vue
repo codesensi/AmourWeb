@@ -100,7 +100,7 @@ defineExpose({ getRef });
           <el-input
             v-model="newFormInline.title"
             clearable
-            placeholder="请输入菜单名称"
+            placeholder="请填写词表键，如 buttons.pureAdd"
           />
         </el-form-item>
       </re-col>
