@@ -91,7 +91,6 @@
     "@types/sortablejs": "^1.15.9",
     "@vitejs/plugin-vue": "^6.0.8",
     "@vitejs/plugin-vue-jsx": "^5.1.6",
-    "@vue/devtools-api": "^8.2.1",
     "boxen": "^8.0.1",
     "code-inspector-plugin": "^2.0.7",
     "cssnano": "^8.0.8",
