@@ -13,14 +13,11 @@ export type SysUserItem = {
   status?: number;
   builtin?: number;
   remark?: string;
-  deptId?: number;
-  dept?: { id: number; name: string };
   createTime?: number;
 };
 
 /** 用户分页查询参数 */
 export type SysUserQuery = {
-  deptId?: string | number;
   username?: string;
   phone?: string;
   status?: string;
@@ -123,11 +120,6 @@ export const updateMenu = (data?: object) => {
 /** 菜单管理-删除(DELETE /sys/menu/delete/{id}) */
 export const deleteMenu = (id: number | string) => {
   return http.request<ApiResult<any>>("delete", `/sys/menu/delete/${id}`);
-};
-
-/** 部门管理-列表(后端暂无部门表,mock 供数,第 3 期定去留) */
-export const getDeptList = (data?: object) => {
-  return http.request<ApiResult<Array<any>>>("post", "/dept", { data });
 };
 
 /** 日志管理-登录日志列表 */

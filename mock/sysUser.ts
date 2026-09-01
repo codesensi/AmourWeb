@@ -13,8 +13,6 @@ const users = [
     status: 1,
     builtin: 1,
     remark: "管理员",
-    deptId: 103,
-    dept: { id: 103, name: "研发部门" },
     createTime: 1605456000000
   },
   {
@@ -28,8 +26,6 @@ const users = [
     status: 1,
     builtin: 0,
     remark: "普通用户",
-    deptId: 105,
-    dept: { id: 105, name: "测试部门" },
     createTime: 1605456000000
   }
 ];
@@ -51,8 +47,6 @@ export default defineFakeRoute([
       );
       if (query.phone)
         records = records.filter(item => item.phone === query.phone);
-      if (query.deptId)
-        records = records.filter(item => item.deptId === Number(query.deptId));
       return {
         success: true,
         code: 200,

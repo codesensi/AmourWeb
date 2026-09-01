@@ -1,4 +1,4 @@
-// 获取当前登录用户信息（部门管理为后端不完全态下的预留数据，扁平 D/M/B 结构）
+// 获取当前登录用户信息（扁平 D/M/B 结构）
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
 interface MenuItem {
@@ -229,75 +229,6 @@ export const menus: MenuItem[] = [
     title: "删除",
     type: "B",
     perms: "system:menu:delete",
-    sort: 5,
-    status: 0,
-    hidden: 0,
-    builtin: 1
-  },
-  // 部门管理(后端暂无部门表,菜单与按钮权限为预留数据,后端补充后对齐)
-  {
-    id: "1100",
-    pid: "1000",
-    title: "部门管理",
-    type: "M",
-    path: "/system/dept/index",
-    component: "system/dept/index",
-    sort: 4,
-    icon: "ep:office-building",
-    status: 0,
-    hidden: 0,
-    builtin: 1
-  },
-  {
-    id: "1101",
-    pid: "1100",
-    title: "分页查询",
-    type: "B",
-    perms: "system:dept:page",
-    sort: 1,
-    status: 0,
-    hidden: 0,
-    builtin: 1
-  },
-  {
-    id: "1102",
-    pid: "1100",
-    title: "详情",
-    type: "B",
-    perms: "system:dept:detail",
-    sort: 2,
-    status: 0,
-    hidden: 0,
-    builtin: 1
-  },
-  {
-    id: "1103",
-    pid: "1100",
-    title: "修改",
-    type: "B",
-    perms: "system:dept:update",
-    sort: 3,
-    status: 0,
-    hidden: 0,
-    builtin: 1
-  },
-  {
-    id: "1104",
-    pid: "1100",
-    title: "增加",
-    type: "B",
-    perms: "system:dept:insert",
-    sort: 4,
-    status: 0,
-    hidden: 0,
-    builtin: 1
-  },
-  {
-    id: "1105",
-    pid: "1100",
-    title: "删除",
-    type: "B",
-    perms: "system:dept:delete",
     sort: 5,
     status: 0,
     hidden: 0,
