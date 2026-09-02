@@ -12,7 +12,10 @@ import { parseDateTime } from "@/utils/date";
 defineOptions({ name: "PortalHome" });
 
 /** 站点展示配置:由 PortalLayout provide */
-const site = inject<Ref<Partial<SysConfigData>>>("portalSite", ref({}));
+const sysConfig = inject<Ref<Partial<SysConfigData>>>(
+  "portalSysConfig",
+  ref({})
+);
 
 /** 功能卡片:文案与结构照搬原站 */
 const cards = [
@@ -62,7 +65,7 @@ onBeforeUnmount(() => window.clearInterval(clock));
 
 const loveTime = computed(() => {
   // 解析后端日期契约 yyyy-MM-dd HH:mm:ss;未就绪/非法时返回 null,页面跳过渲染
-  const loveStart = parseDateTime(site.value.loveStartDate);
+  const loveStart = parseDateTime(sysConfig.value.siteLoveStartDate);
   if (!loveStart) return null;
   const timeold = Math.max(0, now.value - loveStart.getTime());
   const msPerDay = 24 * 60 * 60 * 1000;

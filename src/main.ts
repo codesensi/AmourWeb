@@ -60,7 +60,7 @@ getPlatformConfig(app).then(async config => {
   siteTitle.value = getConfig().Title ?? siteTitle.value;
   await getSysConfig()
     .then(res => {
-      if (res.success && res.data.title) siteTitle.value = res.data.title;
+      if (res.success && res.data.name) siteTitle.value = res.data.name;
     })
     .catch(() => {});
   app.use(router);

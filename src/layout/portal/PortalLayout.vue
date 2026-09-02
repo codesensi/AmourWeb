@@ -14,23 +14,23 @@ import "@/assets/portal/icons/iconfont-sprite.js";
 defineOptions({ name: "PortalLayout" });
 
 /** 站点展示配置(sys_config):接口就绪前为空对象,子组件按配置缺失安全降级 */
-const site = ref<Partial<SysConfigData>>({});
-provide("portalSite", site);
+const sysConfig = ref<Partial<SysConfigData>>({});
+provide("portalSysConfig", sysConfig);
 
 getSysConfig()
   .then(({ success, data }) => {
-    if (success) site.value = data;
+    if (success) sysConfig.value = data;
   })
   .catch(() => {});
 </script>
 
 <template>
-  <PortalHeader :site="site" />
+  <PortalHeader :sys-config="sysConfig" />
   <PortalHero />
   <!-- 内容区:各门户页面经 RouterView 注入 -->
   <RouterView />
   <PortalSidebar />
-  <PortalFooter :site="site" />
+  <PortalFooter :sys-config="sysConfig" />
 </template>
 
 <style lang="scss" scoped>

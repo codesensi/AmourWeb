@@ -4,7 +4,7 @@ import type { SysConfigData } from "@/api/sysConfig";
 
 defineOptions({ name: "PortalFooter" });
 
-defineProps<{ site: Partial<SysConfigData> }>();
+defineProps<{ sysConfig: Partial<SysConfigData> }>();
 </script>
 
 <template>
@@ -18,11 +18,11 @@ defineProps<{ site: Partial<SysConfigData> }>();
           href="https://beian.miit.gov.cn/#/Integrated/index"
           target="_blank"
           rel="noopener"
-          >{{ site.icpText }}</a
+          >{{ sysConfig.icp }}</a
         >
       </p>
       <p id="footerCopyright">
-        Copyright © {{ site.copyright }} All Rights Reserved.
+        Copyright © {{ sysConfig.copyrightYear }} All Rights Reserved.
       </p>
     </div>
   </div>

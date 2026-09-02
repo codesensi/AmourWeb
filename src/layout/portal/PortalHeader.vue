@@ -4,7 +4,7 @@ import { RouterLink } from "vue-router";
 
 defineOptions({ name: "PortalHeader" });
 
-defineProps<{ site: Partial<SysConfigData> }>();
+defineProps<{ sysConfig: Partial<SysConfigData> }>();
 </script>
 
 <template>
@@ -13,12 +13,16 @@ defineProps<{ site: Partial<SysConfigData> }>();
     <div class="header">
       <div class="logo">
         <h1>
-          <RouterLink class="alogo" to="/">{{ site.title }}</RouterLink>
+          <RouterLink class="alogo" to="/">{{ sysConfig.name }}</RouterLink>
         </h1>
       </div>
       <!-- 文案来自 sys_config,页面内不硬编码 -->
-      <div class="word" :data-tip="site.siteSlogan" data-tip-position="bottom">
-        <span class="wenan">{{ site.siteSlogan }}</span>
+      <div
+        class="word"
+        :data-tip="sysConfig.siteSlogan"
+        data-tip-position="bottom"
+      >
+        <span class="wenan">{{ sysConfig.siteSlogan }}</span>
       </div>
     </div>
   </div>
