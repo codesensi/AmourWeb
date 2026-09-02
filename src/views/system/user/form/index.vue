@@ -12,6 +12,7 @@ const props = withDefaults(defineProps<FormProps>(), {
     username: "",
     password: "",
     phone: "",
+    qq: "",
     email: "",
     sex: "",
     status: 1,
@@ -87,6 +88,15 @@ defineExpose({ getRef });
             v-model="newFormInline.phone"
             clearable
             placeholder="请输入手机号"
+          />
+        </el-form-item>
+      </re-col>
+      <re-col :value="12" :xs="24" :sm="24">
+        <el-form-item label="QQ号" prop="qq">
+          <el-input
+            v-model="newFormInline.qq"
+            clearable
+            placeholder="请输入QQ号"
           />
         </el-form-item>
       </re-col>

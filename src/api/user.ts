@@ -1,22 +1,28 @@
 import { http } from "@/utils/http";
 import type { ApiResult } from "@/api/types";
 
-/** 登录响应 */
-export type UserResult = ApiResult<{
-  /** 头像 */
-  avatar: string;
-  /** 用户名 */
+/** 登录请求参数(对齐后端 LoginRequest) */
+export interface LoginRequest {
+  /** 用户账号 */
   username: string;
-  /** 昵称 */
-  nickname: string;
-  /** 当前登录用户的角色 */
-  roles: Array<string>;
-  /** 按钮级别权限 */
-  permissions: Array<string>;
+  /** 用户密码 */
+  password: string;
+  /** 验证码唯一标识 */
+  captchaKey?: string;
+  /** 验证码内容 */
+  captchaValue?: string;
+}
+
+/** 登录响应(对齐后端 LoginResponse) */
+export type UserResult = ApiResult<{
   /** 访问令牌 */
   accessToken: string;
   /** 访问令牌过期时间（毫秒时间戳） */
   expires: number;
+  /** 访问令牌名称 */
+  tokenName: string;
+  /** 访问令牌前缀 */
+  tokenPrefix: string;
 }>;
 
 /** 账户设置-个人信息 */
@@ -49,7 +55,7 @@ type ResultTable = ApiResult<{
 }>;
 
 /** 登录 */
-export const getLogin = (data?: object) => {
+export const getLogin = (data: LoginRequest) => {
   return http.request<UserResult>("post", "/login", { data });
 };
 
@@ -82,6 +88,8 @@ export interface MenuItem {
   status: number;
   hidden: number;
   builtin: number;
+  /** 备注 */
+  remark?: string;
 }
 
 /** 当前登录用户信息(含菜单) */
@@ -89,8 +97,11 @@ export type CurrentUserResult = ApiResult<{
   username: string;
   nickname: string;
   avatar: string;
+  idCard?: string;
   email?: string;
   phone?: string;
+  /** 用户QQ号码(sys_config qq-service 头像解析使用) */
+  qq?: string;
   gender?: string;
   remark?: string;
   builtin?: number;

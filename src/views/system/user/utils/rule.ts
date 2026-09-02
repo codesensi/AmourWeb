@@ -22,6 +22,20 @@ export const formRules = reactive(<FormRules>{
       // trigger: "click" // 如果想在点击确定按钮时触发这个校验，trigger 设置成 click 即可
     }
   ],
+  qq: [
+    {
+      validator: (rule, value, callback) => {
+        if (value === "") {
+          callback();
+        } else if (!/^\d{6,12}$/.test(value)) {
+          callback(new Error("请输入正确的QQ号格式"));
+        } else {
+          callback();
+        }
+      },
+      trigger: "blur"
+    }
+  ],
   email: [
     {
       validator: (rule, value, callback) => {
