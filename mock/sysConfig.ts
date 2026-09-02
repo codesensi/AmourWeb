@@ -24,8 +24,8 @@ export default defineFakeRoute([
           maleName: "Li",
           femaleQq: "673822943",
           maleQq: "2623669948",
-          // 恋爱计时起点
-          loveStartDate: "2018-07-15T00:00:00",
+          // 恋爱计时起点(对应后端 sys_config site.love-start-date,格式 yyyy-MM-dd HH:mm:ss)
+          loveStartDate: "2018-07-15 00:00:00",
           // ICP 备案文案
           icpText: "赣ICP备2026010001号",
           // 版权年份

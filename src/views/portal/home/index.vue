@@ -7,6 +7,7 @@ import cardAbout from "@/assets/portal/img/card/card-about.svg";
 import cardLovePhoto from "@/assets/portal/img/card/card-love-photo.svg";
 import cardLoveList from "@/assets/portal/img/card/card-love-list.svg";
 import type { SysConfigData } from "@/api/sysConfig";
+import { parseDateTime } from "@/utils/date";
 
 defineOptions({ name: "PortalHome" });
 
@@ -60,11 +61,10 @@ const clock = window.setInterval(() => {
 onBeforeUnmount(() => window.clearInterval(clock));
 
 const loveTime = computed(() => {
-  const start = site.value.loveStartDate;
-  if (!start) return null;
-  const birth = new Date(start);
-  if (isNaN(birth.getTime())) return null;
-  const timeold = Math.max(0, now.value - birth.getTime());
+  // 解析后端日期契约 yyyy-MM-dd HH:mm:ss;未就绪/非法时返回 null,页面跳过渲染
+  const loveStart = parseDateTime(site.value.loveStartDate);
+  if (!loveStart) return null;
+  const timeold = Math.max(0, now.value - loveStart.getTime());
   const msPerDay = 24 * 60 * 60 * 1000;
   const eDaysold = timeold / msPerDay;
   const days = Math.floor(eDaysold);
