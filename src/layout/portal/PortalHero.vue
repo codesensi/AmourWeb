@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import likeSvg from "@/assets/portal/img/like.svg";
-import { qqAvatar, type SysConfigData } from "@/api/sysConfig";
+import { qqAvatar } from "@/api/sysConfig";
 
 defineOptions({ name: "PortalHero" });
 
-defineProps<{ site: Partial<SysConfigData> }>();
+// 男女主昵称与头像:暂时页面写死,后续头像方案定稿后再改造
+// (头像地址与 sys_config qq-service 模板同源:q1.qlogo.cn 按号拉取)
+const female = { name: "Su", avatar: qqAvatar("673822943") };
+const male = { name: "Li", avatar: qqAvatar("2623669948") };
 </script>
 
 <template>
@@ -14,15 +17,15 @@ defineProps<{ site: Partial<SysConfigData> }>();
       <div class="central central-800">
         <div class="middle animated fadeInDown">
           <div class="img-female">
-            <img :src="qqAvatar(site.femaleQq)" draggable="false" alt="" />
-            <span>{{ site.femaleName }}</span>
+            <img :src="female.avatar" draggable="false" alt="" />
+            <span>{{ female.name }}</span>
           </div>
           <div class="love-icon">
             <img :src="likeSvg" draggable="false" alt="" />
           </div>
           <div class="img-male">
-            <img :src="qqAvatar(site.maleQq)" draggable="false" alt="" />
-            <span>{{ site.maleName }}</span>
+            <img :src="male.avatar" draggable="false" alt="" />
+            <span>{{ male.name }}</span>
           </div>
         </div>
       </div>

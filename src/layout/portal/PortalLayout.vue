@@ -26,7 +26,7 @@ getSysConfig()
 
 <template>
   <PortalHeader :site="site" />
-  <PortalHero :site="site" />
+  <PortalHero />
   <!-- 内容区:各门户页面经 RouterView 注入 -->
   <RouterView />
   <PortalSidebar />

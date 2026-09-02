@@ -19,15 +19,10 @@ export default defineFakeRoute([
           // 门户顶栏文案(对应后端 sys_config site.slogan)
           siteSlogan:
             "爱晨雾漫过青瓦，爱暮色染透篱笆，更爱与君并肩立，看遍这人间烟火里的朝暮与年华。",
-          // 双方昵称与 QQ 号(头像经 q1.qlogo.cn 拉取)
-          femaleName: "Su",
-          maleName: "Li",
-          femaleQq: "673822943",
-          maleQq: "2623669948",
           // 恋爱计时起点(对应后端 sys_config site.love-start-date,格式 yyyy-MM-dd HH:mm:ss)
           loveStartDate: "2018-07-15 00:00:00",
-          // ICP 备案文案
-          icpText: "赣ICP备2026010001号",
+          // ICP 备案文案(对应后端 sys_config icp)
+          icpText: "京ICP备2026010001号",
           // 版权年份
           copyright: "2026"
         }
