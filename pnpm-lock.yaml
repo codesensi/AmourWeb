@@ -171,6 +171,9 @@ importers:
       postcss-load-config:
         specifier: ^6.0.1
         version: 6.0.1(jiti@2.7.0)(postcss@8.5.26)(yaml@2.9.0)
+      postcss-prefix-selector:
+        specifier: ^2.2.0
+        version: 2.2.0(postcss@8.5.26)
       postcss-scss:
         specifier: ^4.0.9
         version: 4.0.9(postcss@8.5.26)
@@ -3051,6 +3054,11 @@ packages:
     engines: {node: ^22.11.0 || ^24.11.0 || >=26.0}
     peerDependencies:
       postcss: ^8.5.26
+
+  postcss-prefix-selector@2.2.0:
+    resolution: {integrity: sha512-pGKK57v2SXKo5CD41tAnFh82Y+cxvS3lgTtt7e2YatH1nS3ADTI+U3Lk/NfG+xBz9fyU0KAYoBs1YVwqmGZ9nA==}
+    peerDependencies:
+      postcss: ^8.0.0
 
   postcss-reduce-initial@8.0.5:
     resolution: {integrity: sha512-Bh5d7zjH1Ai9LzJ1qULUZIaC18cniD+wA6gFlOPglMxJRC7meXbuPvpJ/zHQGg5QKwQgit++XQhDTiEIhCk8Ow==}
@@ -6480,6 +6488,10 @@ snapshots:
       cssnano-utils: 6.0.4(postcss@8.5.26)
       postcss: 8.5.26
       postcss-value-parser: 4.2.0
+
+  postcss-prefix-selector@2.2.0(postcss@8.5.26):
+    dependencies:
+      postcss: 8.5.26
 
   postcss-reduce-initial@8.0.5(postcss@8.5.26):
     dependencies:

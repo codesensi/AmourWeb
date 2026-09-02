@@ -25,14 +25,26 @@ getSysConfig()
 </script>
 
 <template>
-  <PortalHeader :sys-config="sysConfig" />
-  <PortalHero />
-  <!-- 内容区:各门户页面经 RouterView 注入 -->
-  <RouterView />
-  <PortalSidebar />
-  <PortalFooter :sys-config="sysConfig" />
+  <!-- 门户样式作用域根容器:门户 CSS(layui/portal)经 postcss 统一加 .portal 前缀,避免全局泄漏污染管理端 -->
+  <div class="portal">
+    <PortalHeader :sys-config="sysConfig" />
+    <PortalHero />
+    <!-- 内容区:各门户页面经 RouterView 注入 -->
+    <RouterView />
+    <PortalSidebar />
+    <PortalFooter :sys-config="sysConfig" />
+  </div>
 </template>
 
 <style lang="scss" scoped>
-/* 门户外壳无自身布局样式:布局全部来自迁移的 portal 原站样式 */
+/* 门户基础观感:承接 layui.css 原 body 级全局规则
+   (前缀隔离后 body 选择器不再命中,统一收敛到 .portal 根容器) */
+.portal {
+  line-height: 1.6;
+  color: rgba(0, 0, 0, 0.85);
+  font-size: 14px;
+  font-family:
+    -apple-system, Roboto, "PingFang SC", "Helvetica Neue", Arial, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
 </style>
