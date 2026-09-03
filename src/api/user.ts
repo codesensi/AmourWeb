@@ -1,4 +1,5 @@
 import { http } from "@/utils/http";
+import { omitEmpty } from "@/utils/params";
 import type { ApiResult } from "@/api/types";
 
 /** 登录请求参数(对齐后端 LoginRequest) */
@@ -66,12 +67,16 @@ export const logoutApi = () => {
 
 /** 账户设置-个人信息 */
 export const getMine = (data?: object) => {
-  return http.request<UserInfoResult>("get", "/mine", { data });
+  return http.request<UserInfoResult>("get", "/mine", {
+    params: omitEmpty(data)
+  });
 };
 
 /** 账户设置-个人安全日志 */
 export const getMineLogs = (data?: object) => {
-  return http.request<ResultTable>("get", "/mine-logs", { data });
+  return http.request<ResultTable>("get", "/mine-logs", {
+    params: omitEmpty(data)
+  });
 };
 
 /** 菜单项(后端扁平 D/M/B 结构) */

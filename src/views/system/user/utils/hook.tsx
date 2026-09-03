@@ -231,12 +231,13 @@ export function useUser(tableRef: Ref) {
     onSearch();
   }
 
-  function handleSizeChange(val: number) {
-    console.log(`${val} items per page`);
+  /** pure-table 已回写 pagination.currentPage/pageSize,此处重新拉取分页数据 */
+  function handleSizeChange() {
+    onSearch();
   }
 
-  function handleCurrentChange(val: number) {
-    console.log(`current page: ${val}`);
+  function handleCurrentChange() {
+    onSearch();
   }
 
   /** 当CheckBox选择项发生变化时会触发该事件 */
@@ -267,7 +268,11 @@ export function useUser(tableRef: Ref) {
 
   async function onSearch() {
     loading.value = true;
-    const { success, data } = await getUserList(toRaw(form));
+    const { success, data } = await getUserList({
+      ...toRaw(form),
+      pageNumber: pagination.currentPage,
+      pageSize: pagination.pageSize
+    });
     if (success) {
       dataList.value = data.records;
       pagination.total = data.totalRow;

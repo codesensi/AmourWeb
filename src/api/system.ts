@@ -1,4 +1,5 @@
 import { http } from "@/utils/http";
+import { omitEmpty } from "@/utils/params";
 import type { ApiResult, PageResult } from "@/api/types";
 
 /** 用户管理-行数据 */
@@ -21,6 +22,10 @@ export type SysUserQuery = {
   username?: string;
   phone?: string;
   status?: string;
+  /** 页码(从 1 开始) */
+  pageNumber?: number;
+  /** 每页条数 */
+  pageSize?: number;
 };
 
 /** 用户管理-分页查询(GET /sys/user/page) */
@@ -28,7 +33,7 @@ export const getUserList = (params?: SysUserQuery) => {
   return http.request<ApiResult<PageResult<SysUserItem>>>(
     "get",
     "/sys/user/page",
-    { params }
+    { params: omitEmpty(params) }
   );
 };
 
@@ -63,7 +68,7 @@ export const getUserRoleIds = (id: number | string) => {
 /** 角色管理-分页查询(GET /sys/role/page) */
 export const getRoleList = (params?: object) => {
   return http.request<ApiResult<PageResult<any>>>("get", "/sys/role/page", {
-    params
+    params: omitEmpty(params)
   });
 };
 
@@ -103,7 +108,7 @@ export const assignMenus = (data?: object) => {
 /** 菜单管理-分页查询(GET /sys/menu/page) */
 export const getMenuList = (params?: object) => {
   return http.request<ApiResult<PageResult<any>>>("get", "/sys/menu/page", {
-    params
+    params: omitEmpty(params)
   });
 };
 
@@ -122,16 +127,16 @@ export const deleteMenu = (id: number | string) => {
   return http.request<ApiResult<any>>("delete", `/sys/menu/delete/${id}`);
 };
 
-/** 日志管理-登录日志列表 */
-export const getLoginLogsList = (data?: object) => {
-  return http.request<ApiResult<PageResult<any>>>("post", "/login-logs", {
-    data
+/** 日志管理-登录日志列表(GET,分页参数 pageNumber/pageSize) */
+export const getLoginLogsList = (params?: object) => {
+  return http.request<ApiResult<PageResult<any>>>("get", "/login-logs", {
+    params: omitEmpty(params)
   });
 };
 
-/** 日志管理-操作日志列表 */
-export const getOperationLogsList = (data?: object) => {
-  return http.request<ApiResult<PageResult<any>>>("post", "/operation-logs", {
-    data
+/** 日志管理-操作日志列表(GET,分页参数 pageNumber/pageSize) */
+export const getOperationLogsList = (params?: object) => {
+  return http.request<ApiResult<PageResult<any>>>("get", "/operation-logs", {
+    params: omitEmpty(params)
   });
 };

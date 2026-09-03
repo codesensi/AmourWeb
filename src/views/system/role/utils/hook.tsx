@@ -157,12 +157,13 @@ export function useRole(treeRef: Ref) {
     onSearch();
   }
 
-  function handleSizeChange(val: number) {
-    console.log(`${val} items per page`);
+  /** pure-table 已回写 pagination.currentPage/pageSize,此处重新拉取分页数据 */
+  function handleSizeChange() {
+    onSearch();
   }
 
-  function handleCurrentChange(val: number) {
-    console.log(`current page: ${val}`);
+  function handleCurrentChange() {
+    onSearch();
   }
 
   function handleSelectionChange(val) {
@@ -171,7 +172,11 @@ export function useRole(treeRef: Ref) {
 
   async function onSearch() {
     loading.value = true;
-    const { success, data } = await getRoleList(toRaw(form));
+    const { success, data } = await getRoleList({
+      ...toRaw(form),
+      pageNumber: pagination.currentPage,
+      pageSize: pagination.pageSize
+    });
     if (success) {
       dataList.value = data.records;
       pagination.total = data.totalRow;

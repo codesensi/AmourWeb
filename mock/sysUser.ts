@@ -49,16 +49,19 @@ export default defineFakeRoute([
       );
       if (query.phone)
         records = records.filter(item => item.phone === query.phone);
+      const pageNumber = Number(query.pageNumber ?? 1);
+      const pageSize = Number(query.pageSize ?? 20);
+      const start = (pageNumber - 1) * pageSize;
       return {
         success: true,
         code: 200,
         msg: "操作成功",
         data: {
-          records,
-          pageNumber: 1,
-          pageSize: 20,
+          records: records.slice(start, start + pageSize),
+          pageNumber,
+          pageSize,
           totalRow: records.length,
-          totalPages: 1
+          totalPages: Math.ceil(records.length / pageSize)
         }
       };
     }

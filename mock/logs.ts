@@ -6,8 +6,8 @@ export default defineFakeRoute([
   // 登录日志
   {
     url: "/login-logs",
-    method: "post",
-    response: ({ body }) => {
+    method: "get",
+    response: ({ query }) => {
       let list = [
         {
           id: 1,
@@ -32,20 +32,25 @@ export default defineFakeRoute([
           loginTime: new Date()
         }
       ];
-      list = list.filter(item => item.username.includes(body?.username));
       list = list.filter(item =>
-        String(item.status).includes(String(body?.status))
+        item.username.includes(String(query?.username ?? ""))
       );
+      list = list.filter(item =>
+        String(item.status).includes(String(query?.status))
+      );
+      const pageNumber = Number(query?.pageNumber ?? 1);
+      const pageSize = Number(query?.pageSize ?? 20);
+      const start = (pageNumber - 1) * pageSize;
       return {
         success: true,
         code: 200,
         msg: "操作成功",
         data: {
-          records: list,
-          pageNumber: 1,
-          pageSize: 20,
+          records: list.slice(start, start + pageSize),
+          pageNumber,
+          pageSize,
           totalRow: list.length,
-          totalPages: 1
+          totalPages: Math.ceil(list.length / pageSize)
         }
       };
     }
@@ -53,8 +58,8 @@ export default defineFakeRoute([
   // 操作日志
   {
     url: "/operation-logs",
-    method: "post",
-    response: ({ body }) => {
+    method: "get",
+    response: ({ query }) => {
       let list = [
         {
           id: 1,
@@ -81,20 +86,25 @@ export default defineFakeRoute([
           operatingTime: new Date()
         }
       ];
-      list = list.filter(item => item.module.includes(body?.module));
       list = list.filter(item =>
-        String(item.status).includes(String(body?.status))
+        item.module.includes(String(query?.module ?? ""))
       );
+      list = list.filter(item =>
+        String(item.status).includes(String(query?.status))
+      );
+      const pageNumber = Number(query?.pageNumber ?? 1);
+      const pageSize = Number(query?.pageSize ?? 20);
+      const start = (pageNumber - 1) * pageSize;
       return {
         success: true,
         code: 200,
         msg: "操作成功",
         data: {
-          records: list,
-          pageNumber: 1,
-          pageSize: 20,
+          records: list.slice(start, start + pageSize),
+          pageNumber,
+          pageSize,
           totalRow: list.length,
-          totalPages: 1
+          totalPages: Math.ceil(list.length / pageSize)
         }
       };
     }
