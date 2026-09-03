@@ -42,11 +42,12 @@ export function viteBuildInfo(): Plugin {
           `${url.replace(/\/$/, "")}/#${hash}`;
         console.log();
         resolved.local.forEach(url => {
+          console.log("  ➜  ─── Local ───");
           console.log(`  ➜  门户端: ${withHash(url, "/")}`);
           console.log(`  ➜  管理端: ${withHash(url, "/admin")}`);
         });
         resolved.network.forEach(url => {
-          console.log("  ➜  ─ 局域网 ─");
+          console.log("  ➜  ─── Network ───");
           console.log(`  ➜  门户端: ${withHash(url, "/")}`);
           console.log(`  ➜  管理端: ${withHash(url, "/admin")}`);
         });
