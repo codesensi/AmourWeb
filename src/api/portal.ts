@@ -2,18 +2,18 @@ import type { ApiResult, PageResult } from "@/api/types";
 import { http } from "@/utils/http";
 
 /** 点点滴滴-文章项 */
-export interface LittleItem {
+export interface MomentsItem {
   id: number;
   title: string;
   author: string;
   date: string;
 }
 
-/** 点点滴滴-文章分页(GET /love/littles,每页 6 条) */
-export const getLittles = (page: number, limit = 6) => {
-  return http.request<ApiResult<PageResult<LittleItem>>>(
+/** 点点滴滴-文章分页(GET /love/moments,每页 6 条) */
+export const getMoments = (page: number, limit = 6) => {
+  return http.request<ApiResult<PageResult<MomentsItem>>>(
     "get",
-    "/love/littles",
+    "/love/moments",
     {
       params: { page, limit }
     }
@@ -21,7 +21,7 @@ export const getLittles = (page: number, limit = 6) => {
 };
 
 /** 恋爱相册-照片项 */
-export interface PhotoItem {
+export interface LovePhotoItem {
   /** 照片地址(后端为上传文件 URL;mock 为内联 SVG 占位图) */
   img: string;
   /** 照片文案 */
@@ -30,11 +30,11 @@ export interface PhotoItem {
   date: string;
 }
 
-/** 恋爱相册分页(POST /love/photos,每页 6 张) */
-export const getPhotos = (page: number, limit = 6) => {
-  return http.request<ApiResult<PageResult<PhotoItem>>>(
+/** 恋爱相册分页(POST /love/photo,每页 6 张) */
+export const getLovePhoto = (page: number, limit = 6) => {
+  return http.request<ApiResult<PageResult<LovePhotoItem>>>(
     "post",
-    "/love/photos",
+    "/love/photo",
     {
       data: { page, limit }
     }
@@ -72,22 +72,22 @@ export interface MessageItem {
   location: string;
 }
 
-/** 留言分页(GET /love/messages) */
-export const getMessages = (page: number, limit = 6) => {
+/** 留言分页(GET /love/message) */
+export const getMessage = (page: number, limit = 6) => {
   return http.request<ApiResult<PageResult<MessageItem>>>(
     "get",
-    "/love/messages",
+    "/love/message",
     { params: { page, limit } }
   );
 };
 
-/** 提交留言(POST /love/messages,字段 {qq, name, text}) */
+/** 提交留言(POST /love/message,字段 {qq, name, text}) */
 export const sendMessage = (data: {
   qq: string;
   name: string;
   text: string;
 }) => {
-  return http.request<ApiResult<null>>("post", "/love/messages", { data });
+  return http.request<ApiResult<null>>("post", "/love/message", { data });
 };
 
 /** 关于页对话-剧本分支选项(点选后递归播放 next 分支) */

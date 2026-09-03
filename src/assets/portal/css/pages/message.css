@@ -20,14 +20,14 @@
   text-shadow: 0 2px 3px rgb(255 183 17 / 36%);
 }
 
-.central.bg .row .card .leavform {
+.central.bg .row .card .message-item {
   display: flex;
   align-items: center;
   margin: 1.5rem 0;
   position: relative;
 }
 
-.jiequ {
+.count-note {
   display: block;
   font-size: 1.2rem;
   font-style: normal;
@@ -35,7 +35,7 @@
   margin-top: 0.9rem;
 }
 
-.central.bg .row .card .leavform img {
+.central.bg .row .card .message-item img {
   width: 4rem;
   height: 4rem;
   border-radius: 5rem;
@@ -44,12 +44,12 @@
   border: 1px solid #fff;
 }
 
-.central.bg .row .card .textinfo .user_info {
+.central.bg .row .card .textinfo .user-info {
   display: flex;
   align-items: center;
 }
 
-.central.bg .row .card .leavform .textinfo {
+.central.bg .row .card .message-item .textinfo {
   width: 100%;
   padding: 1.5rem 1.5rem 0.5rem;
   border-radius: 1rem;
@@ -59,31 +59,31 @@
   box-sizing: border-box;
 }
 
-.central.bg .row .card .leavform .textinfo:hover {
+.central.bg .row .card .message-item .textinfo:hover {
   background: #f0f0f0;
   cursor: pointer;
 }
 
-.central.bg .row .card .leavform .textinfo .name {
+.central.bg .row .card .message-item .textinfo .name {
   font-size: 1.2rem;
   font-family: "Noto Serif SC", serif;
   font-weight: 400;
 }
 
-.central.bg .row .card .leavform .textinfo .time {
+.central.bg .row .card .message-item .textinfo .time {
   font-size: 0.9rem;
   font-weight: 400;
   font-style: normal;
   letter-spacing: 0rem;
 }
 
-.central.bg .row .card .leavform .textinfo .MsgTopInfo {
+.central.bg .row .card .message-item .textinfo .message-top-info {
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
 }
 
-.central.bg .row .card .leavform .textinfo .text {
+.central.bg .row .card .message-item .textinfo .text {
   margin-top: 1rem;
   padding: 0.8rem 0;
   color: #3d3d3d;
@@ -92,7 +92,7 @@
   line-height: 1.6rem;
 }
 
-.central.bg .row .card .inputbox {
+.central.bg .row .card .input-box {
   margin-top: 7rem;
   padding: 3rem 0;
   display: flex;
@@ -101,7 +101,7 @@
   border-top: 1px solid #e8e8e8ee;
 }
 
-.central.bg .row .card .inputbox input {
+.central.bg .row .card .input-box input {
   border: none;
   padding: 1rem 1.5rem;
   border: 1px solid transition !important;
@@ -115,13 +115,13 @@
   transition: all 0.3s;
 }
 
-.central.bg .row .card .inputbox input:focus,
-.central.bg .row .card #wenben:focus {
+.central.bg .row .card .input-box input:focus,
+.central.bg .row .card #messageInput:focus {
   background: #fff;
   border-color: #6b7280;
 }
 
-.central.bg .row .card .inputbox .rig {
+.central.bg .row .card .input-box .input-qq {
   margin-right: 1rem;
 }
 
@@ -129,7 +129,7 @@ input#QQ {
   margin-bottom: 0;
 }
 
-.central.bg .row .card #wenben {
+.central.bg .row .card #messageInput {
   box-sizing: border-box;
   padding: 0.8rem 1.5rem;
   width: 100%;
@@ -144,7 +144,7 @@ input#QQ {
   font-weight: 400;
 }
 
-.central.bg .row .card #wenben:focus {
+.central.bg .row .card #messageInput:focus {
   background-position-y: 187px;
   transition: all 0.25s ease-in-out 0s;
 }
@@ -154,7 +154,7 @@ input#QQ {
   margin: 1rem 0;
 }
 
-.central.bg .row .card .input-sub .tijiao {
+.central.bg .row .card .input-sub .submit-btn {
   padding: 0.5rem 2rem;
   border: none;
   border-radius: 0.5rem;
@@ -167,12 +167,12 @@ input#QQ {
   margin-top: 20px;
 }
 
-.central.bg .row .card .input-sub .tijiao:hover {
+.central.bg .row .card .input-sub .submit-btn:hover {
   cursor: pointer;
   opacity: 0.7;
 }
 
-.central.bg .row .card .leavform .textinfo span.name {
+.central.bg .row .card .message-item .textinfo span.name {
   padding: 0.2rem 0.8rem;
   border-radius: 2rem;
   font-size: 1.2rem !important;
@@ -184,17 +184,17 @@ input#QQ {
   text-overflow: ellipsis;
 }
 
-.central.bg .row .card .leavform .textinfo .time {
+.central.bg .row .card .message-item .textinfo .time {
   text-align: right;
   display: inherit;
 }
 
-.central.bg .row .card .leavform .textinfo .text {
+.central.bg .row .card .message-item .textinfo .text {
   font-family: "Noto Serif SC", serif;
   font-weight: 400;
 }
 
-.central.bg .row .card .leavform .textinfo .time {
+.central.bg .row .card .message-item .textinfo .time {
   text-align: right;
   font-family: "Noto Serif SC", serif;
   font-weight: 400;
@@ -209,7 +209,7 @@ input#QQ {
   border: 1px solid #fff;
 }
 
-.central.bg .row .card .leavform .textinfo .time .yuan {
+.central.bg .row .card .message-item .textinfo .time .dot {
   display: block;
   margin: 0 0.5rem;
   width: 0.35rem;
@@ -219,7 +219,7 @@ input#QQ {
   border: 1px solid #fff;
 }
 
-.MessageButtonCard {
+.message-btn-card {
   position: fixed;
   top: 8rem;
   right: 3rem;
@@ -232,22 +232,22 @@ input#QQ {
   box-shadow: 0 0 35px 0 rgb(140 186 255 / 39%);
 }
 
-.MessageButtonCard:hover {
+.message-btn-card:hover {
   background: #fff;
   cursor: pointer;
 }
 
-.MessageButtonCard:hover .Message-Icon {
+.message-btn-card:hover .message-icon {
   color: #70a9ff;
 }
 
-.MessageButtonCard .Message-Icon {
+.message-btn-card .message-icon {
   color: #fff;
   width: 2rem !important;
   height: 2rem !important;
 }
 
-.central.bg .row .card .leavform .textinfo .level {
+.central.bg .row .card .message-item .textinfo .level {
   display: inline-flex;
   background: #9ca3af33;
   padding: 0.4rem 0.6rem;
@@ -259,12 +259,12 @@ input#QQ {
   margin-left: 1rem;
 }
 
-.central.bg .row .card .leavform .textinfo .level b {
+.central.bg .row .card .message-item .textinfo .level b {
   font-weight: bold;
   margin-left: 0.3rem;
 }
 
-.central.bg .row .card .leavform .head_content {
+.central.bg .row .card .message-item .head-content {
   display: flex;
   align-items: center;
   width: 80%;

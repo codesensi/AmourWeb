@@ -22,14 +22,14 @@ const cards = [
   {
     title: "点点滴滴",
     desc: "有人愿意听你碎碎念念也很浪漫",
-    to: "/little",
+    to: "/moments",
     kind: "card",
     icon: cardMoments
   },
   {
     title: "留言板",
     desc: "在这里写下我们的留言祝福",
-    to: "/leaving",
+    to: "/message",
     kind: "card",
     icon: cardMessage
   },
@@ -43,14 +43,14 @@ const cards = [
   {
     title: "Love Photo",
     desc: "恋爱相册 记录最美瞬间",
-    to: "/photo",
+    to: "/love-photo",
     kind: "card-b",
     icon: cardLovePhoto
   },
   {
     title: "Love List",
     desc: "恋爱列表 你我之间的约定",
-    to: "/list",
+    to: "/love-list",
     kind: "card-b",
     icon: cardLoveList
   }

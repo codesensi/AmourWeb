@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
-import { getMessages, sendMessage, type MessageItem } from "@/api/portal";
+import { getMessage, sendMessage, type MessageItem } from "@/api/portal";
 import { qqAvatar } from "@/api/sysConfig";
 import { message } from "@/utils/message";
 
-defineOptions({ name: "PortalLeaving" });
+defineOptions({ name: "PortalMessage" });
 
 /** 门户列表每页条数(与原站 PAGE_SIZE 一致) */
 const PAGE_SIZE = 6;
@@ -21,10 +21,7 @@ async function loadMore() {
   if (loading.value) return;
   loading.value = true;
   try {
-    const { success, data } = await getMessages(
-      pageNumber.value + 1,
-      PAGE_SIZE
-    );
+    const { success, data } = await getMessage(pageNumber.value + 1, PAGE_SIZE);
     if (success) {
       items.value.push(...data.records);
       totalRow.value = data.totalRow;
@@ -146,10 +143,10 @@ onMounted(() => loadMore());
 
 <template>
   <!-- 点击滚动到留言区 -->
-  <div id="MessageBtn" class="MessageButtonCard" @click="scrollToArea">
+  <div id="messageBtn" class="message-btn-card" @click="scrollToArea">
     <svg
       t="1730880204691"
-      class="Message-Icon icon"
+      class="message-icon icon"
       viewBox="0 0 1024 1024"
       xmlns="http://www.w3.org/2000/svg"
     >
@@ -164,27 +161,28 @@ onMounted(() => loadMore());
       <h1>在这里写下我们的留言祝福</h1>
     </div>
     <h3>
-      已收到 <b id="leavingCount">{{ totalRow }}</b> 条祝福留言<i class="jiequ"
+      已收到 <b id="messageCount">{{ totalRow }}</b> 条祝福留言<i
+        class="count-note"
         >(显示最新 100条)</i
       >
     </h3>
     <div class="row">
       <div class="card col-lg-12 col-md-12 col-sm-12 col-sm-x-12">
         <!-- 留言列表 -->
-        <div id="leavingList">
+        <div id="messageList">
           <div
             v-for="(m, i) in items"
             :key="m.date"
-            class="leavform animated fadeInUp delay-03s"
+            class="message-item animated fadeInUp delay-03s"
           >
-            <div class="MsgTopInfo">
+            <div class="message-top-info">
               <i class="time" :data-tip="m.date" data-tip-position="top">
-                {{ m.date }}<b v-if="m.location" class="yuan" />{{ m.location }}
+                {{ m.date }}<b v-if="m.location" class="dot" />{{ m.location }}
               </i>
             </div>
-            <div class="user_info">
+            <div class="user-info">
               <img :src="m.avatar" alt="" />
-              <div class="head_content">
+              <div class="head-content">
                 <div class="level">
                   访客 <b>#{{ i + 1 }}</b>
                 </div>
@@ -197,37 +195,37 @@ onMounted(() => loadMore());
             还没有留言,来写下第一条吧~
           </div>
         </div>
-        <!-- 提交表单(POST /love/messages {qq, name, text};校验文案逐字保留原站) -->
-        <form class="leaving-form" @submit.prevent="submit">
-          <div id="MessageArea" class="inputbox">
+        <!-- 提交表单(POST /love/message {qq, name, text};校验文案逐字保留原站) -->
+        <form class="message-form" @submit.prevent="submit">
+          <div id="messageArea" class="input-box">
             <img :src="qqAvatar(avatarQq, 100)" alt="" class="avatar" />
             <input
-              id="QQ"
+              id="qqInput"
               v-model="form.qq"
               type="text"
               placeholder="请输入QQ号码"
-              class="rig"
+              class="input-qq"
               @blur="onQqBlur"
             />
             <input
-              id="nickname"
+              id="nicknameInput"
               v-model="form.name"
               type="text"
               placeholder="输入QQ号码后自动获取"
-              class="let"
+              class="input-nickname"
             />
           </div>
           <textarea
-            id="wenben"
+            id="messageInput"
             v-model="form.text"
             rows="8"
             placeholder="请输入您的留言内容..."
           />
           <div class="input-sub">
             <button
-              id="leavingPost"
+              id="messageSubmit"
               type="button"
-              class="tijiao"
+              class="submit-btn"
               :disabled="submitting"
               @click="submit"
             >

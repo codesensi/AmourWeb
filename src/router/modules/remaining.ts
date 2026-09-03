@@ -74,15 +74,15 @@ export default [
         meta: { title: "首页" }
       },
       {
-        path: "/little",
-        name: "PortalLittle",
-        component: () => import("@/views/portal/little/index.vue"),
+        path: "/moments",
+        name: "PortalMoments",
+        component: () => import("@/views/portal/moments/index.vue"),
         meta: { title: "点点滴滴" }
       },
       {
-        path: "/leaving",
-        name: "PortalLeaving",
-        component: () => import("@/views/portal/leaving/index.vue"),
+        path: "/message",
+        name: "PortalMessage",
+        component: () => import("@/views/portal/message/index.vue"),
         meta: { title: "留言板" }
       },
       {
@@ -92,15 +92,15 @@ export default [
         meta: { title: "关于我们" }
       },
       {
-        path: "/photo",
-        name: "PortalPhoto",
-        component: () => import("@/views/portal/photo/index.vue"),
+        path: "/love-photo",
+        name: "PortalLovePhoto",
+        component: () => import("@/views/portal/love-photo/index.vue"),
         meta: { title: "Love Photo" }
       },
       {
-        path: "/list",
+        path: "/love-list",
         name: "PortalLoveList",
-        component: () => import("@/views/portal/list/index.vue"),
+        component: () => import("@/views/portal/love-list/index.vue"),
         meta: { title: "Love List" }
       }
     ]

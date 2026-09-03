@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import { getPhotos, type PhotoItem } from "@/api/portal";
+import { getLovePhoto, type LovePhotoItem } from "@/api/portal";
 
-defineOptions({ name: "PortalPhoto" });
+defineOptions({ name: "PortalLovePhoto" });
 
 /** 门户列表每页条数(与原站 PAGE_SIZE 一致) */
 const PAGE_SIZE = 6;
 
-const items = ref<(PhotoItem & { show: boolean })[]>([]);
+const items = ref<(LovePhotoItem & { show: boolean })[]>([]);
 const totalRow = ref(0);
 const pageNumber = ref(0);
 const loading = ref(false);
@@ -31,7 +31,10 @@ async function loadMore() {
   if (loading.value) return;
   loading.value = true;
   try {
-    const { success, data } = await getPhotos(pageNumber.value + 1, PAGE_SIZE);
+    const { success, data } = await getLovePhoto(
+      pageNumber.value + 1,
+      PAGE_SIZE
+    );
     if (success) {
       const batch = data.records.map(p => ({ ...p, show: false }));
       const base = items.value.length;
@@ -61,7 +64,7 @@ onMounted(() => loadMore());
     <div
       v-for="(photo, i) in items"
       :key="i"
-      class="img_card col-lg-4 col-md-6 col-sm-12 col-sm-x-12 photo-item"
+      class="img-card col-lg-4 col-md-6 col-sm-12 col-sm-x-12 photo-item"
       :class="{ show: photo.show }"
     >
       <div class="love_img">

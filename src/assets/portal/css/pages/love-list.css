@@ -1,4 +1,4 @@
-.central .list_texts {
+.central .love-list-texts {
   background: #fff;
   padding: 2rem 0;
   border-radius: 1rem;
@@ -8,13 +8,13 @@
   box-shadow: 0 8px 12px #ebedf0;
   border: 1px solid rgba(208, 206, 206, 0.6) !important;
 }
-.central .list_texts .top-title {
+.central .love-list-texts .top-title {
   font-size: 1.5rem;
   line-height: 4rem;
   font-family: "Noto Serif SC", serif;
   font-weight: 700;
 }
-.list_texts img {
+.love-list-texts img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -24,11 +24,11 @@
   border: 1px solid rgba(208, 206, 206, 0.6) !important;
   margin: 1.5rem 0;
 }
-.list_texts img:hover {
+.love-list-texts img:hover {
   /*cursor: pointer;*/
   cursor: pointer;
 }
-.row .card .list_texts {
+.row .card .love-list-texts {
   padding: 2rem 2rem;
   display: flex;
   flex-direction: row;
@@ -36,33 +36,33 @@
   box-sizing: border-box;
 }
 
-.row .card .list_texts .lovelist {
+.row .card .love-list-texts .love-list-items {
   transition: height 2s;
   width: 100%;
   line-height: 3rem;
 }
-.row .card .list_texts .lovelist .open {
+.row .card .love-list-texts .love-list-items .open {
   border-bottom: 1px solid rgba(208, 206, 206, 0.6) !important;
   cursor: pointer;
 }
-.row .card .list_texts i {
+.row .card .love-list-texts i {
   font-style: normal;
   margin-right: 0.8rem;
   font-size: 1.8rem;
 }
-.row .card .list_texts .air {
+.row .card .love-list-texts .icon-todo {
   color: #ddd;
 }
-.row .card .list_texts .com {
+.row .card .love-list-texts .icon-done {
   color: #2cdc87;
 }
-.row .card .list_texts span {
+.row .card .love-list-texts span {
   font-size: 1.3rem;
   font-family: "Noto Serif SC", serif;
   font-weight: 700;
 }
 
-.row .card .list_texts span.unfinished {
+.row .card .love-list-texts span.unfinished {
   color: #aeaeae;
 }
 
@@ -77,25 +77,25 @@
 
 /* ---------- 以下为原 list.html 页面内联样式，Thymeleaf 片段化时移入 ---------- */
 /* 完成项与待完成项文字（照搬原站样式语义） */
-.lovelist .unfinished {
+.love-list-items .unfinished {
   color: #666;
 }
-.lovelist .success {
+.love-list-items .success {
   color: #f16b4f;
 }
-.lovelist img {
+.love-list-items img {
   width: 100%;
   max-width: 420px;
   border-radius: 0.8rem;
   margin: 0.5rem 0;
 }
-.lovelist li.cike {
+.love-list-items li.item {
   border-bottom: 1px solid #ddd;
   padding: 1rem 0;
 }
-.lovelist .air {
+.love-list-items .icon-todo {
   color: #ccc;
 }
-.lovelist .com {
+.love-list-items .icon-done {
   color: #f16b4f;
 }

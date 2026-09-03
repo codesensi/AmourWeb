@@ -104,27 +104,27 @@
   margin-right: 0rem !important;
 }
 
-.central.bg .row .card .inputbox .rig {
+.central.bg .row .card .input-box .input-qq {
   width: 100%;
   margin-right: 0;
   box-sizing: border-box;
 }
 
-.central.bg .row .card .inputbox .let {
+.central.bg .row .card .input-box .input-nickname {
   width: 100%;
   margin-right: 0;
   box-sizing: border-box;
 }
 
-.central.bg .row .card .inputbox {
+.central.bg .row .card .input-box {
   flex-direction: column;
 }
 
-.central.bg .row .card .inputbox input {
+.central.bg .row .card .input-box input {
   margin: 1rem 0;
 }
 
-.central.bg .row .card .inputbox input {
+.central.bg .row .card .input-box input {
   padding: 1rem 1.5rem;
 }
 
@@ -175,27 +175,27 @@
   margin-right: 0rem !important;
 }
 
-.central.bg .row .card .inputbox .rig {
+.central.bg .row .card .input-box .input-qq {
   width: 100%;
   margin-right: 0;
   box-sizing: border-box;
 }
 
-.central.bg .row .card .inputbox .let {
+.central.bg .row .card .input-box .input-nickname {
   width: 100%;
   margin-right: 0;
   box-sizing: border-box;
 }
 
-.central.bg .row .card .inputbox {
+.central.bg .row .card .input-box {
   flex-direction: column;
 }
 
-.central.bg .row .card .inputbox input {
+.central.bg .row .card .input-box input {
   margin: 1rem 0;
 }
 
-.central.bg .row .card .inputbox input {
+.central.bg .row .card .input-box input {
   padding: 1rem 1.5rem;
 }
 
@@ -217,7 +217,7 @@ textarea {
   width: 100% !important;
 }
 
-.img_card span {
+.img-card span {
   font-size: 1.2rem;
 }
 
@@ -225,17 +225,17 @@ textarea {
   padding: 0 1rem;
 }
 
-.central.bg .row .card .inputbox {
+.central.bg .row .card .input-box {
   display: flex;
   justify-content: center;
   align-items: flex-start;
 }
 
-.central.bg .row .card .inputbox {
+.central.bg .row .card .input-box {
   padding: 3rem 0 0;
 }
 
-.MessageButtonCard {
+.message-btn-card {
   top: 6rem;
   right: 1rem;
 }
@@ -245,7 +245,7 @@ textarea {
   padding: 0 2rem;
 }
 
-.img_card span {
+.img-card span {
   font-size: 1.25rem !important;
 }
 

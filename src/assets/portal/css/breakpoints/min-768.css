@@ -43,13 +43,13 @@
 .love_img img {
   width: 100% !important;
 }
-.central.bg .row .card .inputbox {
+.central.bg .row .card .input-box {
   display: flex;
   justify-content: center;
   align-items: flex-start;
 }
 
-.central.bg .row .card .inputbox {
+.central.bg .row .card .input-box {
   padding: 3rem 0 0;
 }
 

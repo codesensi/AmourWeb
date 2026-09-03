@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from "vue";
 import { getLoveList, type LoveListItem } from "@/api/portal";
 
-defineOptions({ name: "PortalList" });
+defineOptions({ name: "PortalLoveList" });
 
 /** 门户列表每页条数(与原站 PAGE_SIZE 一致) */
 const PAGE_SIZE = 6;
@@ -43,14 +43,14 @@ onMounted(() => loadMore());
     </div>
     <div class="row central central-800">
       <div class="card col-lg-12 col-md-12 col-sm-12 col-sm-x-12">
-        <div class="list_texts animated fadeInUp delay-03s">
-          <div id="loveListBox" class="lovelist">
+        <div class="love-list-texts animated fadeInUp delay-03s">
+          <div id="loveListBox" class="love-list-items">
             <!-- 清单项:完成项显成功图标(com)+success 样式+可选照片;未完成项 air 图标+unfinished 置灰 -->
             <ul>
-              <li v-for="(it, i) in items" :key="i" class="cike">
+              <li v-for="(it, i) in items" :key="i" class="item">
                 <i
                   class="iconfont icon-chenggong2"
-                  :class="it.done ? 'com' : 'air'"
+                  :class="it.done ? 'icon-done' : 'icon-todo'"
                 />
                 <span :class="it.done ? 'success' : 'unfinished'">
                   {{ it.text }}

@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import { getLittles, type LittleItem } from "@/api/portal";
+import { getMoments, type MomentsItem } from "@/api/portal";
 
-defineOptions({ name: "PortalLittle" });
+defineOptions({ name: "PortalMoments" });
 
 /** 门户列表每页条数(与原站 PAGE_SIZE 一致) */
 const PAGE_SIZE = 6;
 
-const items = ref<LittleItem[]>([]);
+const items = ref<MomentsItem[]>([]);
 const totalRow = ref(0);
 const pageNumber = ref(0);
 const loading = ref(false);
@@ -19,7 +19,7 @@ async function loadMore() {
   if (loading.value) return;
   loading.value = true;
   try {
-    const { success, data } = await getLittles(pageNumber.value + 1, PAGE_SIZE);
+    const { success, data } = await getMoments(pageNumber.value + 1, PAGE_SIZE);
     if (success) {
       items.value.push(...data.records);
       totalRow.value = data.totalRow;
@@ -38,24 +38,24 @@ onMounted(() => loadMore());
     <div class="title">
       <h1>有人愿意听你碎碎念念也很浪漫</h1>
     </div>
-    <div id="littleBox" class="row central central-800">
+    <div id="momentsBox" class="row central central-800">
       <div
         v-for="it in items"
         :key="it.id"
         class="card col-lg-12 col-md-12 col-sm-12 col-sm-x-12"
       >
-        <div class="little_texts">
+        <div class="moments-texts">
           <a href="javascript:void(0)" :data-id="it.id">
             <div class="top-title textOneHide">
               {{ it.title }}
-              <svg class="little_icon" aria-hidden="true">
+              <svg class="moments-icon" aria-hidden="true">
                 <use xlink:href="#icon-zhankai" />
               </svg>
             </div>
           </a>
           <div class="info">
             <span>
-              <svg class="little_icon" aria-hidden="true">
+              <svg class="moments-icon" aria-hidden="true">
                 <use xlink:href="#icon-shoucang" />
               </svg>
               {{ it.author }} <i>记录于</i> {{ it.date }}
@@ -67,7 +67,7 @@ onMounted(() => loadMore());
         暂无记录…
       </div>
     </div>
-    <div v-if="hasMore" class="little-load-more" @click="loadMore">
+    <div v-if="hasMore" class="moments-load-more" @click="loadMore">
       {{ loading ? "加载中..." : "加载更多" }}
     </div>
   </div>
@@ -75,7 +75,7 @@ onMounted(() => loadMore());
 
 <style scoped>
 /* 「加载更多」按钮:替代原站 layui flow 的按钮式分页 */
-.little-load-more {
+.moments-load-more {
   width: fit-content;
   padding: 0.5rem 2rem;
   margin: 2rem auto 0;
@@ -89,7 +89,7 @@ onMounted(() => loadMore());
   transition: all 0.2s;
 }
 
-.little-load-more:hover {
+.moments-load-more:hover {
   color: #ff69b4;
   border-color: #ff69b4;
 }
