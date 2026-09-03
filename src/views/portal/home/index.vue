@@ -82,30 +82,32 @@ const loveTime = computed(() => {
 </script>
 
 <template>
-  <div class="time">
-    <span>这是我们一起走过的</span>
-    <b>{{ loveTime?.days }}天</b>
-    <b>{{ loveTime?.hours }}时</b>
-    <b>{{ loveTime?.minutes }}分</b>
-    <b>{{ loveTime?.seconds }}秒</b>
-  </div>
+  <div>
+    <div class="time">
+      <span>这是我们一起走过的</span>
+      <b>{{ loveTime?.days }}天</b>
+      <b>{{ loveTime?.hours }}时</b>
+      <b>{{ loveTime?.minutes }}分</b>
+      <b>{{ loveTime?.seconds }}秒</b>
+    </div>
 
-  <!-- 功能卡片:整卡可点 -->
-  <div class="card-wrap">
-    <div class="row central">
-      <RouterLink
-        v-for="card in cards"
-        :key="card.to"
-        :to="card.to"
-        :class="card.kind"
-        class="flex-h animated fadeInUp"
-      >
-        <img :src="card.icon" alt="" />
-        <div class="text">
-          <span>{{ card.title }}</span>
-          <p>{{ card.desc }}</p>
-        </div>
-      </RouterLink>
+    <!-- 功能卡片:整卡可点 -->
+    <div class="card-wrap">
+      <div class="row central">
+        <RouterLink
+          v-for="card in cards"
+          :key="card.to"
+          :to="card.to"
+          :class="card.kind"
+          class="flex-h animated fadeInUp"
+        >
+          <img :src="card.icon" alt="" />
+          <div class="text">
+            <span>{{ card.title }}</span>
+            <p>{{ card.desc }}</p>
+          </div>
+        </RouterLink>
+      </div>
     </div>
   </div>
 </template>

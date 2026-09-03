@@ -58,38 +58,40 @@ onMounted(() => loadMore());
 </script>
 
 <template>
-  <!-- 标题(照搬原站 love-photo.html) -->
-  <h4 class="text-ce central">记录下你的最美瞬间</h4>
-  <div id="photoGallery" class="row central gallery">
-    <div
-      v-for="(photo, i) in items"
-      :key="i"
-      class="img-card col-lg-4 col-md-6 col-sm-12 col-sm-x-12 photo-item"
-      :class="{ show: photo.show }"
-    >
-      <div class="love_img">
-        <el-image
-          :src="photo.img"
-          :alt="photo.text"
-          :data-description="photo.date"
-          :preview-src-list="previewUrls"
-          :initial-index="i"
-          preview-teleported
-          hide-on-click-modal
-        />
-        <div class="words" :data-tip="photo.text" data-tip-position="top">
-          <i>{{ photo.date }}</i
-          ><span>{{ photo.text }}</span>
+  <div>
+    <!-- 标题(照搬原站 love-photo.html) -->
+    <h4 class="text-ce central">记录下你的最美瞬间</h4>
+    <div id="photoGallery" class="row central gallery">
+      <div
+        v-for="(photo, i) in items"
+        :key="i"
+        class="img-card col-lg-4 col-md-6 col-sm-12 col-sm-x-12 photo-item"
+        :class="{ show: photo.show }"
+      >
+        <div class="love_img">
+          <el-image
+            :src="photo.img"
+            :alt="photo.text"
+            :data-description="photo.date"
+            :preview-src-list="previewUrls"
+            :initial-index="i"
+            preview-teleported
+            hide-on-click-modal
+          />
+          <div class="words" :data-tip="photo.text" data-tip-position="top">
+            <i>{{ photo.date }}</i
+            ><span>{{ photo.text }}</span>
+          </div>
         </div>
       </div>
+      <div v-if="!loading && items.length === 0" class="portal-empty">
+        暂无照片…
+      </div>
     </div>
-    <div v-if="!loading && items.length === 0" class="portal-empty">
-      暂无照片…
+    <!-- 「加载更多」按钮:替代原站 layui flow 的按钮式分页 -->
+    <div v-if="hasMore" class="photo-load-more" @click="loadMore">
+      {{ loading ? "加载中..." : "加载更多" }}
     </div>
-  </div>
-  <!-- 「加载更多」按钮:替代原站 layui flow 的按钮式分页 -->
-  <div v-if="hasMore" class="photo-load-more" @click="loadMore">
-    {{ loading ? "加载中..." : "加载更多" }}
   </div>
 </template>
 

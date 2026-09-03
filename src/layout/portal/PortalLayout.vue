@@ -28,8 +28,14 @@ getSysConfig()
   <div class="portal">
     <PortalHeader :sys-config="sysConfig" />
     <PortalHero />
-    <!-- 内容区:各门户页面经 RouterView 注入 -->
-    <RouterView />
+    <!-- 内容区:各门户页面经 RouterView 注入;淡入过渡消除路由切换硬切 -->
+    <div class="portal-content">
+      <RouterView v-slot="{ Component }">
+        <Transition name="portal-fade" mode="out-in">
+          <component :is="Component" />
+        </Transition>
+      </RouterView>
+    </div>
     <PortalSidebar />
     <PortalFooter :sys-config="sysConfig" />
   </div>
@@ -45,5 +51,21 @@ getSysConfig()
   font-family:
     -apple-system, Roboto, "PingFang SC", "Helvetica Neue", Arial, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+/* 内容区最小高度:避免短页面(如空态列表页)切换时页脚大幅上跳 */
+.portal-content {
+  min-height: 40vh;
+}
+
+/* 路由切换淡入淡出:消除瞬间替换造成的闪屏感 */
+.portal-fade-enter-active,
+.portal-fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.portal-fade-enter-from,
+.portal-fade-leave-to {
+  opacity: 0;
 }
 </style>

@@ -237,41 +237,43 @@ onMounted(() => startChat());
 </script>
 
 <template>
-  <!-- 标题(照搬原站 about.html) -->
-  <h4 class="text-ce central">与 <i>Ki_About</i> 小站对话中...</h4>
-  <!-- 对话区背景卡 -->
-  <div class="central central-600">
-    <div class="chat-box-wrap">
-      <div ref="chatBoxRef" class="chat-box">
-        <template v-for="(item, i) in items" :key="i">
-          <div
-            v-if="item.kind === 'msg'"
-            class="chat-msg"
-            :class="{ human: item.human }"
-          >
-            <img
-              v-if="item.image"
-              class="chat-msg-image"
-              :src="item.image.src"
-              :alt="item.image.alt"
-            />
-            <template v-else>{{ item.text }}</template>
-          </div>
-          <div v-else-if="item.kind === 'typing'" class="chat-typing">
-            <span class="dot" /><span class="dot" /><span class="dot" />
-          </div>
-          <div v-else-if="item.kind === 'actions'" class="chat-actions">
-            <button
-              v-for="opt in item.options"
-              :key="opt.value"
-              type="button"
-              class="chat-btn"
-              @click="item.resolve(opt)"
+  <div>
+    <!-- 标题(照搬原站 about.html) -->
+    <h4 class="text-ce central">与 <i>Ki_About</i> 小站对话中...</h4>
+    <!-- 对话区背景卡 -->
+    <div class="central central-600">
+      <div class="chat-box-wrap">
+        <div ref="chatBoxRef" class="chat-box">
+          <template v-for="(item, i) in items" :key="i">
+            <div
+              v-if="item.kind === 'msg'"
+              class="chat-msg"
+              :class="{ human: item.human }"
             >
-              {{ opt.text }}
-            </button>
-          </div>
-        </template>
+              <img
+                v-if="item.image"
+                class="chat-msg-image"
+                :src="item.image.src"
+                :alt="item.image.alt"
+              />
+              <template v-else>{{ item.text }}</template>
+            </div>
+            <div v-else-if="item.kind === 'typing'" class="chat-typing">
+              <span class="dot" /><span class="dot" /><span class="dot" />
+            </div>
+            <div v-else-if="item.kind === 'actions'" class="chat-actions">
+              <button
+                v-for="opt in item.options"
+                :key="opt.value"
+                type="button"
+                class="chat-btn"
+                @click="item.resolve(opt)"
+              >
+                {{ opt.text }}
+              </button>
+            </div>
+          </template>
+        </div>
       </div>
     </div>
   </div>
