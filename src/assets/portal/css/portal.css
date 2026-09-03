@@ -678,8 +678,11 @@ li {
 
 /* data-tip 悬浮提示已迁移至 common/tooltip.js（原 layui layer.tips），样式随组件注入 */
 
-/* 空状态提示（留言板/清单/点滴列表无数据时） */
+/* 空状态提示（留言板/清单/点滴列表无数据时）
+   .portal-empty 常作为 .row(12列 Grid)的直接子元素:不显式跨列时会落入单个列轨道
+   (宽度仅约 1/12),文字被挤成数行且看似偏左;跨满整行后 text-align:center 才是真实居中 */
 .portal-empty {
+  grid-column: 1 / -1;
   text-align: center;
   color: #999;
   line-height: 4rem;
