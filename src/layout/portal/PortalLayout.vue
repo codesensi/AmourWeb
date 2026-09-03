@@ -58,13 +58,22 @@ getSysConfig()
   min-height: 40vh;
 }
 
-/* 路由切换淡入淡出:消除瞬间替换造成的闪屏感 */
-.portal-fade-enter-active,
-.portal-fade-leave-active {
-  transition: opacity 0.2s ease;
+/* 路由切换过渡:进入时轻微上移淡入(呼应首页卡片入场动画),离开仅快速淡出,消除瞬间替换的闪屏感 */
+.portal-fade-enter-active {
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
-.portal-fade-enter-from,
+.portal-fade-leave-active {
+  transition: opacity 0.15s ease;
+}
+
+.portal-fade-enter-from {
+  opacity: 0;
+  transform: translateY(1rem);
+}
+
 .portal-fade-leave-to {
   opacity: 0;
 }

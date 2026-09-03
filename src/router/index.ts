@@ -79,17 +79,16 @@ export const router: Router = createRouter({
   routes: constantRoutes.concat(...(remainingRouter as any)),
   strict: true,
   scrollBehavior(to, from, savedPosition) {
-    return new Promise(resolve => {
-      if (savedPosition) {
-        return savedPosition;
-      } else {
-        if (from.meta.saveSrollTop) {
-          const top: number =
-            document.documentElement.scrollTop || document.body.scrollTop;
-          resolve({ left: 0, top });
-        }
-      }
-    });
+    // 浏览器前进/后退:恢复原滚动位置
+    if (savedPosition) return savedPosition;
+    // 页面声明 saveSrollTop 时保持当前滚动(管理端既有机制不变)
+    if (from.meta.saveSrollTop) {
+      const top: number =
+        document.documentElement.scrollTop || document.body.scrollTop;
+      return { left: 0, top };
+    }
+    // 其余(含门户公开路由):从最顶部加载
+    return { top: 0 };
   }
 });
 
