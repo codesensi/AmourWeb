@@ -1,10 +1,21 @@
 <script setup lang="ts">
+import { computed } from "vue";
+import { RouterLink } from "vue-router";
 import icpSvg from "@/assets/portal/img/icp.svg?url";
 import type { SysConfigData } from "@/api/sysConfig";
 
 defineOptions({ name: "PortalFooter" });
 
-defineProps<{ sysConfig: Partial<SysConfigData> }>();
+const props = defineProps<{ sysConfig: Partial<SysConfigData> }>();
+
+/** 版权年份:配置起始年份早于当前年份时显示「起始-当前」区间;
+ * 配置缺失、非法或恰为当前年份(防御性:配置晚于当前年份同理)时仅显示当前年份 */
+const copyrightYears = computed(() => {
+  const nowYear = new Date().getFullYear();
+  const startYear = Number.parseInt(props.sysConfig.copyrightYear ?? "", 10);
+  const start = Number.isInteger(startYear) && startYear < nowYear ? startYear : null;
+  return start ? `${start}-${nowYear}` : String(nowYear);
+});
 </script>
 
 <template>
@@ -22,7 +33,8 @@ defineProps<{ sysConfig: Partial<SysConfigData> }>();
         >
       </p>
       <p id="footerCopyright">
-        Copyright © {{ sysConfig.copyrightYear }} All Rights Reserved.
+        Copyright {{ copyrightYears }}
+        <RouterLink to="/">{{ sysConfig.name }}</RouterLink>. All Rights Reserved.
       </p>
     </div>
   </div>
