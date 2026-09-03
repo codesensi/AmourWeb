@@ -1,0 +1,110 @@
+/* 门户元素级基础重置:迁移自 layui.css 2.13.9 的元素级 base 段(1-103 行),
+ * 替代 layui.css 的"栅格/表单底座"职责;经 postcss 统一加 .portal 前缀,隔离规则不变。
+ * body 级排版规则不在此承接,由 PortalLayout.vue 的 .portal 根容器负责 */
+
+blockquote,
+button,
+dd,
+div,
+dl,
+dt,
+form,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+input,
+li,
+ol,
+p,
+pre,
+td,
+textarea,
+th,
+ul {
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+a:active,
+a:hover {
+  outline: 0;
+}
+
+img {
+  display: inline-block;
+  border: none;
+  vertical-align: middle;
+}
+
+li {
+  list-style: none;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 700;
+}
+
+h5,
+h6 {
+  font-size: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font-size: 100%;
+}
+
+button,
+input,
+optgroup,
+option,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  font-style: inherit;
+  font-weight: inherit;
+  outline: 0;
+}
+
+pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+hr {
+  height: 0;
+  line-height: 0;
+  margin: 10px 0;
+  padding: 0;
+  border: none;
+  border-bottom: 1px solid #eee;
+  clear: both;
+  overflow: hidden;
+  background: 0 0;
+}
+
+a {
+  color: #333;
+  text-decoration: none;
+}
+
+a cite {
+  font-style: normal;
+}
