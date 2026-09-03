@@ -14,14 +14,19 @@ function goHome() {
   router.push("/");
 }
 
-/** 管理后台:指向 /admin(未登录由守卫拦截到登录页) */
+/** 管理后台:新标签页打开 /admin(未登录由守卫拦截到登录页) */
 function goAdmin() {
-  router.push("/admin");
+  const { href } = router.resolve({ path: "/admin" });
+  window.open(href, "_blank", "noopener,noreferrer");
 }
 
 /** 开源地址(新窗口打开) */
 function goRepo() {
-  window.open("https://github.com/codesensi/Amour", "_blank");
+  window.open(
+    "https://github.com/codesensi/Amour",
+    "_blank",
+    "noopener,noreferrer"
+  );
 }
 </script>
 

@@ -33,6 +33,25 @@ export function viteBuildInfo(): Plugin {
         startTime = dayjs(new Date());
       }
     },
+    configureServer(server) {
+      // 覆写 Vite 默认的 Local/Network 地址输出,改为打印门户端/管理端 hash 路由入口
+      server.printUrls = () => {
+        const resolved = server.resolvedUrls;
+        if (!resolved) return;
+        const withHash = (url: string, hash: string) =>
+          `${url.replace(/\/$/, "")}/#${hash}`;
+        console.log();
+        resolved.local.forEach(url => {
+          console.log(`  ➜  门户端: ${withHash(url, "/")}`);
+          console.log(`  ➜  管理端: ${withHash(url, "/admin")}`);
+        });
+        resolved.network.forEach(url => {
+          console.log("  ➜  ─ 局域网 ─");
+          console.log(`  ➜  门户端: ${withHash(url, "/")}`);
+          console.log(`  ➜  管理端: ${withHash(url, "/admin")}`);
+        });
+      };
+    },
     closeBundle() {
       if (config.command === "build") {
         endTime = dayjs(new Date());
