@@ -24,8 +24,7 @@ export default defineFakeRoute([
           // 用户随机头像服务地址模板(对应后端 sys_config avatar-service,%s 为种子)
           avatarService: "https://api.dicebear.com/7.x/bottts/svg?seed=%s",
           // 门户站点标语(对应后端 sys_config site.slogan)
-          siteSlogan:
-            "爱晨雾漫过青瓦，爱暮色染透篱笆，更爱与君并肩立，看遍这人间烟火里的朝暮与年华。",
+          siteSlogan: "爱晨雾漫过青瓦，爱暮色染透篱笆，更爱与君并肩立，看遍这人间烟火里的朝暮与年华。",
           // 门户恋爱计时起点(对应后端 sys_config site.love-start-date,格式 yyyy-MM-dd HH:mm:ss)
           siteLoveStartDate: "2018-07-15 00:00:00",
           // 验证码显隐开关(对应后端 sys_config captcha.enabled)

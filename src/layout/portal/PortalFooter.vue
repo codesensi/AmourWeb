@@ -16,25 +16,29 @@ const copyrightYears = computed(() => {
   const start = Number.isInteger(startYear) && startYear < nowYear ? startYear : null;
   return start ? `${start}-${nowYear}` : String(nowYear);
 });
+
+/** ICP 备案文案:未配置(缺失或纯空白)时整个 ICP 块不展示 */
+const icpText = computed(() => props.sysConfig.icp?.trim() ?? "");
 </script>
 
 <template>
   <!-- 页脚:ICP 备案(链接为固定地址,文案由 sys_config 注入)+ 版权行(年份由前端拼接) -->
   <div class="footer-warp">
     <div class="footer">
-      <p class="footer-icp">
+      <p v-if="icpText" class="footer-icp">
         <img :src="icpSvg" alt="" />
         <a
           id="footerIcpLink"
           href="https://beian.miit.gov.cn/#/Integrated/index"
           target="_blank"
           rel="noopener"
-          >{{ sysConfig.icp }}</a
+          >{{ icpText }}</a
         >
       </p>
       <p id="footerCopyright">
         Copyright {{ copyrightYears }}
-        <RouterLink to="/">{{ sysConfig.name }}</RouterLink>. All Rights Reserved.
+        <RouterLink to="/">{{ sysConfig.name }}</RouterLink
+        >. All Rights Reserved.
       </p>
     </div>
   </div>
