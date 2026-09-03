@@ -11,7 +11,7 @@ defineProps<{ sysConfig: Partial<SysConfigData> }>();
   <!-- 页脚:ICP 备案(链接为固定地址,文案由 sys_config 注入)+ 版权行(年份由前端拼接) -->
   <div class="footer-warp">
     <div class="footer">
-      <p>
+      <p class="footer-icp">
         <img :src="icpSvg" alt="" />
         <a
           id="footerIcpLink"

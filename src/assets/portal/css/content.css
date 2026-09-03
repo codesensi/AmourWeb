@@ -408,6 +408,13 @@ a:hover {
   margin-right: 0.3rem;
 }
 
+/* ICP 备案行:flex 垂直居中,保证图标与文案处于同一水平线上(内联 vertical-align: middle 相对中文文案偏低) */
+.footer-warp .footer .footer-icp {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .bg-img:before {
   content: "";
   position: absolute;
