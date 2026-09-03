@@ -234,7 +234,7 @@ export const menus: MenuItem[] = [
     hidden: 0,
     builtin: 1
   },
-  // 日志管理（对应模板保留的 monitor 页面，第 3 期与后端蓝图对齐）
+  // 日志管理（模板保留的 monitor 页面已更名 logs，第 3 期与后端蓝图对齐）
   {
     id: "3000",
     pid: "0",
@@ -253,7 +253,7 @@ export const menus: MenuItem[] = [
     title: "登录日志",
     type: "M",
     path: "/admin/logs/login-logs",
-    component: "monitor/logs/login/index",
+    component: "logs/login/index",
     sort: 2,
     icon: "ri:window-line",
     status: 0,
@@ -266,7 +266,7 @@ export const menus: MenuItem[] = [
     title: "操作日志",
     type: "M",
     path: "/admin/logs/operation-logs",
-    component: "monitor/logs/operation/index",
+    component: "logs/operation/index",
     sort: 3,
     icon: "ri:history-fill",
     status: 0,
