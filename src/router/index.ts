@@ -133,11 +133,7 @@ router.beforeEach((to: ToRouteType, _from) => {
       handleAliveRoute(to);
     }
   }
-  /** 门户公开路由(meta.public):免登录直接放行,不进入登录校验分支(第二期门户) */
-  if (to.meta?.public) {
-    return true;
-  }
-  const userInfo = storageLocal().getItem<DataInfo<number>>(userKey);
+  /** 浏览器标题:门户与管理端共用 —— 取路由链上最深的非空 meta.title,拼接站点名(sys_config name) */
   const externalLink = isUrl(to?.name as string);
   if (!externalLink) {
     to.matched.some(item => {
@@ -147,6 +143,11 @@ router.beforeEach((to: ToRouteType, _from) => {
       else document.title = item.meta.title;
     });
   }
+  /** 门户公开路由(meta.public):免登录直接放行,不进入登录校验分支(第二期门户) */
+  if (to.meta?.public) {
+    return true;
+  }
+  const userInfo = storageLocal().getItem<DataInfo<number>>(userKey);
   /** 如果已经登录并存在登录信息后不能跳转到路由白名单，而是继续保持在当前页面 */
   function toCorrectRoute() {
     return whiteList.includes(to.fullPath) ? _from.fullPath : undefined;
