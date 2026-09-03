@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, inject, onBeforeUnmount, ref, type Ref } from "vue";
 import { RouterLink } from "vue-router";
-import cardMoments from "@/assets/portal/img/card/card-moments.svg";
-import cardMessage from "@/assets/portal/img/card/card-message.svg";
-import cardAbout from "@/assets/portal/img/card/card-about.svg";
-import cardLovePhoto from "@/assets/portal/img/card/card-love-photo.svg";
-import cardLoveList from "@/assets/portal/img/card/card-love-list.svg";
+import cardMoments from "@/assets/portal/img/card/card-moments.svg?url";
+import cardMessage from "@/assets/portal/img/card/card-message.svg?url";
+import cardAbout from "@/assets/portal/img/card/card-about.svg?url";
+import cardLovePhoto from "@/assets/portal/img/card/card-love-photo.svg?url";
+import cardLoveList from "@/assets/portal/img/card/card-love-list.svg?url";
 import type { SysConfigData } from "@/api/sysConfig";
 import { parseDateTime } from "@/utils/date";
 

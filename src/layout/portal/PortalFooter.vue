@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import icpSvg from "@/assets/portal/img/icp.svg";
+import icpSvg from "@/assets/portal/img/icp.svg?url";
 import type { SysConfigData } from "@/api/sysConfig";
 
 defineOptions({ name: "PortalFooter" });
