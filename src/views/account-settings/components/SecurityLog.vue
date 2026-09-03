@@ -13,7 +13,7 @@ const loading = ref(true);
 const dataList = ref([]);
 const pagination = reactive<PaginationProps>({
   total: 0,
-  pageSize: 10,
+  pageSize: 20,
   currentPage: 1,
   background: true,
   layout: "prev, pager, next"

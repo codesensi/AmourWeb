@@ -43,7 +43,7 @@ export default defineFakeRoute([
         data: {
           records: list,
           pageNumber: 1,
-          pageSize: 10,
+          pageSize: 20,
           totalRow: list.length,
           totalPages: 1
         }
@@ -92,7 +92,7 @@ export default defineFakeRoute([
         data: {
           records: list,
           pageNumber: 1,
-          pageSize: 10,
+          pageSize: 20,
           totalRow: list.length,
           totalPages: 1
         }

@@ -56,7 +56,7 @@ export default defineFakeRoute([
         data: {
           list,
           total: list.length, // 总条目数
-          pageSize: 10, // 每页显示条目个数
+          pageSize: 20, // 每页显示条目个数
           currentPage: 1 // 当前页数
         }
       };
