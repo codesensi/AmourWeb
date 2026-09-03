@@ -195,6 +195,20 @@ function transformMenus(menus: Array<MenuItem>): Array<RouteRecordRaw> {
       tree.push(nodeMap.get(item.id));
     }
   });
+  // 校准父级 rank 不大于子级：拍平注册时同名路由“后注册者胜出”，
+  // 目录必须排在其实际叶子之前，避免形成三级嵌套匹配（Layout 双层渲染）
+  const calibrateRank = (nodes: Array<any>): number => {
+    let min = Infinity;
+    nodes.forEach(node => {
+      const childMin = node.children?.length
+        ? calibrateRank(node.children)
+        : Infinity;
+      node.meta.rank = Math.min(node.meta.rank, childMin);
+      min = Math.min(min, node.meta.rank);
+    });
+    return min;
+  };
+  calibrateRank(tree);
   return tree;
 }
 
@@ -213,7 +227,6 @@ function handleAsyncRoutes(routeList) {
           return;
         } else {
           // 切记将路由push到routes后还需要使用addRoute，这样路由才能正常跳转
-          if (v?.children && v.children.length) return;
           router.options.routes[0].children.push(v);
           // 最终路由进行升序
           ascending(router.options.routes[0].children);
