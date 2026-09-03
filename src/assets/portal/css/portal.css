@@ -341,6 +341,16 @@ li {
   font-weight: 700;
 }
 
+/* 心形与头像圆垂直居中:左右列内含昵称文字,整体居中会导致心形偏低,
+   故让心形单元与头像图同高、对齐列顶部,在其内部垂直居中 */
+.bg-img .middle .love-icon {
+  align-self: flex-start;
+  height: 10rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .bg-img .middle .love-icon img {
   width: 7rem;
   height: 7rem;

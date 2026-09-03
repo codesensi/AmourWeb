@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import likeSvg from "@/assets/portal/img/like.svg";
+import likeSvg from "@/assets/portal/img/like.svg?url";
 import { qqAvatar } from "@/api/sysConfig";
 
 defineOptions({ name: "PortalHero" });

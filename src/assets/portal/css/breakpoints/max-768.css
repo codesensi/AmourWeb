@@ -67,6 +67,10 @@
   height: 6rem;
 }
 
+.bg-img .middle .love-icon {
+  height: 6rem;
+}
+
 .bg-img .middle .love-icon img {
   width: 5rem;
   height: 5rem;
@@ -131,6 +135,10 @@
 
 .bg-img .middle img {
   width: 6rem;
+  height: 6rem;
+}
+
+.bg-img .middle .love-icon {
   height: 6rem;
 }
 
