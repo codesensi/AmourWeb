@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, inject, onMounted, reactive, ref, type Ref } from "vue";
 import { getMessage, sendMessage, type MessageItem } from "@/api/portal";
-import { qqAvatar } from "@/api/sysConfig";
+import { localAvatar, qqAvatar, type SysConfigData } from "@/api/sysConfig";
 import { message } from "@/utils/message";
 
 defineOptions({ name: "PortalMessage" });
@@ -40,8 +40,15 @@ function reloadMessages() {
   items.value = [];
   totalRow.value = 0;
   pageNumber.value = 0;
+  Object.keys(avatarErrors).forEach(key => delete avatarErrors[Number(key)]);
   loadMore();
 }
+
+/** 站点展示配置(portal 布局 provide):QQ 头像服务地址模板取自 sys_config qq-service */
+const sysConfig = inject<Ref<Partial<SysConfigData>>>(
+  "portalSysConfig",
+  ref({})
+);
 
 /** 留言表单:校验文案逐字保留原站 */
 const form = reactive({ qq: "", name: "", text: "" });
@@ -49,13 +56,43 @@ const submitting = ref(false);
 const submitText = ref("提交留言");
 
 /** 表单区头像 QQ(初始演示号 1234567,QQ 失焦后切换,对齐原站) */
-const avatarQq = ref("1234567");
+const previewQq = ref("1234567");
+
+/** QQ 头像地址:服务地址优先取系统配置(qq-service),缺省回退 qlogo 公共接口 */
+function qqServiceAvatar(qq: string): string {
+  return qqAvatar(qq, 100, sysConfig.value.qqService);
+}
+
+/** 留言头像加载失败标记(索引 → 是否已降级本地生成头像) */
+const avatarErrors = reactive<Record<number, boolean>>({});
+
+/** 标记留言头像加载失败,触发本地生成头像降级 */
+function markAvatarError(index: number) {
+  avatarErrors[index] = true;
+}
+
+/** 留言头像地址:QQ 头像加载失败时降级本地生成头像 */
+function avatarSrc(index: number, qq: string, nickname: string): string {
+  if (avatarErrors[index]) return localAvatar(nickname || qq);
+  return qqServiceAvatar(qq);
+}
+
+/** 表单预览头像加载失败标记(重新输入 QQ 后重置重试) */
+const previewError = ref(false);
+
+/** 表单预览头像地址:QQ 头像失败时降级本地生成头像 */
+const previewAvatar = computed(() => {
+  if (previewError.value)
+    return localAvatar(form.name.trim() || previewQq.value);
+  return qqServiceAvatar(previewQq.value);
+});
 
 /** QQ 失焦:切换头像并尝试第三方接口回填昵称(8 秒超时,失败提示手填) */
 function onQqBlur() {
   const qq = form.qq.trim();
   if (!qq) return;
-  avatarQq.value = qq;
+  previewQq.value = qq;
+  previewError.value = false;
   // fetch 原生不支持 timeout 选项,使用 AbortController 实现 8 秒超时
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 8000);
@@ -135,31 +172,11 @@ async function submit() {
   }
 }
 
-function scrollToArea() {
-  document
-    .getElementById("MessageArea")
-    ?.scrollIntoView({ behavior: "smooth", block: "center" });
-}
-
 onMounted(() => loadMore());
 </script>
 
 <template>
   <div>
-    <!-- 点击滚动到留言区 -->
-    <div id="messageBtn" class="message-btn-card" @click="scrollToArea">
-      <svg
-        t="1730880204691"
-        class="message-icon icon"
-        viewBox="0 0 1024 1024"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M512 96C229.2 96 0 282.3 0 512c0 92.1 36.8 177.1 99.1 246 4 4.5 5.3 10.9 3.1 16.5-5.7 14.7-12 29.2-19 43.3-12.9 26.3-28.2 51.7-45.3 75.5-6.2 8.6-7.7 19.7-4.1 29.6 3.6 10 11.9 17.5 22.2 20.1 9.4 2.4 25.2 5.4 44.8 5.4 26 0 58.7-5.4 91.5-25 21.4-12.8 37.5-28.6 49.3-44 4.5-5.9 12.5-7.9 19.3-4.8 74.2 34 159.8 53.4 251 53.4 282.8 0 512-186.3 512-416S794.8 96 512 96z m192 464c-30.9 0-56-25.1-56-56s25.1-56 56-56 56 25.1 56 56-25.1 56-56 56-56-25.1-56-56z m-440-56c0-30.9 25.1-56 56-56s56 25.1 56 56-25.1 56-56 56-56-25.1-56-56z m192 0c0-30.9 25.1-56 56-56s56 25.1 56 56-25.1 56-56 56-56-25.1-56-56z"
-          fill="#6a6a6a"
-        />
-      </svg>
-    </div>
     <div class="central central-800 bg">
       <div class="title mt-2rem">
         <h1>在这里写下我们的留言祝福</h1>
@@ -179,32 +196,47 @@ onMounted(() => loadMore());
               :key="m.date"
               class="message-item animated fadeInUp delay-03s"
             >
-              <div class="message-top-info">
-                <i class="time" :data-tip="m.date" data-tip-position="top">
-                  {{ m.date }}<b v-if="m.location" class="dot" />{{
-                    m.location
-                  }}
-                </i>
-              </div>
-              <div class="user-info">
-                <img :src="m.avatar" alt="" />
-                <div class="head-content">
-                  <div class="level">
-                    访客 <b>#{{ i + 1 }}</b>
-                  </div>
-                  <span class="name">{{ m.nickname }}</span>
+              <div class="textinfo">
+                <div class="message-top-info">
+                  <i class="time" :data-tip="m.date" data-tip-position="top">
+                    {{ m.date }}<b v-if="m.location" class="dot" />{{
+                      m.location
+                    }}
+                  </i>
                 </div>
+                <div class="user-info">
+                  <img
+                    :src="avatarSrc(i, m.qq, m.nickname)"
+                    alt=""
+                    @error="markAvatarError(i)"
+                  />
+                  <div class="head-content">
+                    <div class="level">
+                      访客 <b>#{{ i + 1 }}</b>
+                    </div>
+                    <span class="name">{{ m.nickname }}</span>
+                  </div>
+                </div>
+                <div class="text">{{ m.content }}</div>
               </div>
-              <div class="text">{{ m.content }}</div>
             </div>
             <div v-if="!loading && items.length === 0" class="portal-empty">
               还没有留言,来写下第一条吧~
             </div>
           </div>
+          <!-- 「加载更多」:补齐分页加载入口(与门户其他列表页一致) -->
+          <div v-if="hasMore" class="message-load-more" @click="loadMore">
+            {{ loading ? "加载中..." : "加载更多" }}
+          </div>
           <!-- 提交表单(POST /love/message {qq, name, text};校验文案逐字保留原站) -->
           <form class="message-form" @submit.prevent="submit">
             <div id="messageArea" class="input-box">
-              <img :src="qqAvatar(avatarQq, 100)" alt="" class="avatar" />
+              <img
+                :src="previewAvatar"
+                alt=""
+                class="avatar"
+                @error="previewError = true"
+              />
               <input
                 id="qqInput"
                 v-model="form.qq"
@@ -254,3 +286,31 @@ onMounted(() => loadMore());
     </div>
   </div>
 </template>
+
+<style scoped>
+/* 留言内容区加宽:解除胶囊 800px 限宽,容器宽度调整到 1000px(略宽于原站,提升列表与表单展示) */
+.central {
+  width: 100%;
+  max-width: 1000px;
+}
+
+/* 「加载更多」按钮:与门户其他列表页保持一致的分页交互 */
+.message-load-more {
+  width: fit-content;
+  padding: 0.5rem 2rem;
+  margin: 2rem auto 0;
+  font-size: 1.2rem;
+  color: #959595;
+  text-align: center;
+  letter-spacing: 0.3rem;
+  cursor: pointer;
+  border: 1px solid #e4e4e4;
+  border-radius: 2rem;
+  transition: all 0.2s;
+}
+
+.message-load-more:hover {
+  color: #ff69b4;
+  border-color: #ff69b4;
+}
+</style>

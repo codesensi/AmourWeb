@@ -235,11 +235,6 @@ textarea {
   padding: 3rem 0 0;
 }
 
-.message-btn-card {
-  top: 6rem;
-  right: 1rem;
-}
-
 .header-wrap .header {
   width: calc(100% - 4rem);
   padding: 0 2rem;
