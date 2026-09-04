@@ -1,6 +1,6 @@
 import { http } from "@/utils/http";
 import { omitEmpty } from "@/utils/params";
-import type { ApiResult, PageResult } from "@/api/types";
+import type { ApiResult, PageQuery, PageResult } from "@/api/types";
 
 /** 用户管理-行数据 */
 export type SysUserItem = {
@@ -18,14 +18,10 @@ export type SysUserItem = {
 };
 
 /** 用户分页查询参数 */
-export type SysUserQuery = {
+export type SysUserQuery = PageQuery & {
   username?: string;
   phone?: string;
   status?: string;
-  /** 页码(从 1 开始) */
-  pageNumber?: number;
-  /** 每页条数 */
-  pageSize?: number;
 };
 
 /** 用户管理-分页查询(GET /sys/user/page) */
@@ -65,8 +61,18 @@ export const getUserRoleIds = (id: number | string) => {
   );
 };
 
+/** 角色分页查询参数 */
+export type SysRoleQuery = PageQuery & {
+  /** 角色名称 */
+  name?: string;
+  /** 角色编码 */
+  code?: string;
+  /** 状态 */
+  status?: string;
+};
+
 /** 角色管理-分页查询(GET /sys/role/page) */
-export const getRoleList = (params?: object) => {
+export const getRoleList = (params?: SysRoleQuery) => {
   return http.request<ApiResult<PageResult<any>>>("get", "/sys/role/page", {
     params: omitEmpty(params)
   });
@@ -106,7 +112,7 @@ export const assignMenus = (data?: object) => {
 };
 
 /** 菜单管理-分页查询(GET /sys/menu/page) */
-export const getMenuList = (params?: object) => {
+export const getMenuList = (params?: PageQuery) => {
   return http.request<ApiResult<PageResult<any>>>("get", "/sys/menu/page", {
     params: omitEmpty(params)
   });
@@ -127,15 +133,35 @@ export const deleteMenu = (id: number | string) => {
   return http.request<ApiResult<any>>("delete", `/sys/menu/delete/${id}`);
 };
 
+/** 登录日志分页查询参数 */
+export type LoginLogQuery = PageQuery & {
+  /** 用户名 */
+  username?: string;
+  /** 登录状态 */
+  status?: string;
+  /** 登录时间范围 */
+  loginTime?: string;
+};
+
 /** 日志管理-登录日志列表(GET,分页参数 pageNumber/pageSize) */
-export const getLoginLogsList = (params?: object) => {
+export const getLoginLogsList = (params?: LoginLogQuery) => {
   return http.request<ApiResult<PageResult<any>>>("get", "/login-logs", {
     params: omitEmpty(params)
   });
 };
 
+/** 操作日志分页查询参数 */
+export type OperationLogQuery = PageQuery & {
+  /** 操作模块 */
+  module?: string;
+  /** 操作状态 */
+  status?: string;
+  /** 操作时间范围 */
+  operatingTime?: string;
+};
+
 /** 日志管理-操作日志列表(GET,分页参数 pageNumber/pageSize) */
-export const getOperationLogsList = (params?: object) => {
+export const getOperationLogsList = (params?: OperationLogQuery) => {
   return http.request<ApiResult<PageResult<any>>>("get", "/operation-logs", {
     params: omitEmpty(params)
   });

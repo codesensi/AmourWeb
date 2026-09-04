@@ -1,4 +1,4 @@
-import type { ApiResult, PageResult } from "@/api/types";
+import type { ApiResult, PageQuery, PageResult } from "@/api/types";
 import { http } from "@/utils/http";
 import { omitEmpty } from "@/utils/params";
 
@@ -11,12 +11,12 @@ export interface MomentsItem {
 }
 
 /** 点点滴滴-文章分页(GET /love/moments,每页 6 条) */
-export const getMoments = (pageNumber: number, pageSize = 6) => {
+export const getMoments = (params?: PageQuery) => {
   return http.request<ApiResult<PageResult<MomentsItem>>>(
     "get",
     "/love/moments",
     {
-      params: omitEmpty({ pageNumber, pageSize })
+      params: omitEmpty({ pageNumber: 1, pageSize: 6, ...params })
     }
   );
 };
@@ -32,12 +32,12 @@ export interface LovePhotoItem {
 }
 
 /** 恋爱相册分页(POST /love/photo,每页 6 张) */
-export const getLovePhoto = (pageNumber: number, pageSize = 6) => {
+export const getLovePhoto = (params?: PageQuery) => {
   return http.request<ApiResult<PageResult<LovePhotoItem>>>(
     "get",
     "/love/photo",
     {
-      params: omitEmpty({ pageNumber, pageSize })
+      params: omitEmpty({ pageNumber: 1, pageSize: 6, ...params })
     }
   );
 };
@@ -53,12 +53,12 @@ export interface LoveListItem {
 }
 
 /** 恋爱清单分页(GET /love/list,每页 6 条) */
-export const getLoveList = (pageNumber: number, pageSize = 6) => {
+export const getLoveList = (params?: PageQuery) => {
   return http.request<ApiResult<PageResult<LoveListItem>>>(
     "get",
     "/love/list",
     {
-      params: omitEmpty({ pageNumber, pageSize })
+      params: omitEmpty({ pageNumber: 1, pageSize: 6, ...params })
     }
   );
 };
@@ -74,11 +74,11 @@ export interface MessageItem {
 }
 
 /** 留言分页(GET /love/message) */
-export const getMessage = (pageNumber: number, pageSize = 6) => {
+export const getMessage = (params?: PageQuery) => {
   return http.request<ApiResult<PageResult<MessageItem>>>(
     "get",
     "/love/message",
-    { params: omitEmpty({ pageNumber, pageSize }) }
+    { params: omitEmpty({ pageNumber: 1, pageSize: 6, ...params }) }
   );
 };
 

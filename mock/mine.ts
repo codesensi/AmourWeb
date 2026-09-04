@@ -6,7 +6,7 @@ export default defineFakeRoute([
   {
     url: "/mine",
     method: "get",
-    response: () => {
+    response: ({ query }) => {
       return {
         success: true,
         code: 200,
@@ -27,7 +27,7 @@ export default defineFakeRoute([
   {
     url: "/mine-logs",
     method: "get",
-    response: () => {
+    response: ({ query }) => {
       const list = [
         {
           id: 1,
@@ -48,16 +48,20 @@ export default defineFakeRoute([
           operatingTime: new Date().setDate(new Date().getDate() - 1)
         }
       ];
+      const pageNumber = Number(query?.pageNumber ?? 1);
+      const pageSize = Number(query?.pageSize ?? 20);
+      const start = (pageNumber - 1) * pageSize;
       return {
         success: true,
         code: 200,
         msg: "操作成功",
         timestamp: Date.now(),
         data: {
-          list,
-          total: list.length, // 总条目数
-          pageSize: 20, // 每页显示条目个数
-          currentPage: 1 // 当前页数
+          records: list.slice(start, start + pageSize),
+          pageNumber,
+          pageSize,
+          totalRow: list.length,
+          totalPages: Math.ceil(list.length / pageSize)
         }
       };
     }

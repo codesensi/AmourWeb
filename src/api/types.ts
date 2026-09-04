@@ -41,6 +41,14 @@ export interface ApiResult<T = unknown> {
   timestamp: number;
 }
 
+/** 统一分页请求参数;各业务查询参数通过 extends 继承,禁止在各文件内另行定义分页字段 */
+export interface PageQuery {
+  /** 页码(从 1 开始) */
+  pageNumber?: number;
+  /** 每页条数 */
+  pageSize?: number;
+}
+
 /** 分页响应结构,对齐后端 MyBatis-Flex Page<T> 的序列化形状 */
 export interface PageResult<T = unknown> {
   /** 当前页数据 */

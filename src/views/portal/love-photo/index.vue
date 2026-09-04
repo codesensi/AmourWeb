@@ -31,10 +31,10 @@ async function loadMore() {
   if (loading.value) return;
   loading.value = true;
   try {
-    const { success, data } = await getLovePhoto(
-      pageNumber.value + 1,
-      PAGE_SIZE
-    );
+    const { success, data } = await getLovePhoto({
+      pageNumber: pageNumber.value + 1,
+      pageSize: PAGE_SIZE
+    });
     if (success) {
       const batch = data.records.map(p => ({ ...p, show: false }));
       const base = items.value.length;

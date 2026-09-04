@@ -1,6 +1,6 @@
 import { http } from "@/utils/http";
 import { omitEmpty } from "@/utils/params";
-import type { ApiResult } from "@/api/types";
+import type { ApiResult, PageQuery, PageResult } from "@/api/types";
 
 /** 登录请求参数(对齐后端 LoginRequest) */
 export interface LoginRequest {
@@ -44,16 +44,24 @@ export type UserInfo = {
 
 export type UserInfoResult = ApiResult<UserInfo>;
 
-type ResultTable = ApiResult<{
-  /** 列表数据 */
-  list: Array<any>;
-  /** 总条目数 */
-  total?: number;
-  /** 每页显示条目个数 */
-  pageSize?: number;
-  /** 当前页数 */
-  currentPage?: number;
-}>;
+/** 账户设置-安全日志行数据 */
+export interface MineLogItem {
+  id: number;
+  ip: string;
+  /** 登录地点 */
+  address: string;
+  /** 操作系统 */
+  system: string;
+  /** 浏览器类型 */
+  browser: string;
+  /** 操作详情 */
+  summary: string;
+  /** 操作时间(毫秒时间戳) */
+  operatingTime: number;
+}
+
+/** 账户设置-安全日志分页查询参数 */
+export type MineLogQuery = PageQuery;
 
 /** 登录 */
 export const getLogin = (data: LoginRequest) => {
@@ -73,9 +81,9 @@ export const getMine = (data?: object) => {
 };
 
 /** 账户设置-个人安全日志 */
-export const getMineLogs = (data?: object) => {
-  return http.request<ResultTable>("get", "/mine-logs", {
-    params: omitEmpty(data)
+export const getMineLogs = (params?: MineLogQuery) => {
+  return http.request<ApiResult<PageResult<MineLogItem>>>("get", "/mine-logs", {
+    params: omitEmpty(params)
   });
 };
 

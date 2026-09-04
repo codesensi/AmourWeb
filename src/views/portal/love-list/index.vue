@@ -19,10 +19,10 @@ async function loadMore() {
   if (loading.value) return;
   loading.value = true;
   try {
-    const { success, data } = await getLoveList(
-      pageNumber.value + 1,
-      PAGE_SIZE
-    );
+    const { success, data } = await getLoveList({
+      pageNumber: pageNumber.value + 1,
+      pageSize: PAGE_SIZE
+    });
     if (success) {
       items.value.push(...data.records);
       totalRow.value = data.totalRow;

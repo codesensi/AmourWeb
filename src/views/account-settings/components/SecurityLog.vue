@@ -57,10 +57,10 @@ async function onSearch() {
   loading.value = true;
   const { success, data } = await getMineLogs();
   if (success) {
-    dataList.value = data.list;
-    pagination.total = data.total;
+    dataList.value = data.records;
+    pagination.total = data.totalRow;
     pagination.pageSize = data.pageSize;
-    pagination.currentPage = data.currentPage;
+    pagination.currentPage = data.pageNumber;
   }
 
   setTimeout(() => {
