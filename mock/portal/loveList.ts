@@ -1,18 +1,6 @@
 // 恋爱清单 mock(GET /love/list 分页;7 条清单,移植原站 PORTAL_MOCK.loveList)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
-
-/** 内联 SVG 占位图(保证离线可用;from/to 为渐变色,缺省为原站蓝粉渐变) */
-function mockPhoto(label: string, from?: string, to?: string): string {
-  const f = from || "#ffd3d3";
-  const t = to || "#cfe8ff";
-  const svg =
-    '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400">' +
-    '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">' +
-    `<stop offset="0" stop-color="${f}"/><stop offset="1" stop-color="${t}"/></linearGradient></defs>` +
-    `<rect width="600" height="400" fill="url(#g)"/>` +
-    `<text x="300" y="205" font-size="26" fill="#ffffff" text-anchor="middle" font-family="serif">${label}</text></svg>`;
-  return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
-}
+import { mockPhoto } from "./mockPhoto";
 
 const loveList = [
   { text: "一起期待未来甜蜜小生活💑", done: false },

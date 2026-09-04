@@ -1,5 +1,6 @@
 // 恋爱相册 mock(GET /love/photo 分页;48 张渐变占位照片,移植原站 PORTAL_MOCK.photos)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
+import { mockPhoto } from "./mockPhoto";
 
 /** 占位图渐变色池:批量生成的示例照片循环取色,视觉上区分页与页 */
 const PHOTO_GRADIENTS = [
@@ -25,17 +26,6 @@ const PHOTO_LABELS = [
   "花田里的合影",
   "车站的告别"
 ];
-
-/** 内联 SVG 占位图(保证离线可用;from/to 为渐变色) */
-function mockPhoto(label: string, from: string, to: string): string {
-  const svg =
-    '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400">' +
-    '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">' +
-    `<stop offset="0" stop-color="${from}"/><stop offset="1" stop-color="${to}"/></linearGradient></defs>` +
-    `<rect width="600" height="400" fill="url(#g)"/>` +
-    `<text x="300" y="205" font-size="26" fill="#ffffff" text-anchor="middle" font-family="serif">${label}</text></svg>`;
-  return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
-}
 
 /** 批量生成示例照片(凑足多页数据,便于查看「加载更多」的分页效果) */
 const photos = Array.from({ length: 48 }, (_, i) => {

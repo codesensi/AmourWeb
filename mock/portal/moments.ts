@@ -1,7 +1,7 @@
 // 点点滴滴 mock(GET /love/moments,对齐后端蓝图 love 分组)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
-const littles = [
+const moments = [
   { id: 1, title: "Like_Girl 默认文章语法", author: "Ki.", date: "2022-11-20" },
   { id: 2, title: "第一次一起去看海", author: "Ki.", date: "2023-05-21" },
   { id: 3, title: "记录我们的第 1000 天", author: "Su", date: "2024-05-15" }
@@ -15,7 +15,7 @@ export default defineFakeRoute([
     response: ({ query }) => {
       const pageNumber = Number(query?.pageNumber ?? 1);
       const pageSize = Number(query?.pageSize ?? 6);
-      const records = littles.slice(
+      const records = moments.slice(
         (pageNumber - 1) * pageSize,
         pageNumber * pageSize
       );
@@ -28,8 +28,8 @@ export default defineFakeRoute([
           records,
           pageNumber,
           pageSize,
-          totalRow: littles.length,
-          totalPage: Math.ceil(littles.length / pageSize)
+          totalRow: moments.length,
+          totalPage: Math.ceil(moments.length / pageSize)
         }
       };
     }
