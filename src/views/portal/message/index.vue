@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, inject, onMounted, reactive, ref, type Ref } from "vue";
 import { getMessage, sendMessage, type MessageItem } from "@/api/portal";
-import { localAvatar, qqAvatar, type SysConfigData } from "@/api/sysConfig";
+import type { SysConfigData } from "@/api/sysConfig";
 import { message } from "@/utils/message";
+import { useAvatarStages } from "@/utils/avatar";
 
 defineOptions({ name: "PortalMessage" });
 
@@ -40,7 +41,7 @@ function reloadMessages() {
   items.value = [];
   totalRow.value = 0;
   pageNumber.value = 0;
-  Object.keys(avatarErrors).forEach(key => delete avatarErrors[Number(key)]);
+  resetAvatarStage();
   loadMore();
 }
 
@@ -55,44 +56,45 @@ const form = reactive({ qq: "", name: "", text: "" });
 const submitting = ref(false);
 const submitText = ref("提交留言");
 
-/** 表单区头像 QQ(初始演示号 1234567,QQ 失焦后切换,对齐原站) */
-const previewQq = ref("1234567");
+/** 演示 QQ 号:输入为空时回填展示 */
+const DEMO_QQ = "1234567";
 
-/** QQ 头像地址:服务地址优先取系统配置(qq-service),缺省回退 qlogo 公共接口 */
-function qqServiceAvatar(qq: string): string {
-  return qqAvatar(qq, 100, sysConfig.value.qqService);
-}
+/** 表单区头像 QQ(初始为演示号,QQ 失焦后切换,对齐原站) */
+const previewQq = ref(DEMO_QQ);
 
-/** 留言头像加载失败标记(索引 → 是否已降级本地生成头像) */
-const avatarErrors = reactive<Record<number, boolean>>({});
+/** 通用头像降级组合式:QQ 头像 → avatar-service(用户名) → 本地生成 */
+const {
+  avatarOf,
+  markError,
+  reset: resetAvatarStage
+} = useAvatarStages(() => sysConfig.value);
 
-/** 标记留言头像加载失败,触发本地生成头像降级 */
-function markAvatarError(index: number) {
-  avatarErrors[index] = true;
-}
-
-/** 留言头像地址:QQ 头像加载失败时降级本地生成头像 */
+/** 留言头像地址:按索引独立降级 */
 function avatarSrc(index: number, qq: string, nickname: string): string {
-  if (avatarErrors[index]) return localAvatar(nickname || qq);
-  return qqServiceAvatar(qq);
+  return avatarOf(`list-${index}`, qq, nickname);
 }
 
-/** 表单预览头像加载失败标记(重新输入 QQ 后重置重试) */
-const previewError = ref(false);
+/** 表单预览头像地址:按降级阶段取值 */
+const previewAvatar = computed(() =>
+  avatarOf("preview", previewQq.value, form.name.trim() || previewQq.value)
+);
 
-/** 表单预览头像地址:QQ 头像失败时降级本地生成头像 */
-const previewAvatar = computed(() => {
-  if (previewError.value)
-    return localAvatar(form.name.trim() || previewQq.value);
-  return qqServiceAvatar(previewQq.value);
-});
+/** 表单预览头像加载失败:降级到下一阶段 */
+function onPreviewError() {
+  markError("preview");
+}
 
-/** QQ 失焦:切换头像并尝试第三方接口回填昵称(8 秒超时,失败提示手填) */
+/** QQ 输入过滤:仅保留数字,最长 12 位 */
+function onQqInput() {
+  form.qq = form.qq.replace(/\D/g, "").slice(0, 12);
+}
+
+/** QQ 失焦:切换头像并尝试第三方接口回填昵称(8 秒超时,失败提示手填);清空时回到演示号并重试 QQ 头像 */
 function onQqBlur() {
   const qq = form.qq.trim();
+  previewQq.value = qq || DEMO_QQ;
+  resetAvatarStage("preview");
   if (!qq) return;
-  previewQq.value = qq;
-  previewError.value = false;
   // fetch 原生不支持 timeout 选项,使用 AbortController 实现 8 秒超时
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 8000);
@@ -208,7 +210,7 @@ onMounted(() => loadMore());
                   <img
                     :src="avatarSrc(i, m.qq, m.nickname)"
                     alt=""
-                    @error="markAvatarError(i)"
+                    @error="markError(`list-${i}`)"
                   />
                   <div class="head-content">
                     <div class="level">
@@ -235,7 +237,7 @@ onMounted(() => loadMore());
                 :src="previewAvatar"
                 alt=""
                 class="avatar"
-                @error="previewError = true"
+                @error="onPreviewError"
               />
               <input
                 id="qqInput"
@@ -243,6 +245,8 @@ onMounted(() => loadMore());
                 type="text"
                 placeholder="请输入QQ号码"
                 class="input-qq"
+                maxlength="12"
+                @input="onQqInput"
                 @blur="onQqBlur"
               />
               <input

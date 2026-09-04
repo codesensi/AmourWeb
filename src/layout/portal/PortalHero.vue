@@ -1,13 +1,24 @@
 <script setup lang="ts">
+import { computed, inject, ref } from "vue";
 import likeSvg from "@/assets/portal/img/like.svg?url";
-import { qqAvatar } from "@/api/sysConfig";
+import type { SysConfigData } from "@/api/sysConfig";
+import { qqAvatar } from "@/utils/avatar";
 
 defineOptions({ name: "PortalHero" });
 
+/** 站点展示配置(portal 布局 provide):QQ 头像服务地址模板取自 sys_config qq-service */
+const sysConfig = inject("portalSysConfig", ref<Partial<SysConfigData>>({}));
+
 // 男女主昵称与头像:暂时页面写死,后续头像方案定稿后再改造
 // (头像地址与 sys_config qq-service 模板同源:q1.qlogo.cn 按号拉取)
-const female = { name: "Su", avatar: qqAvatar("673822943") };
-const male = { name: "Li", avatar: qqAvatar("2623669948") };
+const female = computed(() => ({
+  name: "Su",
+  avatar: qqAvatar("673822943", sysConfig.value.qqService)
+}));
+const male = computed(() => ({
+  name: "Li",
+  avatar: qqAvatar("2623669948", sysConfig.value.qqService)
+}));
 </script>
 
 <template>
