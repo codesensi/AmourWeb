@@ -31,7 +31,7 @@ export interface LovePhotoItem {
   date: string;
 }
 
-/** 恋爱相册分页(POST /love/photo,每页 6 张) */
+/** 恋爱相册分页(GET /love/photo,每页 6 张) */
 export const getLovePhoto = (params?: PageQuery) => {
   return http.request<ApiResult<PageResult<LovePhotoItem>>>(
     "get",

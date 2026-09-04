@@ -1,4 +1,4 @@
-// 留言板 mock(GET /love/messages 分页 + POST /love/messages 提交)
+// 留言板 mock(GET /love/message 分页 + POST /love/message 提交)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
 const messages = [
@@ -21,14 +21,17 @@ const messages = [
 ];
 
 export default defineFakeRoute([
-  // 留言分页(GET /love/messages?page=&limit=)
+  // 留言分页(GET /love/message)
   {
-    url: "/love/messages",
+    url: "/love/message",
     method: "get",
     response: ({ query }) => {
-      const page = Number(query.page ?? 1);
-      const limit = Number(query.limit ?? 6);
-      const records = messages.slice((page - 1) * limit, page * limit);
+      const pageNumber = Number(query?.pageNumber ?? 1);
+      const pageSize = Number(query?.pageSize ?? 6);
+      const records = messages.slice(
+        (pageNumber - 1) * pageSize,
+        pageNumber * pageSize
+      );
       return {
         success: true,
         code: 200,
@@ -36,17 +39,17 @@ export default defineFakeRoute([
         timestamp: Date.now(),
         data: {
           records,
-          pageNumber: page,
-          pageSize: limit,
+          pageNumber,
+          pageSize,
           totalRow: messages.length,
-          totalPages: Math.ceil(messages.length / limit)
+          totalPage: Math.ceil(messages.length / pageSize)
         }
       };
     }
   },
-  // 提交留言(POST /love/messages)
+  // 提交留言(POST /love/message)
   {
-    url: "/love/messages",
+    url: "/love/message",
     method: "post",
     response: () => ({
       success: true,

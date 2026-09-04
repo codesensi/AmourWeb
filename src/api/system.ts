@@ -9,17 +9,29 @@ export type SysUserItem = {
   nickname: string;
   phone?: string;
   email?: string;
-  sex?: number;
+  /** 用户性别:U-未知,M-男,F-女 */
+  gender?: string;
   avatar?: string;
   status?: number;
   builtin?: number;
   remark?: string;
-  createTime?: number;
+  /** 创建时间(ISO 8601,如 2020-11-15T16:00:00) */
+  createTime?: string;
 };
 
 /** 用户分页查询参数 */
 export type SysUserQuery = PageQuery & {
   username?: string;
+  /** 用户昵称(模糊匹配) */
+  nickname?: string;
+  /** 身份证号(模糊匹配) */
+  idCard?: string;
+  /** QQ号(模糊匹配) */
+  qq?: string;
+  /** 邮箱(模糊匹配) */
+  email?: string;
+  /** 用户性别:U-未知,M-男,F-女 */
+  gender?: string;
   phone?: string;
   status?: string;
 };

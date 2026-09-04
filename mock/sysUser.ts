@@ -6,29 +6,31 @@ const users = [
     id: 1,
     username: "admin",
     nickname: "小铭",
+    idCard: "411103199001011234",
     phone: "15888886789",
     qq: "12345678",
     email: "pureadmin@163.com",
-    sex: 0,
+    gender: "F",
     avatar: "https://avatars.githubusercontent.com/u/44761321",
     status: 1,
     builtin: 1,
     remark: "管理员",
-    createTime: 1605456000000
+    createTime: "2020-11-15T16:00:00"
   },
   {
     id: 2,
     username: "common",
     nickname: "小林",
+    idCard: "411103199902021234",
     phone: "18288882345",
     qq: "",
     email: "common@example.com",
-    sex: 1,
+    gender: "M",
     avatar: "https://avatars.githubusercontent.com/u/52823142",
     status: 1,
     builtin: 0,
     remark: "普通用户",
-    createTime: 1605456000000
+    createTime: "2020-11-15T16:00:00"
   }
 ];
 
@@ -41,14 +43,30 @@ export default defineFakeRoute([
     method: "get",
     response: ({ query }) => {
       let records = [...users];
+      // 模糊查询条件(对齐后端 LIKE)
       records = records.filter(item =>
         item.username.includes(String(query.username ?? ""))
       );
       records = records.filter(item =>
-        String(item.status).includes(String(query.status ?? ""))
+        (item.nickname ?? "").includes(String(query.nickname ?? ""))
       );
-      if (query.phone)
-        records = records.filter(item => item.phone === query.phone);
+      records = records.filter(item =>
+        (item.idCard ?? "").includes(String(query.idCard ?? ""))
+      );
+      records = records.filter(item =>
+        item.phone.includes(String(query.phone ?? ""))
+      );
+      records = records.filter(item =>
+        item.qq.includes(String(query.qq ?? ""))
+      );
+      records = records.filter(item =>
+        item.email.includes(String(query.email ?? ""))
+      );
+      // 精确匹配条件(对齐后端 eq)
+      if (query.gender)
+        records = records.filter(item => item.gender === query.gender);
+      if (query.status)
+        records = records.filter(item => String(item.status) === query.status);
       const pageNumber = Number(query.pageNumber ?? 1);
       const pageSize = Number(query.pageSize ?? 20);
       const start = (pageNumber - 1) * pageSize;
@@ -61,7 +79,7 @@ export default defineFakeRoute([
           pageNumber,
           pageSize,
           totalRow: records.length,
-          totalPages: Math.ceil(records.length / pageSize)
+          totalPage: Math.ceil(records.length / pageSize)
         }
       };
     }

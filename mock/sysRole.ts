@@ -9,7 +9,7 @@ const roles = [
     status: 1,
     builtin: 1,
     remark: "超级管理员拥有最高权限",
-    createTime: 1605456000000,
+    createTime: "2020-11-15T16:00:00",
     updateTime: 1684512000000
   },
   {
@@ -19,7 +19,7 @@ const roles = [
     status: 1,
     builtin: 0,
     remark: "普通角色拥有部分权限",
-    createTime: 1605456000000,
+    createTime: "2020-11-15T16:00:00",
     updateTime: 1684512000000
   }
 ];
@@ -51,7 +51,7 @@ export default defineFakeRoute([
           pageNumber,
           pageSize,
           totalRow: records.length,
-          totalPages: Math.ceil(records.length / pageSize)
+          totalPage: Math.ceil(records.length / pageSize)
         }
       };
     }

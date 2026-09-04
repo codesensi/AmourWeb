@@ -60,5 +60,5 @@ export interface PageResult<T = unknown> {
   /** 总条数 */
   totalRow: number;
   /** 总页数 */
-  totalPages: number;
+  totalPage: number;
 }

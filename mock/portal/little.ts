@@ -1,4 +1,4 @@
-// 点点滴滴 mock(GET /love/littles,对齐后端蓝图 love 分组)
+// 点点滴滴 mock(GET /love/moments,对齐后端蓝图 love 分组)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
 const littles = [
@@ -8,14 +8,17 @@ const littles = [
 ];
 
 export default defineFakeRoute([
-  // 文章分页(GET /love/littles?page=&limit=)
+  // 文章分页(GET /love/moments)
   {
-    url: "/love/littles",
+    url: "/love/moments",
     method: "get",
     response: ({ query }) => {
-      const page = Number(query.page ?? 1);
-      const limit = Number(query.limit ?? 6);
-      const records = littles.slice((page - 1) * limit, page * limit);
+      const pageNumber = Number(query?.pageNumber ?? 1);
+      const pageSize = Number(query?.pageSize ?? 6);
+      const records = littles.slice(
+        (pageNumber - 1) * pageSize,
+        pageNumber * pageSize
+      );
       return {
         success: true,
         code: 200,
@@ -23,10 +26,10 @@ export default defineFakeRoute([
         timestamp: Date.now(),
         data: {
           records,
-          pageNumber: page,
-          pageSize: limit,
+          pageNumber,
+          pageSize,
           totalRow: littles.length,
-          totalPages: Math.ceil(littles.length / limit)
+          totalPage: Math.ceil(littles.length / pageSize)
         }
       };
     }

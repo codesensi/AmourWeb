@@ -8,7 +8,8 @@ interface FormItemProps {
   phone: string | number;
   qq: string;
   email: string;
-  sex: string | number;
+  /** 用户性别:U-未知,M-男,F-女 */
+  gender: string;
   status: number;
   remark: string;
 }

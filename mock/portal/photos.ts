@@ -1,4 +1,4 @@
-// 恋爱相册 mock(POST /love/photos 分页;48 张渐变占位照片,移植原站 PORTAL_MOCK.photos)
+// 恋爱相册 mock(GET /love/photo 分页;48 张渐变占位照片,移植原站 PORTAL_MOCK.photos)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
 /** 占位图渐变色池:批量生成的示例照片循环取色,视觉上区分页与页 */
@@ -54,14 +54,17 @@ const photos = Array.from({ length: 48 }, (_, i) => {
 });
 
 export default defineFakeRoute([
-  // 相册分页(POST /love/photos {page, limit})
+  // 相册分页(GET /love/photo)
   {
-    url: "/love/photos",
-    method: "post",
-    response: ({ body }) => {
-      const page = Number(body?.page ?? 1);
-      const limit = Number(body?.limit ?? 6);
-      const records = photos.slice((page - 1) * limit, page * limit);
+    url: "/love/photo",
+    method: "get",
+    response: ({ query }) => {
+      const pageNumber = Number(query?.pageNumber ?? 1);
+      const pageSize = Number(query?.pageSize ?? 6);
+      const records = photos.slice(
+        (pageNumber - 1) * pageSize,
+        pageNumber * pageSize
+      );
       return {
         success: true,
         code: 200,
@@ -69,10 +72,10 @@ export default defineFakeRoute([
         timestamp: Date.now(),
         data: {
           records,
-          pageNumber: page,
-          pageSize: limit,
+          pageNumber,
+          pageSize,
           totalRow: photos.length,
-          totalPages: Math.ceil(photos.length / limit)
+          totalPage: Math.ceil(photos.length / pageSize)
         }
       };
     }

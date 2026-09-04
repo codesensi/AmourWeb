@@ -32,7 +32,7 @@ export default defineFakeRoute([
           pageNumber: 1,
           pageSize: menus.length,
           totalRow: menus.length,
-          totalPages: 1
+          totalPage: 1
         }
       };
     }

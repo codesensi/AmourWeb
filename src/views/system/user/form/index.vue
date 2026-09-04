@@ -14,19 +14,19 @@ const props = withDefaults(defineProps<FormProps>(), {
     phone: "",
     qq: "",
     email: "",
-    sex: "",
+    gender: "",
     status: 1,
     remark: ""
   })
 });
 
-const sexOptions = [
+const genderOptions = [
   {
-    value: 0,
+    value: "M",
     label: "男"
   },
   {
-    value: 1,
+    value: "F",
     label: "女"
   }
 ];
@@ -113,13 +113,13 @@ defineExpose({ getRef });
       <re-col :value="12" :xs="24" :sm="24">
         <el-form-item label="用户性别">
           <el-select
-            v-model="newFormInline.sex"
+            v-model="newFormInline.gender"
             placeholder="请选择用户性别"
             class="w-full"
             clearable
           >
             <el-option
-              v-for="(item, index) in sexOptions"
+              v-for="(item, index) in genderOptions"
               :key="index"
               :label="item.label"
               :value="item.value"

@@ -47,7 +47,12 @@ import {
 export function useUser(tableRef: Ref) {
   const form = reactive({
     username: "",
+    nickname: "",
+    idCard: "",
     phone: "",
+    qq: "",
+    email: "",
+    gender: "",
     status: ""
   });
   const formRef = ref();
@@ -103,15 +108,15 @@ export function useUser(tableRef: Ref) {
     },
     {
       label: "性别",
-      prop: "sex",
+      prop: "gender",
       minWidth: 90,
       cellRenderer: ({ row, props }) => (
         <el-tag
           size={props.size}
-          type={row.sex === 1 ? "danger" : null}
+          type={row.gender === "F" ? "danger" : null}
           effect="plain"
         >
-          {row.sex === 1 ? "女" : "男"}
+          {row.gender === "F" ? "女" : row.gender === "M" ? "男" : "未知"}
         </el-tag>
       )
     },
@@ -303,7 +308,7 @@ export function useUser(tableRef: Ref) {
           phone: row?.phone ?? "",
           qq: row?.qq ?? "",
           email: row?.email ?? "",
-          sex: row?.sex ?? "",
+          gender: row?.gender ?? "",
           status: row?.status ?? 1,
           remark: row?.remark ?? ""
         }

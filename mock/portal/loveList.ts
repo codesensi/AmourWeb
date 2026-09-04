@@ -25,14 +25,17 @@ const loveList = [
 ];
 
 export default defineFakeRoute([
-  // 恋爱清单分页(GET /love/list?page=&limit=)
+  // 恋爱清单分页(GET /love/list)
   {
     url: "/love/list",
     method: "get",
     response: ({ query }) => {
-      const page = Number(query.page ?? 1);
-      const limit = Number(query.limit ?? 6);
-      const records = loveList.slice((page - 1) * limit, page * limit);
+      const pageNumber = Number(query?.pageNumber ?? 1);
+      const pageSize = Number(query?.pageSize ?? 6);
+      const records = loveList.slice(
+        (pageNumber - 1) * pageSize,
+        pageNumber * pageSize
+      );
       return {
         success: true,
         code: 200,
@@ -40,10 +43,10 @@ export default defineFakeRoute([
         timestamp: Date.now(),
         data: {
           records,
-          pageNumber: page,
-          pageSize: limit,
+          pageNumber,
+          pageSize,
           totalRow: loveList.length,
-          totalPages: Math.ceil(loveList.length / limit)
+          totalPage: Math.ceil(loveList.length / pageSize)
         }
       };
     }

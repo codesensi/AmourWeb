@@ -50,7 +50,7 @@ export default defineFakeRoute([
           pageNumber,
           pageSize,
           totalRow: list.length,
-          totalPages: Math.ceil(list.length / pageSize)
+          totalPage: Math.ceil(list.length / pageSize)
         }
       };
     }
@@ -104,7 +104,7 @@ export default defineFakeRoute([
           pageNumber,
           pageSize,
           totalRow: list.length,
-          totalPages: Math.ceil(list.length / pageSize)
+          totalPage: Math.ceil(list.length / pageSize)
         }
       };
     }
