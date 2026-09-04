@@ -20,7 +20,7 @@ export default defineFakeRoute([
           // 版权年份(对应后端 sys_config copyright-year)
           copyrightYear: "2026",
           // QQ 头像服务地址模板(对应后端 sys_config qq-service,%s 为 QQ 号;留言头像使用,降级方案后续实现)
-          qqService: "https://q1.qlogo.cn/g?b=qq&nk=%s&s=640",
+          qqService: "https://uapis.cn/api/v1/social/qq/userinfo?qq=%s",
           // 用户随机头像服务地址模板(对应后端 sys_config avatar-service,%s 为种子)
           avatarService: "https://api.dicebear.com/7.x/bottts/svg?seed=%s",
           // 门户站点标语(对应后端 sys_config site.slogan)
