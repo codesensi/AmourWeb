@@ -91,6 +91,21 @@ export const sendMessage = (data: {
   return http.request<ApiResult<null>>("post", "/love/message", { data });
 };
 
+/** QQ 信息(GET /qq-info 免登录;字段允许为空,由前端判空兜底) */
+export interface QqInfoData {
+  /** QQ 头像地址(qq-service 解析的真实图片地址,降级时为空) */
+  avatarUrl: string;
+  /** QQ 昵称(仅解析成功时返回,降级时为空) */
+  nickname: string;
+}
+
+/** 查询 QQ 信息(GET /qq-info,免登录;头像与昵称可能为空,由前端兜底) */
+export const getQqInfo = (qq: string) => {
+  return http.request<ApiResult<QqInfoData>>("get", "/qq-info", {
+    params: { qq }
+  });
+};
+
 /** 关于页对话-剧本分支选项(点选后递归播放 next 分支) */
 export interface ChatScriptOption {
   text: string;

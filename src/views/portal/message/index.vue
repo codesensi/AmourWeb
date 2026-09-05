@@ -3,7 +3,8 @@ import { computed, inject, onMounted, reactive, ref, type Ref } from "vue";
 import { getMessage, sendMessage, type MessageItem } from "@/api/portal";
 import type { SysConfigData } from "@/api/sysConfig";
 import { message } from "@/utils/message";
-import { useAvatarStages } from "@/utils/avatar";
+import { fallbackAvatar, randomAvatar } from "@/utils/avatar";
+import { fetchQqInfo } from "@/utils/qqInfo";
 
 defineOptions({ name: "PortalMessage" });
 
@@ -41,11 +42,10 @@ function reloadMessages() {
   items.value = [];
   totalRow.value = 0;
   pageNumber.value = 0;
-  resetAvatarStage();
   loadMore();
 }
 
-/** 站点展示配置(portal 布局 provide):QQ 头像服务地址模板取自 sys_config qq-service */
+/** 站点展示配置(portal 布局 provide):随机头像服务地址模板取自 sys_config avatar-service */
 const sysConfig = inject<Ref<Partial<SysConfigData>>>(
   "portalSysConfig",
   ref({})
@@ -62,26 +62,55 @@ const DEMO_QQ = "1234567";
 /** 表单区头像 QQ(初始为演示号,QQ 失焦后切换,对齐原站) */
 const previewQq = ref(DEMO_QQ);
 
-/** 通用头像降级组合式:QQ 头像 → avatar-service(用户名) → 本地生成 */
-const {
-  avatarOf,
-  markError,
-  reset: resetAvatarStage
-} = useAvatarStages(() => sysConfig.value);
+/** 列表头像加载失败标记(按 QQ 号记录,失败后固定本地兜底图) */
+const listAvatarErrors = reactive<Record<string, boolean>>({});
 
-/** 留言头像地址:按索引独立降级 */
-function avatarSrc(index: number, qq: string, nickname: string): string {
-  return avatarOf(`list-${index}`, qq, nickname);
+/** 留言列表头像地址:avatar-service(QQ 号种子,同号恒定)→ 加载失败本地兜底图 */
+function listAvatarSrc(qq: string): string {
+  return listAvatarErrors[qq]
+    ? fallbackAvatar
+    : randomAvatar(qq, sysConfig.value.avatarService);
 }
 
-/** 表单预览头像地址:按降级阶段取值 */
-const previewAvatar = computed(() =>
-  avatarOf("preview", previewQq.value, form.name.trim() || previewQq.value)
-);
+/** 列表头像加载失败:改用本地兜底图 */
+function onListAvatarError(qq: string) {
+  listAvatarErrors[qq] = true;
+}
 
-/** 表单预览头像加载失败:降级到下一阶段 */
+/** qq-info 工具返回的头像地址(接口解析地址优先,缺省为 avatar-service 兜底地址) */
+const previewQqAvatar = ref("");
+
+/** 表单预览头像地址:空态/工具头像失败时展示本地兜底图,工具链接可展示则直接展示 */
+const previewAvatar = computed(() => previewQqAvatar.value || fallbackAvatar);
+
+/** 表单预览头像加载失败:清空工具返回链接,回落到空态/本地生成头像 */
 function onPreviewError() {
-  markError("preview");
+  previewQqAvatar.value = "";
+}
+
+/** 请求序号:仅采纳最后一次 qq-info 请求结果,避免快速切换 QQ 时旧响应覆盖 */
+let qqInfoSeq = 0;
+
+/**
+ * 拉取 QQ 信息并回填表单。
+ * <p>
+ * 头像取 qq-info 工具返回值(接口解析地址优先,为空 avatar-service 按 QQ 号兜底);
+ * 昵称非空则填充昵称输入框,为空则提示手动输入。
+ */
+async function applyQqInfo(qq: string) {
+  const seq = ++qqInfoSeq;
+  const { avatarUrl, nickname } = await fetchQqInfo(
+    qq,
+    sysConfig.value.avatarService
+  );
+  if (seq !== qqInfoSeq) return;
+  previewQqAvatar.value = avatarUrl;
+  const name = nickname.trim();
+  if (name) {
+    form.name = name;
+  } else {
+    message("请手动填写昵称");
+  }
 }
 
 /** QQ 输入过滤:仅保留数字,最长 12 位 */
@@ -89,31 +118,18 @@ function onQqInput() {
   form.qq = form.qq.replace(/\D/g, "").slice(0, 12);
 }
 
-/** QQ 失焦:切换头像并尝试第三方接口回填昵称(8 秒超时,失败提示手填);清空时回到演示号并重试 QQ 头像 */
+/** QQ 失焦:非空拉取 QQ 信息(头像 + 昵称回填);为空则清空回填昵称并回到演示号固定头像 */
 function onQqBlur() {
   const qq = form.qq.trim();
-  previewQq.value = qq || DEMO_QQ;
-  resetAvatarStage("preview");
-  if (!qq) return;
-  // fetch 原生不支持 timeout 选项,使用 AbortController 实现 8 秒超时
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 8000);
-  fetch(`https://v1.apizero.cn/api/qq?qq=${encodeURIComponent(qq)}`, {
-    signal: controller.signal
-  })
-    .then(r => r.json())
-    .then(result => {
-      clearTimeout(timer);
-      if (result?.code === 0 && result?.data?.name) {
-        form.name = result.data.name;
-      } else {
-        message("请手动填写昵称", { type: "warning" });
-      }
-    })
-    .catch(() => {
-      clearTimeout(timer);
-      message("请手动填写昵称", { type: "warning" });
-    });
+  if (!qq) {
+    previewQq.value = DEMO_QQ;
+    previewQqAvatar.value = "";
+    form.name = "";
+    return;
+  }
+  previewQq.value = qq;
+  previewQqAvatar.value = "";
+  applyQqInfo(qq);
 }
 
 async function submit() {
@@ -208,9 +224,9 @@ onMounted(() => loadMore());
                 </div>
                 <div class="user-info">
                   <img
-                    :src="avatarSrc(i, m.qq, m.nickname)"
+                    :src="listAvatarSrc(m.qq)"
                     alt=""
-                    @error="markError(`list-${i}`)"
+                    @error="onListAvatarError(m.qq)"
                   />
                   <div class="head-content">
                     <div class="level">
