@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { inject, onMounted, ref } from "vue";
+import { inject, onMounted, ref, type Ref } from "vue";
 import likeSvg from "@/assets/portal/img/like.svg?url";
+import type { HeroInfoData } from "@/api/portal";
+import { getHeroes } from "@/api/portal";
 import type { SysConfigData } from "@/api/sysConfig";
 import { fallbackAvatar } from "@/utils/avatar";
 import { fetchQqInfo } from "@/utils/qqInfo";
@@ -8,35 +10,55 @@ import { fetchQqInfo } from "@/utils/qqInfo";
 defineOptions({ name: "PortalHero" });
 
 /** 站点展示配置(portal 布局 provide):随机头像服务地址模板取自 sys_config avatar-service */
-const sysConfig = inject("portalSysConfig", ref<Partial<SysConfigData>>({}));
+const sysConfig = inject<Ref<Partial<SysConfigData>>>(
+  "portalSysConfig",
+  ref({})
+);
 
-// 男女主昵称与头像 QQ:暂时页面写死,后续头像方案定稿后再改造
-const FEMALE_QQ = "673822943";
-const MALE_QQ = "2623669948";
-
-/** 男女主展示信息:头像初始为本地兜底图,挂载后按现有展示逻辑拉取 */
-const female = ref({
-  name: "Su",
-  avatar: fallbackAvatar
-});
-const male = ref({
-  name: "Li",
-  avatar: fallbackAvatar
-});
+/** 男女主展示信息:初始头像为本地兜底图,昵称留空(为空时不显示),挂载后由 /portal/hero 回填 */
+const female = ref({ name: "", avatar: fallbackAvatar });
+const male = ref({ name: "", avatar: fallbackAvatar });
 
 /** 头像加载失败:改用本地兜底图 */
 function onHeroAvatarError(target: { avatar: string }) {
   target.avatar = fallbackAvatar;
 }
 
+/**
+ * 解析单个主角的展示信息:
+ * 昵称:QQ 昵称 → 用户表昵称,均为空时返回空串(不显示);
+ * 头像:维护了 QQ → 走 /qq-info + avatar-service 头像链路;
+ *      未维护 QQ → 用户表上传头像;都没有 → 本地兜底图
+ */
+async function toHeroView(
+  info: HeroInfoData | null
+): Promise<{ name: string; avatar: string }> {
+  if (!info) return { name: "", avatar: fallbackAvatar };
+  if (info.qq) {
+    const qqInfo = await fetchQqInfo(info.qq, sysConfig.value.avatarService);
+    return {
+      name: qqInfo.nickname || info.nickname || "",
+      avatar: qqInfo.avatarUrl
+    };
+  }
+  return {
+    name: info.nickname || "",
+    avatar: info.avatar || fallbackAvatar
+  };
+}
+
 onMounted(async () => {
-  // 现有头像展示逻辑:/qq-info 解析地址优先,为空时按 avatar-service 以 QQ 号兜底
-  const [femaleInfo, maleInfo] = await Promise.all([
-    fetchQqInfo(FEMALE_QQ, sysConfig.value.avatarService),
-    fetchQqInfo(MALE_QQ, sysConfig.value.avatarService)
-  ]);
-  female.value.avatar = femaleInfo.avatarUrl;
-  male.value.avatar = maleInfo.avatarUrl;
+  // 男女主取自 hero 角色绑定的启用用户;接口不可用时保持本地兜底展示
+  try {
+    const { success, data } = await getHeroes();
+    if (!success || !data) return;
+    [female.value, male.value] = await Promise.all([
+      toHeroView(data.female),
+      toHeroView(data.male)
+    ]);
+  } catch {
+    // 后端不可用:静默降级
+  }
 });
 </script>
 
@@ -53,7 +75,7 @@ onMounted(async () => {
               alt=""
               @error="onHeroAvatarError(female)"
             />
-            <span>{{ female.name }}</span>
+            <span v-if="female.name">{{ female.name }}</span>
           </div>
           <div class="love-icon">
             <img :src="likeSvg" draggable="false" alt="" />
@@ -65,7 +87,7 @@ onMounted(async () => {
               alt=""
               @error="onHeroAvatarError(male)"
             />
-            <span>{{ male.name }}</span>
+            <span v-if="male.name">{{ male.name }}</span>
           </div>
         </div>
       </div>

@@ -91,6 +91,29 @@ export const sendMessage = (data: {
   return http.request<ApiResult<null>>("post", "/love/message", { data });
 };
 
+/** 门户主角-单个主角信息(对齐后端 HeroUserResponse) */
+export interface HeroInfoData {
+  /** 用户昵称 */
+  nickname: string;
+  /** 用户上传头像地址(未维护时为空) */
+  avatar: string;
+  /** 用户QQ号码(未维护时为空) */
+  qq: string;
+}
+
+/** 门户主角(GET /portal/hero 免登录;对齐后端 HeroResponse) */
+export interface HeroData {
+  /** 男主信息(暂无启用的男性主角用户时为 null) */
+  male: HeroInfoData | null;
+  /** 女主信息(暂无启用的女性主角用户时为 null) */
+  female: HeroInfoData | null;
+}
+
+/** 查询门户男女主(GET /portal/hero,免登录;字段可能为空,由前端兜底) */
+export const getHeroes = () => {
+  return http.request<ApiResult<HeroData>>("get", "/portal/hero");
+};
+
 /** QQ 信息(GET /qq-info 免登录;字段允许为空,由前端判空兜底) */
 export interface QqInfoData {
   /** QQ 头像地址(qq-service 解析的真实图片地址,降级时为空) */
