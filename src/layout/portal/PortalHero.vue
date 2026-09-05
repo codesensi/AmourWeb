@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { inject, onMounted, ref, type Ref } from "vue";
 import likeSvg from "@/assets/portal/img/like.svg?url";
-import type { HeroInfoData } from "@/api/portal";
 import { getHeroes } from "@/api/portal";
 import type { SysConfigData } from "@/api/sysConfig";
 import { fallbackAvatar } from "@/utils/avatar";
-import { fetchQqInfo } from "@/utils/qqInfo";
+import { resolveUserDisplay } from "@/utils/userDisplay";
 
 defineOptions({ name: "PortalHero" });
 
@@ -24,37 +23,15 @@ function onHeroAvatarError(target: { avatar: string }) {
   target.avatar = fallbackAvatar;
 }
 
-/**
- * 解析单个主角的展示信息:
- * 昵称:QQ 昵称 → 用户表昵称 → 用户名,均为空时返回空串(不显示);
- * 头像:维护了 QQ → 走 /qq-info + avatar-service 头像链路;
- *      未维护 QQ → 用户表上传头像;都没有 → 本地兜底图
- */
-async function toHeroView(
-  info: HeroInfoData | null
-): Promise<{ name: string; avatar: string }> {
-  if (!info) return { name: "", avatar: fallbackAvatar };
-  if (info.qq) {
-    const qqInfo = await fetchQqInfo(info.qq, sysConfig.value.avatarService);
-    return {
-      name: qqInfo.nickname || info.nickname || info.username || "",
-      avatar: qqInfo.avatarUrl
-    };
-  }
-  return {
-    name: info.nickname || info.username || "",
-    avatar: info.avatar || fallbackAvatar
-  };
-}
-
 onMounted(async () => {
-  // 男女主取自 hero 角色绑定的启用用户;接口不可用时保持本地兜底展示
+  // 男女主取自 hero 角色绑定的启用用户;展示链路(QQ 优先)见 utils/userDisplay;
+  // 接口不可用时保持本地兜底展示
   try {
     const { success, data } = await getHeroes();
     if (!success || !data) return;
     [female.value, male.value] = await Promise.all([
-      toHeroView(data.female),
-      toHeroView(data.male)
+      resolveUserDisplay(data.female, sysConfig.value.avatarService),
+      resolveUserDisplay(data.male, sysConfig.value.avatarService)
     ]);
   } catch {
     // 后端不可用:静默降级

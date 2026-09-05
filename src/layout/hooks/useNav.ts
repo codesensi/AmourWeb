@@ -2,7 +2,7 @@ import { storeToRefs } from "pinia";
 import { getConfig, siteTitle } from "@/config";
 import { useRouter } from "vue-router";
 import { emitter } from "@/utils/mitt";
-import Avatar from "@/assets/user.jpg";
+import { fallbackAvatar } from "@/utils/avatar";
 import { getTopMenu } from "@/router/utils";
 import { useFullscreen } from "@vueuse/core";
 import type { routeMetaType } from "../types";
@@ -37,12 +37,17 @@ export function useNav() {
     };
   });
 
-  /** 头像（如果头像为空则使用 src/assets/user.jpg ） */
+  /** 头像（如果头像为空则使用本地兜底图 demo-avatar.webp ） */
   const userAvatar = computed(() => {
     return isAllEmpty(useUserStoreHook()?.avatar)
-      ? Avatar
+      ? fallbackAvatar
       : useUserStoreHook()?.avatar;
   });
+
+  /** 头像加载失败:改用本地兜底图 */
+  function onUserAvatarError() {
+    useUserStoreHook().SET_AVATAR(fallbackAvatar);
+  }
 
   /** 昵称（如果昵称为空则显示用户名） */
   const username = computed(() => {
@@ -167,6 +172,7 @@ export function useNav() {
     pureApp,
     username,
     userAvatar,
+    onUserAvatarError,
     avatarsStyle,
     tooltipEffect,
     toAccountSettings,

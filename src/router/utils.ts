@@ -30,6 +30,8 @@ const modulesRoutes = import.meta.glob("/src/views/**/*.{vue,tsx}");
 // 动态路由(由当前登录用户菜单装配)
 import { getCurrentUser, type MenuItem } from "@/api/user";
 import { useUserStoreHook } from "@/store/modules/user";
+import { useSysConfigStore } from "@/store/modules/sysConfig";
+import { resolveUserDisplay } from "@/utils/userDisplay";
 
 const PAGE_NOT_FOUND_ROUTE_NAME = "PageNotFound" as const;
 
@@ -256,7 +258,7 @@ function handleAsyncRoutes(routeList) {
 /** 初始化路由（`new Promise` 写法防止在异步请求中造成无限循环）*/
 function initRouter() {
   return new Promise(resolve => {
-    getCurrentUser().then(({ success, data }) => {
+    getCurrentUser().then(async ({ success, data }) => {
       if (success) {
         // 同步用户信息(perms 映射为 permissions)后装配动态路由
         useUserStoreHook().syncUserInfo({
@@ -267,6 +269,16 @@ function initRouter() {
           permissions: data.perms ?? []
         });
         handleAsyncRoutes(cloneDeep(transformMenus(data.menus)));
+        // 头像/昵称按门户展示链路解析(QQ 优先,见 resolveUserDisplay):
+        // 解析为网络请求,放在路由装配后异步回写,不阻塞首屏
+        const sysConfigStore = useSysConfigStore();
+        await sysConfigStore.fetch();
+        const display = await resolveUserDisplay(
+          data,
+          sysConfigStore.data.avatarService
+        );
+        useUserStoreHook().SET_AVATAR(display.avatar);
+        useUserStoreHook().SET_NICKNAME(display.name);
       }
       resolve(router);
     });
