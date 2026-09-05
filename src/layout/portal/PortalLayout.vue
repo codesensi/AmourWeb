@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { provide, ref } from "vue";
+import { computed, provide } from "vue";
 import PortalHeader from "./PortalHeader.vue";
 import PortalHero from "./PortalHero.vue";
 import PortalSidebar from "./PortalSidebar.vue";
 import PortalFooter from "./PortalFooter.vue";
-import { getSysConfig, type SysConfigData } from "@/api/sysConfig";
+import { useSysConfigStore } from "@/store/modules/sysConfig";
 import "animate.css";
 // 门户样式入口(base 元素级重置已内聚到 portal/css/base.css,不再依赖 layui)
 import "@/assets/portal/index.css";
@@ -12,15 +12,9 @@ import "@/assets/portal/icons/iconfont-sprite.js";
 
 defineOptions({ name: "PortalLayout" });
 
-/** 站点展示配置(sys_config):接口就绪前为空对象,子组件按配置缺失安全降级 */
-const sysConfig = ref<Partial<SysConfigData>>({});
+/** 站点公共配置:读 sys_config store(启动时已由 main.ts 统一拉取,本组件不再重复请求) */
+const sysConfig = computed(() => useSysConfigStore().data);
 provide("portalSysConfig", sysConfig);
-
-getSysConfig()
-  .then(({ success, data }) => {
-    if (success) sysConfig.value = data;
-  })
-  .catch(() => {});
 </script>
 
 <template>

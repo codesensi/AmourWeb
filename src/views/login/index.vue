@@ -11,7 +11,7 @@ import type { FormInstance } from "element-plus";
 import { useLayout } from "@/layout/hooks/useLayout";
 import { useUserStoreHook } from "@/store/modules/user";
 import { getCaptchaImage } from "@/api/captcha";
-import { getSysConfig } from "@/api/sysConfig";
+import { useSysConfigStore } from "@/store/modules/sysConfig";
 import { initRouter, getTopMenu } from "@/router/utils";
 import { bg, avatar, illustration } from "./utils/static";
 import { ref, toRaw, reactive, watch, computed, onMounted } from "vue";
@@ -31,8 +31,11 @@ defineOptions({
 
 const captchaKey = ref("");
 const captchaImg = ref("");
+const sysConfigStore = useSysConfigStore();
 /** 验证码显隐开关:由 /sys/config 下发决定,缺省关闭 */
-const captchaEnabled = ref(false);
+const captchaEnabled = computed(
+  () => sysConfigStore.data.captchaEnabled ?? false
+);
 const router = useRouter();
 const loading = ref(false);
 const checked = ref(false);
@@ -65,11 +68,8 @@ const getCaptcha = async () => {
 
 /** 拉取站点公共配置:验证码开关开启时才拉取验证码 */
 const loadSiteConfig = async () => {
-  const res = await getSysConfig();
-  if (res.success) {
-    captchaEnabled.value = res.data.captchaEnabled;
-    if (captchaEnabled.value) await getCaptcha();
-  }
+  await sysConfigStore.fetch();
+  if (captchaEnabled.value) await getCaptcha();
 };
 
 onMounted(loadSiteConfig);

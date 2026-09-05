@@ -2,7 +2,7 @@ import App from "./App.vue";
 import router from "./router";
 import { setupStore } from "@/store";
 import { getConfig, siteTitle } from "@/config";
-import { getSysConfig } from "@/api/sysConfig";
+import { useSysConfigStore } from "@/store/modules/sysConfig";
 import { getPlatformConfig } from "./config";
 import { MotionPlugin } from "@vueuse/motion";
 import { useEcharts } from "@/plugins/echarts";
@@ -58,11 +58,9 @@ getPlatformConfig(app).then(async config => {
   setupStore(app);
   // 站点标题:出厂值取 platform-config 的 Title,再由后端系统配置覆盖(GET /sys/config 免登录,失败时保持出厂值)
   siteTitle.value = getConfig().Title ?? siteTitle.value;
-  await getSysConfig()
-    .then(res => {
-      if (res.success && res.data.name) siteTitle.value = res.data.name;
-    })
-    .catch(() => {});
+  const sysConfigStore = useSysConfigStore();
+  await sysConfigStore.fetch();
+  if (sysConfigStore.data.name) siteTitle.value = sysConfigStore.data.name;
   app.use(router);
   await router.isReady();
   injectResponsiveStorage(app, config);
