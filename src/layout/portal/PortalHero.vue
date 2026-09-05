@@ -26,7 +26,7 @@ function onHeroAvatarError(target: { avatar: string }) {
 
 /**
  * 解析单个主角的展示信息:
- * 昵称:QQ 昵称 → 用户表昵称,均为空时返回空串(不显示);
+ * 昵称:QQ 昵称 → 用户表昵称 → 用户名,均为空时返回空串(不显示);
  * 头像:维护了 QQ → 走 /qq-info + avatar-service 头像链路;
  *      未维护 QQ → 用户表上传头像;都没有 → 本地兜底图
  */
@@ -37,12 +37,12 @@ async function toHeroView(
   if (info.qq) {
     const qqInfo = await fetchQqInfo(info.qq, sysConfig.value.avatarService);
     return {
-      name: qqInfo.nickname || info.nickname || "",
+      name: qqInfo.nickname || info.nickname || info.username || "",
       avatar: qqInfo.avatarUrl
     };
   }
   return {
-    name: info.nickname || "",
+    name: info.nickname || info.username || "",
     avatar: info.avatar || fallbackAvatar
   };
 }

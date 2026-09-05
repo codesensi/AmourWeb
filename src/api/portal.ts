@@ -91,10 +91,12 @@ export const sendMessage = (data: {
   return http.request<ApiResult<null>>("post", "/love/message", { data });
 };
 
-/** 门户主角-单个主角信息(对齐后端 HeroUserResponse) */
+/** 门户主角-单个主角信息(对齐后端 PortalHeroUserResponse) */
 export interface HeroInfoData {
   /** 用户昵称 */
   nickname: string;
+  /** 用户名称(昵称为空时的展示兜底) */
+  username: string;
   /** 用户上传头像地址(未维护时为空) */
   avatar: string;
   /** 用户QQ号码(未维护时为空) */
