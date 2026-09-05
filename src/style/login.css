@@ -41,6 +41,8 @@
 .avatar {
   width: 350px;
   height: 80px;
+  /* 方形图标防拉伸:在 350x80 容器内等比缩放展示 */
+  object-fit: contain;
 }
 
 .login-form h2 {

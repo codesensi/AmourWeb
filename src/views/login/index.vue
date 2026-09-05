@@ -52,8 +52,8 @@ dataThemeChange(themeMode.value);
 const { title } = useNav();
 
 const ruleForm = reactive({
-  username: "admin",
-  password: "admin123",
+  username: "",
+  password: "",
   captchaValue: ""
 });
 
@@ -147,7 +147,7 @@ watch(checked, bool => {
       </div>
       <div class="login-box">
         <div class="login-form">
-          <avatar class="avatar" />
+          <img :src="avatar" class="avatar" alt="" />
           <Motion>
             <h2 class="outline-hidden">
               <TypeIt
