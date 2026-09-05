@@ -1,24 +1,43 @@
 <script setup lang="ts">
-import { computed, inject, ref } from "vue";
+import { inject, onMounted, ref } from "vue";
 import likeSvg from "@/assets/portal/img/like.svg?url";
 import type { SysConfigData } from "@/api/sysConfig";
-import { qqAvatar } from "@/utils/avatar";
+import { fallbackAvatar } from "@/utils/avatar";
+import { fetchQqInfo } from "@/utils/qqInfo";
 
 defineOptions({ name: "PortalHero" });
 
-/** 站点展示配置(portal 布局 provide):QQ 头像服务地址模板取自 sys_config qq-service */
+/** 站点展示配置(portal 布局 provide):随机头像服务地址模板取自 sys_config avatar-service */
 const sysConfig = inject("portalSysConfig", ref<Partial<SysConfigData>>({}));
 
-// 男女主昵称与头像:暂时页面写死,后续头像方案定稿后再改造
-// (头像地址与 sys_config qq-service 模板同源:q1.qlogo.cn 按号拉取)
-const female = computed(() => ({
+// 男女主昵称与头像 QQ:暂时页面写死,后续头像方案定稿后再改造
+const FEMALE_QQ = "673822943";
+const MALE_QQ = "2623669948";
+
+/** 男女主展示信息:头像初始为本地兜底图,挂载后按现有展示逻辑拉取 */
+const female = ref({
   name: "Su",
-  avatar: qqAvatar("673822943", sysConfig.value.qqService)
-}));
-const male = computed(() => ({
+  avatar: fallbackAvatar
+});
+const male = ref({
   name: "Li",
-  avatar: qqAvatar("2623669948", sysConfig.value.qqService)
-}));
+  avatar: fallbackAvatar
+});
+
+/** 头像加载失败:改用本地兜底图 */
+function onHeroAvatarError(target: { avatar: string }) {
+  target.avatar = fallbackAvatar;
+}
+
+onMounted(async () => {
+  // 现有头像展示逻辑:/qq-info 解析地址优先,为空时按 avatar-service 以 QQ 号兜底
+  const [femaleInfo, maleInfo] = await Promise.all([
+    fetchQqInfo(FEMALE_QQ, sysConfig.value.avatarService),
+    fetchQqInfo(MALE_QQ, sysConfig.value.avatarService)
+  ]);
+  female.value.avatar = femaleInfo.avatarUrl;
+  male.value.avatar = maleInfo.avatarUrl;
+});
 </script>
 
 <template>
@@ -28,14 +47,24 @@ const male = computed(() => ({
       <div class="central central-800">
         <div class="middle animated fadeInDown">
           <div class="img-female">
-            <img :src="female.avatar" draggable="false" alt="" />
+            <img
+              :src="female.avatar"
+              draggable="false"
+              alt=""
+              @error="onHeroAvatarError(female)"
+            />
             <span>{{ female.name }}</span>
           </div>
           <div class="love-icon">
             <img :src="likeSvg" draggable="false" alt="" />
           </div>
           <div class="img-male">
-            <img :src="male.avatar" draggable="false" alt="" />
+            <img
+              :src="male.avatar"
+              draggable="false"
+              alt=""
+              @error="onHeroAvatarError(male)"
+            />
             <span>{{ male.name }}</span>
           </div>
         </div>
