@@ -125,5 +125,5 @@ export type CurrentUserResult = ApiResult<{
 
 /** 获取当前登录用户信息(含菜单) */
 export const getCurrentUser = () => {
-  return http.request<CurrentUserResult>("get", "/sys/user/getCurrentUser");
+  return http.request<CurrentUserResult>("get", "/sys/user/current-user");
 };

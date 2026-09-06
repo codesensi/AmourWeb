@@ -65,9 +65,11 @@ export const deleteUser = (id: number | string) => {
   return http.request<ApiResult<any>>("delete", `/sys/user/delete/${id}`);
 };
 
-/** 用户管理-分配角色(PUT /sys/user/assignRoles) */
+/** 用户管理-分配角色(PUT /sys/user/assign-roles) */
 export const assignRoles = (data?: object) => {
-  return http.request<ApiResult<any>>("put", "/sys/user/assignRoles", { data });
+  return http.request<ApiResult<any>>("put", "/sys/user/assign-roles", {
+    data
+  });
 };
 
 /** 用户管理-获取用户已有角色 id(GET /sys/user/role-ids/{id}) */
