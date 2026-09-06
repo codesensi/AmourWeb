@@ -11,9 +11,9 @@ import { getKeyList, deviceDetection } from "@pureadmin/utils";
 import {
   assignMenus,
   deleteRole,
+  getMenuList,
   getRoleList,
   getRoleMenuIds,
-  getRoleMenuTree,
   insertRole,
   updateRole
 } from "@/api/system";
@@ -282,10 +282,11 @@ export function useRole(treeRef: Ref) {
 
   onMounted(async () => {
     onSearch();
-    const { success, data } = await getRoleMenuTree();
+    // 复用菜单列表接口:返回全量菜单的一维扁平数组（id + pid）,前端按此键组树
+    const { success, data } = await getMenuList();
     if (success) {
       treeIds.value = getKeyList(data, "id");
-      treeData.value = handleTree(data);
+      treeData.value = handleTree(data, "id", "pid");
     }
   });
 

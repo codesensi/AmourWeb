@@ -112,11 +112,6 @@ export const deleteRole = (id: number | string) => {
   return http.request<ApiResult<any>>("delete", `/sys/role/delete/${id}`);
 };
 
-/** 角色管理-获取全量菜单树(GET /sys/role/menu-tree,授权弹窗用) */
-export const getRoleMenuTree = () => {
-  return http.request<ApiResult<Array<any>>>("get", "/sys/role/menu-tree");
-};
-
 /** 角色管理-获取角色已勾选菜单 id(GET /sys/role/menu-ids/{id}) */
 export const getRoleMenuIds = (id: number | string) => {
   return http.request<ApiResult<Array<number>>>(
