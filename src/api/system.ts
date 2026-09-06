@@ -7,11 +7,16 @@ export type SysUserItem = {
   id: number;
   username: string;
   nickname: string;
+  /** 用户身份证号码 */
+  idCard?: string;
   phone?: string;
   email?: string;
+  /** 用户QQ号码 */
+  qq?: string;
   /** 用户性别:U-未知,M-男,F-女 */
   gender?: string;
   avatar?: string;
+  /** 用户状态:0-启用,1-禁用 */
   status?: number;
   builtin?: number;
   remark?: string;

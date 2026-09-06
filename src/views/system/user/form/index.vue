@@ -11,11 +11,9 @@ const props = withDefaults(defineProps<FormProps>(), {
     nickname: "",
     username: "",
     password: "",
-    phone: "",
     qq: "",
-    email: "",
     gender: "",
-    status: 1,
+    status: 0,
     remark: ""
   })
 });
@@ -83,15 +81,6 @@ defineExpose({ getRef });
         </el-form-item>
       </re-col>
       <re-col :value="12" :xs="24" :sm="24">
-        <el-form-item label="手机号" prop="phone">
-          <el-input
-            v-model="newFormInline.phone"
-            clearable
-            placeholder="请输入手机号"
-          />
-        </el-form-item>
-      </re-col>
-      <re-col :value="12" :xs="24" :sm="24">
         <el-form-item label="QQ号" prop="qq">
           <el-input
             v-model="newFormInline.qq"
@@ -101,15 +90,6 @@ defineExpose({ getRef });
         </el-form-item>
       </re-col>
 
-      <re-col :value="12" :xs="24" :sm="24">
-        <el-form-item label="邮箱" prop="email">
-          <el-input
-            v-model="newFormInline.email"
-            clearable
-            placeholder="请输入邮箱"
-          />
-        </el-form-item>
-      </re-col>
       <re-col :value="12" :xs="24" :sm="24">
         <el-form-item label="用户性别">
           <el-select
@@ -138,8 +118,8 @@ defineExpose({ getRef });
           <el-switch
             v-model="newFormInline.status"
             inline-prompt
-            :active-value="1"
-            :inactive-value="0"
+            :active-value="0"
+            :inactive-value="1"
             active-text="启用"
             inactive-text="停用"
             :style="switchStyle"

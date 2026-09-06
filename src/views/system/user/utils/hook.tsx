@@ -10,12 +10,7 @@ import { addDialog } from "@/components/ReDialog";
 import type { PaginationProps } from "@pureadmin/table";
 import ReCropperPreview from "@/components/ReCropperPreview";
 import type { FormItemProps, RoleFormItemProps } from "../utils/types";
-import {
-  getKeyList,
-  isAllEmpty,
-  hideTextAtIndex,
-  deviceDetection
-} from "@pureadmin/utils";
+import { getKeyList, isAllEmpty, deviceDetection } from "@pureadmin/utils";
 import {
   deleteUser,
   getRoleList,
@@ -48,10 +43,7 @@ export function useUser(tableRef: Ref) {
   const form = reactive({
     username: "",
     nickname: "",
-    idCard: "",
-    phone: "",
     qq: "",
-    email: "",
     gender: "",
     status: ""
   });
@@ -121,10 +113,14 @@ export function useUser(tableRef: Ref) {
       )
     },
     {
-      label: "手机号码",
-      prop: "phone",
-      minWidth: 90,
-      formatter: ({ phone }) => hideTextAtIndex(phone, { start: 3, end: 6 })
+      label: "QQ号码",
+      prop: "qq",
+      minWidth: 90
+    },
+    {
+      label: "备注",
+      prop: "remark",
+      minWidth: 130
     },
     {
       label: "状态",
@@ -135,8 +131,8 @@ export function useUser(tableRef: Ref) {
           size={scope.props.size === "small" ? "small" : "default"}
           loading={switchLoadMap.value[scope.index]?.loading}
           v-model={scope.row.status}
-          active-value={1}
-          inactive-value={0}
+          active-value={0}
+          inactive-value={1}
           active-text="已启用"
           inactive-text="已停用"
           inline-prompt
@@ -187,7 +183,7 @@ export function useUser(tableRef: Ref) {
   function onChange({ row, index }) {
     ElMessageBox.confirm(
       `确认要<strong>${
-        row.status === 0 ? "停用" : "启用"
+        row.status === 0 ? "启用" : "停用"
       }</strong><strong style='color:var(--el-color-primary)'>${
         row.username
       }</strong>用户吗?`,
@@ -305,11 +301,9 @@ export function useUser(tableRef: Ref) {
           nickname: row?.nickname ?? "",
           username: row?.username ?? "",
           password: row?.password ?? "",
-          phone: row?.phone ?? "",
           qq: row?.qq ?? "",
-          email: row?.email ?? "",
           gender: row?.gender ?? "",
-          status: row?.status ?? 1,
+          status: row?.status ?? 0,
           remark: row?.remark ?? ""
         }
       },

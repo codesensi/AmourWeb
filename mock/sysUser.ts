@@ -1,40 +1,78 @@
 // 用户管理 mock(对齐后端 SysUserController:/sys/user/*)
+// 行数据契约对齐 UserPageResponse:id/username/nickname/idCard/phone/email/qq/gender/avatar/status/builtin/remark/createTime
+// 状态语义对齐 sys_user 表:0-启用,1-禁用
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
 const users = [
   {
     id: 1,
     username: "admin",
-    nickname: "小铭",
-    idCard: "411103199001011234",
-    phone: "15888886789",
+    nickname: "超级管理员",
+    idCard: "",
+    email: "",
+    phone: "",
     qq: "12345678",
-    email: "pureadmin@163.com",
-    gender: "F",
-    avatar: "https://avatars.githubusercontent.com/u/44761321",
-    status: 1,
+    gender: "U",
+    avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=admin",
+    status: 0,
     builtin: 1,
-    remark: "管理员",
-    createTime: "2020-11-15T16:00:00"
+    remark: "超级管理员",
+    createTime: "2026-01-01T08:00:00"
   },
   {
     id: 2,
+    username: "li",
+    nickname: "Li",
+    idCard: "",
+    email: "",
+    phone: "",
+    qq: "2623669948",
+    gender: "M",
+    avatar: "",
+    status: 0,
+    builtin: 1,
+    remark: "门户男主(hero 角色)",
+    createTime: "2026-01-01T09:00:00"
+  },
+  {
+    id: 3,
+    username: "su",
+    nickname: "Su",
+    idCard: "",
+    email: "",
+    phone: "",
+    qq: "673822943",
+    gender: "F",
+    avatar: "",
+    status: 0,
+    builtin: 1,
+    remark: "门户女主(hero 角色)",
+    createTime: "2026-01-01T09:01:00"
+  },
+  {
+    id: 4,
     username: "common",
     nickname: "小林",
-    idCard: "411103199902021234",
-    phone: "18288882345",
+    idCard: "",
+    email: "",
+    phone: "",
     qq: "",
-    email: "common@example.com",
     gender: "M",
-    avatar: "https://avatars.githubusercontent.com/u/52823142",
+    avatar: "",
     status: 1,
     builtin: 0,
     remark: "普通用户",
-    createTime: "2020-11-15T16:00:00"
+    createTime: "2026-06-15T10:00:00"
   }
 ];
 
-const rolesByUser: Record<number, number[]> = { 1: [1], 2: [2] };
+// 响应剔除 idCard(对齐后端 UserPageResponse:可按身份证搜索但不下发)
+const rolesByUser: Record<number, number[]> = {
+  1: [1],
+  2: [2],
+  3: [2],
+  4: [2]
+};
 
 export default defineFakeRoute([
   // 用户分页(GET /sys/user/page)
@@ -54,13 +92,13 @@ export default defineFakeRoute([
         (item.idCard ?? "").includes(String(query.idCard ?? ""))
       );
       records = records.filter(item =>
-        item.phone.includes(String(query.phone ?? ""))
+        (item.phone ?? "").includes(String(query.phone ?? ""))
       );
       records = records.filter(item =>
-        item.qq.includes(String(query.qq ?? ""))
+        (item.qq ?? "").includes(String(query.qq ?? ""))
       );
       records = records.filter(item =>
-        item.email.includes(String(query.email ?? ""))
+        (item.email ?? "").includes(String(query.email ?? ""))
       );
       // 精确匹配条件(对齐后端 eq)
       if (query.gender)

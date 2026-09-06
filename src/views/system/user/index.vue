@@ -71,34 +71,10 @@ const {
           class="w-45!"
         />
       </el-form-item>
-      <el-form-item label="身份证号：" prop="idCard">
-        <el-input
-          v-model="form.idCard"
-          placeholder="请输入身份证号"
-          clearable
-          class="w-45!"
-        />
-      </el-form-item>
-      <el-form-item label="手机号码：" prop="phone">
-        <el-input
-          v-model="form.phone"
-          placeholder="请输入手机号码"
-          clearable
-          class="w-45!"
-        />
-      </el-form-item>
       <el-form-item label="QQ号码：" prop="qq">
         <el-input
           v-model="form.qq"
           placeholder="请输入QQ号码"
-          clearable
-          class="w-45!"
-        />
-      </el-form-item>
-      <el-form-item label="用户邮箱：" prop="email">
-        <el-input
-          v-model="form.email"
-          placeholder="请输入用户邮箱"
           clearable
           class="w-45!"
         />
@@ -122,8 +98,8 @@ const {
           clearable
           class="w-45!"
         >
-          <el-option label="已开启" value="1" />
-          <el-option label="已关闭" value="0" />
+          <el-option label="启用" value="0" />
+          <el-option label="停用" value="1" />
         </el-select>
       </el-form-item>
       <el-form-item>
