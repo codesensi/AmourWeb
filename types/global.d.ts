@@ -72,8 +72,8 @@ declare global {
     VITE_COMPRESSION: ViteCompression;
     /** mock 开关（唯一 mock 开关，见 .env.development） */
     VITE_USE_MOCK: boolean;
-    /** 真接口地址（第 3 期启用；mock 模式下留空） */
-    VITE_API_BASE_URL: string;
+    /** 后端服务地址（dev 本地跨域代理的转发目标，留空不启用代理） */
+    VITE_PROXY_TARGET: string;
   }
 
   /**

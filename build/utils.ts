@@ -58,7 +58,7 @@ const wrapperEnv = (envConf: Recordable): ViteEnv => {
     VITE_HIDE_HOME: "false",
     VITE_COMPRESSION: "none",
     VITE_USE_MOCK: true,
-    VITE_API_BASE_URL: ""
+    VITE_PROXY_TARGET: ""
   };
 
   for (const envName of Object.keys(envConf)) {
