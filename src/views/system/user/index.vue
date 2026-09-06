@@ -239,7 +239,7 @@ const {
                   </el-dropdown-item>
                   <el-dropdown-item>
                     <el-button
-                      v-if="hasPerms('system:user:update')"
+                      v-if="hasPerms('system:user:update') && row.builtin === 0"
                       :class="buttonClass"
                       link
                       type="primary"

@@ -206,6 +206,7 @@ onMounted(() => {
                 </template>
               </el-popconfirm>
               <el-button
+                v-if="row.builtin === 0"
                 class="reset-margin"
                 link
                 type="primary"

@@ -69,8 +69,8 @@ export function useRole(treeRef: Ref) {
           size={scope.props.size === "small" ? "small" : "default"}
           loading={switchLoadMap.value[scope.index]?.loading}
           v-model={scope.row.status}
-          active-value={1}
-          inactive-value={0}
+          active-value={0}
+          inactive-value={1}
           active-text="已启用"
           inactive-text="已停用"
           inline-prompt
@@ -112,7 +112,7 @@ export function useRole(treeRef: Ref) {
   function onChange({ row, index }) {
     ElMessageBox.confirm(
       `确认要<strong>${
-        row.status === 0 ? "停用" : "启用"
+        row.status === 0 ? "启用" : "停用"
       }</strong><strong style='color:var(--el-color-primary)'>${
         row.name
       }</strong>吗?`,
@@ -141,7 +141,7 @@ export function useRole(treeRef: Ref) {
               loading: false
             }
           );
-          message(`已${row.status === 0 ? "停用" : "启用"}${row.name}`, {
+          message(`已${row.status === 0 ? "启用" : "停用"}${row.name}`, {
             type: "success"
           });
         }, 300);
