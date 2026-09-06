@@ -1,4 +1,4 @@
-import demoAvatar from "@/assets/portal/img/demo-avatar.webp";
+import demoAvatar from "@/assets/img/demo-avatar.webp";
 
 /** 本地兜底头像:QQ 头像与 avatar-service 均不可用时的固定兜底图 */
 export const fallbackAvatar = demoAvatar;
