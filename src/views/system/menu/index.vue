@@ -112,13 +112,13 @@ function onFullscreen() {
               修改
             </el-button>
             <el-button
-              v-show="row.menuType !== 3"
+              v-show="row.type !== 'B'"
               class="reset-margin"
               link
               type="primary"
               :size="size"
               :icon="useRenderIcon(AddFill)"
-              @click="openDialog('新增', { parentId: row.id } as any)"
+              @click="openDialog('新增', { pid: row.id } as any)"
             >
               新增
             </el-button>

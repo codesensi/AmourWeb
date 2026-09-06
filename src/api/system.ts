@@ -130,11 +130,9 @@ export const assignMenus = (data?: object) => {
   return http.request<ApiResult<any>>("put", "/sys/role/assignMenus", { data });
 };
 
-/** 菜单管理-分页查询(GET /sys/menu/page) */
-export const getMenuList = (params?: PageQuery) => {
-  return http.request<ApiResult<PageResult<any>>>("get", "/sys/menu/page", {
-    params: omitEmpty(params)
-  });
+/** 菜单管理-列表查询(GET /sys/menu/list,返回全量菜单,前端自行组树) */
+export const getMenuList = () => {
+  return http.request<ApiResult<any[]>>("get", "/sys/menu/list");
 };
 
 /** 菜单管理-新增(POST /sys/menu/insert) */

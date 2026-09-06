@@ -1,108 +1,50 @@
 import type { OptionsType } from "@/components/ReSegmented";
 
-const menuTypeOptions: Array<OptionsType> = [
+/** 菜单类型选项（与后端 sys_menu.type 对齐:D-目录,M-菜单,B-按钮） */
+const typeOptions: Array<OptionsType> = [
+  {
+    label: "目录",
+    tip: "包含子菜单的目录节点",
+    value: "D"
+  },
   {
     label: "菜单",
-    value: 0
-  },
-  {
-    label: "iframe",
-    value: 1
-  },
-  {
-    label: "外链",
-    value: 2
+    tip: "实际页面菜单",
+    value: "M"
   },
   {
     label: "按钮",
-    value: 3
+    tip: "按钮级别权限节点",
+    value: "B"
   }
 ];
 
-const showLinkOptions: Array<OptionsType> = [
+/** 显隐选项（与后端 sys_menu.hidden 对齐:0-显示,1-隐藏） */
+const hiddenOptions: Array<OptionsType> = [
   {
     label: "显示",
     tip: "会在菜单中显示",
-    value: true
+    value: 0
   },
   {
     label: "隐藏",
     tip: "不会在菜单中显示",
-    value: false
+    value: 1
   }
 ];
 
-const fixedTagOptions: Array<OptionsType> = [
+/** 状态选项（与后端 sys_menu.status 对齐:0-启用,1-禁用） */
+const statusOptions: Array<OptionsType> = [
   {
-    label: "固定",
-    tip: "当前菜单名称固定显示在标签页且不可关闭",
-    value: true
+    label: "启用",
+    tip: "启用后菜单生效",
+    value: 0
   },
   {
-    label: "不固定",
-    tip: "当前菜单名称不固定显示在标签页且可关闭",
-    value: false
+    label: "禁用",
+    tip: "禁用后菜单不生效",
+    value: 1
   }
 ];
 
-const keepAliveOptions: Array<OptionsType> = [
-  {
-    label: "缓存",
-    tip: "会保存该页面的整体状态，刷新后会清空状态",
-    value: true
-  },
-  {
-    label: "不缓存",
-    tip: "不会保存该页面的整体状态",
-    value: false
-  }
-];
-
-const hiddenTagOptions: Array<OptionsType> = [
-  {
-    label: "允许",
-    tip: "当前菜单名称或自定义信息允许添加到标签页",
-    value: false
-  },
-  {
-    label: "禁止",
-    tip: "当前菜单名称或自定义信息禁止添加到标签页",
-    value: true
-  }
-];
-
-const showParentOptions: Array<OptionsType> = [
-  {
-    label: "显示",
-    tip: "会显示父级菜单",
-    value: true
-  },
-  {
-    label: "隐藏",
-    tip: "不会显示父级菜单",
-    value: false
-  }
-];
-
-const frameLoadingOptions: Array<OptionsType> = [
-  {
-    label: "开启",
-    tip: "有首次加载动画",
-    value: true
-  },
-  {
-    label: "关闭",
-    tip: "无首次加载动画",
-    value: false
-  }
-];
-
-export {
-  menuTypeOptions,
-  showLinkOptions,
-  fixedTagOptions,
-  keepAliveOptions,
-  hiddenTagOptions,
-  showParentOptions,
-  frameLoadingOptions
-};
+export { typeOptions, hiddenOptions, statusOptions };

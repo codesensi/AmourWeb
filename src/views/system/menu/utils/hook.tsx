@@ -19,13 +19,11 @@ export function useMenu() {
 
   const getMenuType = (type, text = false) => {
     switch (type) {
-      case 0:
-        return text ? "菜单" : "primary";
-      case 1:
-        return text ? "iframe" : "warning";
-      case 2:
-        return text ? "外链" : "danger";
-      case 3:
+      case "D":
+        return text ? "目录" : "primary";
+      case "M":
+        return text ? "菜单" : "success";
+      case "B":
         return text ? "按钮" : "info";
     }
   };
@@ -48,15 +46,15 @@ export function useMenu() {
     },
     {
       label: "菜单类型",
-      prop: "menuType",
+      prop: "type",
       width: 100,
       cellRenderer: ({ row, props }) => (
         <el-tag
           size={props.size}
-          type={getMenuType(row.menuType) as any}
+          type={getMenuType(row.type) as any}
           effect="plain"
         >
-          {getMenuType(row.menuType, true)}
+          {getMenuType(row.type, true)}
         </el-tag>
       )
     },
@@ -72,17 +70,17 @@ export function useMenu() {
     },
     {
       label: "权限标识",
-      prop: "auths"
+      prop: "perms"
     },
     {
       label: "排序",
-      prop: "rank",
+      prop: "sort",
       width: 100
     },
     {
       label: "隐藏",
-      prop: "showLink",
-      formatter: ({ showLink }) => (showLink ? "否" : "是"),
+      prop: "hidden",
+      formatter: ({ hidden }) => (hidden === 1 ? "是" : "否"),
       width: 100
     },
     {
@@ -105,14 +103,15 @@ export function useMenu() {
 
   async function onSearch() {
     loading.value = true;
-    const { success, data } = await getMenuList(); // 这里是返回一维数组结构，前端自行处理成树结构，返回格式要求：唯一id加父节点parentId，parentId取父节点id
+    // 后端返回全量菜单的一维扁平数组（id + pid），前端按此键组树并做名称过滤
+    const { success, data } = await getMenuList();
     if (success) {
-      let newData = data.records;
+      let newData = data;
       if (!isAllEmpty(form.title)) {
         // 前端搜索菜单名称
         newData = newData.filter(item => item.title.includes(form.title));
       }
-      dataList.value = handleTree(newData); // 处理成树结构
+      dataList.value = handleTree(newData, "id", "pid"); // 处理成树结构
     }
 
     setTimeout(() => {
@@ -136,28 +135,19 @@ export function useMenu() {
       title: `${title}菜单`,
       props: {
         formInline: {
-          menuType: row?.menuType ?? 0,
+          id: row?.id,
+          type: row?.type ?? "D",
           higherMenuOptions: formatHigherMenuOptions(cloneDeep(dataList.value)),
-          parentId: row?.parentId ?? 0,
+          pid: row?.pid ?? 0,
           title: row?.title ?? "",
-          name: row?.name ?? "",
           path: row?.path ?? "",
           component: row?.component ?? "",
-          rank: row?.rank ?? 99,
-          redirect: row?.redirect ?? "",
+          sort: row?.sort ?? 0,
           icon: row?.icon ?? "",
-          extraIcon: row?.extraIcon ?? "",
-          enterTransition: row?.enterTransition ?? "",
-          leaveTransition: row?.leaveTransition ?? "",
-          activePath: row?.activePath ?? "",
-          auths: row?.auths ?? "",
-          frameSrc: row?.frameSrc ?? "",
-          frameLoading: row?.frameLoading ?? true,
-          keepAlive: row?.keepAlive ?? false,
-          hiddenTag: row?.hiddenTag ?? false,
-          fixedTag: row?.fixedTag ?? false,
-          showLink: row?.showLink ?? true,
-          showParent: row?.showParent ?? false
+          perms: row?.perms ?? "",
+          status: row?.status ?? 0,
+          hidden: row?.hidden ?? 0,
+          remark: row?.remark ?? ""
         }
       },
       width: "45%",

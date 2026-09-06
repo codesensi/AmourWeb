@@ -1,4 +1,5 @@
 // 角色管理 mock(对齐后端 SysRoleController:/sys/role/*)
+// 状态语义与后端 EnableEnum 对齐:0-启用,1-禁用
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
 const roles = [
@@ -6,39 +7,61 @@ const roles = [
     id: 1,
     name: "超级管理员",
     code: "admin",
-    status: 1,
+    sort: 1,
+    status: 0,
     builtin: 1,
     remark: "超级管理员拥有最高权限",
-    createTime: "2020-11-15T16:00:00",
-    updateTime: 1684512000000
+    createTime: "2020-11-15T16:00:00"
   },
   {
     id: 2,
     name: "普通角色",
     code: "common",
-    status: 1,
+    sort: 2,
+    status: 0,
     builtin: 0,
     remark: "普通角色拥有部分权限",
-    createTime: "2020-11-15T16:00:00",
-    updateTime: 1684512000000
+    createTime: "2020-11-15T16:00:00"
+  },
+  {
+    id: 3,
+    name: "内容编辑",
+    code: "editor",
+    sort: 3,
+    status: 0,
+    builtin: 0,
+    remark: "负责内容的编辑与发布",
+    createTime: "2026-01-01T10:00:00"
+  },
+  {
+    id: 4,
+    name: "访客",
+    code: "guest",
+    sort: 4,
+    status: 1,
+    builtin: 0,
+    remark: "仅可浏览,当前已停用",
+    createTime: "2026-01-01T10:00:00"
   }
 ];
 
 export default defineFakeRoute([
-  // 角色分页(GET /sys/role/page)
+  // 角色分页(GET /sys/role/page,条件缺省时自动忽略)
   {
     url: "/sys/role/page",
     method: "get",
     response: ({ query }) => {
-      let records = [...roles];
-      records = records.filter(item =>
-        item.name.includes(String(query.name ?? ""))
+      const name = String(query.name ?? "");
+      const code = String(query.code ?? "");
+      const status = query.status;
+      const records = roles.filter(
+        item =>
+          item.name.includes(name) &&
+          item.code.includes(code) &&
+          (status === undefined ||
+            status === "" ||
+            item.status === Number(status))
       );
-      records = records.filter(item =>
-        String(item.status).includes(String(query.status ?? ""))
-      );
-      if (query.code)
-        records = records.filter(item => item.code === query.code);
       const pageNumber = Number(query.pageNumber ?? 1);
       const pageSize = Number(query.pageSize ?? 20);
       const start = (pageNumber - 1) * pageSize;
