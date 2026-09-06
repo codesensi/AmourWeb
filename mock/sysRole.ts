@@ -79,6 +79,25 @@ export default defineFakeRoute([
       };
     }
   },
+  // 角色全量列表(GET /sys/role/list,分配角色等场景的选项数据源,字段对齐后端 RoleResponse)
+  {
+    url: "/sys/role/list",
+    method: "get",
+    response: () => {
+      return {
+        success: true,
+        code: 200,
+        msg: "操作成功",
+        data: roles.map(({ id, name, code, status, builtin }) => ({
+          id,
+          name,
+          code,
+          status,
+          builtin
+        }))
+      };
+    }
+  },
   // 角色已有菜单 id(GET /sys/role/menu-ids/:id)
   {
     url: "/sys/role/menu-ids/:id",
@@ -97,68 +116,6 @@ export default defineFakeRoute([
                 3200, 3300, 3400
               ]
             : [3000, 3200, 3300, 3400]
-      };
-    }
-  },
-  // 全量菜单树(GET /sys/role/menu-tree,授权弹窗用)
-  {
-    url: "/sys/role/menu-tree",
-    method: "get",
-    response: () => {
-      return {
-        success: true,
-        code: 200,
-        msg: "操作成功",
-        data: [
-          {
-            parentId: 0,
-            id: 1000,
-            menuType: 0,
-            title: "系统管理"
-          },
-          {
-            parentId: 1000,
-            id: 1200,
-            menuType: 0,
-            title: "用户管理"
-          },
-          {
-            parentId: 1200,
-            id: 1201,
-            menuType: 3,
-            title: "分页查询"
-          },
-          {
-            parentId: 1000,
-            id: 1300,
-            menuType: 0,
-            title: "角色管理"
-          },
-          {
-            parentId: 1000,
-            id: 1400,
-            menuType: 0,
-            title: "菜单管理"
-          },
-          {
-            parentId: 0,
-            id: 3000,
-            menuType: 0,
-            title: "日志管理"
-          },
-          {
-            parentId: 3000,
-            id: 3200,
-            menuType: 0,
-            title: "登录日志"
-          },
-          {
-            parentId: 3000,
-            id: 3300,
-            menuType: 0,
-            title: "操作日志"
-          }
-        ]
       };
     }
   },

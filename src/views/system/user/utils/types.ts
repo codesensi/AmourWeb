@@ -1,3 +1,5 @@
+import type { SysRoleOption } from "@/api/system";
+
 interface FormItemProps {
   id?: number;
   /** 用于判断是`新增`还是`修改` */
@@ -19,8 +21,8 @@ interface FormProps {
 interface RoleFormItemProps {
   username: string;
   nickname: string;
-  /** 角色列表 */
-  roleOptions: any[];
+  /** 角色列表选项(来自 GET /sys/role/list) */
+  roleOptions: SysRoleOption[];
   /** 选中的角色列表 */
   ids: Record<number, unknown>[];
 }

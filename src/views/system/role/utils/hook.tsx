@@ -12,7 +12,7 @@ import {
   assignMenus,
   deleteRole,
   getMenuList,
-  getRoleList,
+  getRolePage,
   getRoleMenuIds,
   insertRole,
   updateRole
@@ -172,7 +172,7 @@ export function useRole(treeRef: Ref) {
 
   async function onSearch() {
     loading.value = true;
-    const { success, data } = await getRoleList({
+    const { success, data } = await getRolePage({
       ...toRaw(form),
       pageNumber: pagination.currentPage,
       pageSize: pagination.pageSize

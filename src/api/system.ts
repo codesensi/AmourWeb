@@ -80,6 +80,32 @@ export const getUserRoleIds = (id: number | string) => {
   );
 };
 
+/** 角色管理-行数据(分页) */
+export type SysRoleItem = {
+  id: number;
+  name: string;
+  code: string;
+  sort?: number;
+  /** 角色状态:0-启用,1-禁用 */
+  status?: number;
+  /** 内置标识:0-非内置,1-内置 */
+  builtin?: number;
+  remark?: string;
+  /** 创建时间(yyyy-MM-dd HH:mm:ss) */
+  createTime?: string;
+};
+
+/** 角色全量列表-选项数据(对齐后端 RoleListResponse) */
+export type SysRoleOption = {
+  id: number;
+  name: string;
+  code: string;
+  /** 角色状态:0-启用,1-禁用 */
+  status?: number;
+  /** 内置标识:0-非内置,1-内置 */
+  builtin?: number;
+};
+
 /** 角色分页查询参数 */
 export type SysRoleQuery = PageQuery & {
   /** 角色名称 */
@@ -91,10 +117,17 @@ export type SysRoleQuery = PageQuery & {
 };
 
 /** 角色管理-分页查询(GET /sys/role/page) */
-export const getRoleList = (params?: SysRoleQuery) => {
-  return http.request<ApiResult<PageResult<any>>>("get", "/sys/role/page", {
-    params: omitEmpty(params)
-  });
+export const getRolePage = (params?: SysRoleQuery) => {
+  return http.request<ApiResult<PageResult<SysRoleItem>>>(
+    "get",
+    "/sys/role/page",
+    { params: omitEmpty(params) }
+  );
+};
+
+/** 角色管理-全量列表(GET /sys/role/list,分配角色等场景的选项数据源) */
+export const getRoleList = () => {
+  return http.request<ApiResult<Array<SysRoleOption>>>("get", "/sys/role/list");
 };
 
 /** 角色管理-新增(POST /sys/role/insert) */

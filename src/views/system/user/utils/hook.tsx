@@ -11,6 +11,7 @@ import type { PaginationProps } from "@pureadmin/table";
 import ReCropperPreview from "@/components/ReCropperPreview";
 import type { FormItemProps, RoleFormItemProps } from "../utils/types";
 import { getKeyList, isAllEmpty, deviceDetection } from "@pureadmin/utils";
+import type { SysRoleOption } from "@/api/system";
 import {
   deleteUser,
   getRoleList,
@@ -177,7 +178,7 @@ export function useUser(tableRef: Ref) {
   ];
   // 当前密码强度（0-4）
   const curScore = ref();
-  const roleOptions = ref([]);
+  const roleOptions = ref<SysRoleOption[]>([]);
   const zxcvbnFactory = new ZxcvbnFactory();
 
   function onChange({ row, index }) {
@@ -483,7 +484,7 @@ export function useUser(tableRef: Ref) {
     onSearch();
 
     // 角色列表
-    roleOptions.value = (await getRoleList()).data.records ?? [];
+    roleOptions.value = (await getRoleList()).data ?? [];
   });
 
   return {
