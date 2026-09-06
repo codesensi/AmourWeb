@@ -20,7 +20,7 @@ export type SysUserItem = {
   status?: number;
   builtin?: number;
   remark?: string;
-  /** 创建时间(ISO 8601,如 2020-11-15T16:00:00) */
+  /** 创建时间(yyyy-MM-dd HH:mm:ss) */
   createTime?: string;
 };
 

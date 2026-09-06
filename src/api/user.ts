@@ -15,7 +15,7 @@ export interface LoginRequest {
 }
 
 /** 登录响应(对齐后端 LoginResponse) */
-export type UserResult = ApiResult<{
+export type LoginResult = ApiResult<{
   /** 访问令牌 */
   accessToken: string;
   /** 访问令牌过期时间（毫秒时间戳） */
@@ -64,12 +64,12 @@ export interface MineLogItem {
 export type MineLogQuery = PageQuery;
 
 /** 登录 */
-export const getLogin = (data: LoginRequest) => {
-  return http.request<UserResult>("post", "/login", { data });
+export const login = (data: LoginRequest) => {
+  return http.request<LoginResult>("post", "/login", { data });
 };
 
 /** 退出系统(通知后端作废当前 token) */
-export const logoutApi = () => {
+export const logout = () => {
   return http.request<ApiResult<null>>("post", "/logout");
 };
 

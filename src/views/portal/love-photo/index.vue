@@ -15,17 +15,8 @@ const loading = ref(false);
 /** 是否还有更多数据(到底后隐藏「加载更多」) */
 const hasMore = computed(() => items.value.length < totalRow.value);
 
-/** 灯箱预览地址:当前已加载的全部图片(点击任意张按其索引打开) */
+/** 灯箱预览地址:当前已加载的全部图片(el-image 内建预览,点击任意张按其索引打开) */
 const previewUrls = computed(() => items.value.map(p => p.img));
-
-/** 灯箱显隐与初始索引 */
-const viewerVisible = ref(false);
-const viewerIndex = ref(0);
-
-function openViewer(index: number) {
-  viewerIndex.value = index;
-  viewerVisible.value = true;
-}
 
 async function loadMore() {
   if (loading.value) return;

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formUpload } from "@/api/mock";
+import { formUpload } from "@/api/file";
 import { message } from "@/utils/message";
 import { onMounted, reactive, ref } from "vue";
 import { type UserInfo, getMine } from "@/api/user";

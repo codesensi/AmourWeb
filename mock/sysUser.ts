@@ -17,7 +17,7 @@ const users = [
     status: 0,
     builtin: 1,
     remark: "超级管理员",
-    createTime: "2026-01-01T08:00:00"
+    createTime: "2026-01-01 08:00:00"
   },
   {
     id: 2,
@@ -32,7 +32,7 @@ const users = [
     status: 0,
     builtin: 1,
     remark: "门户男主",
-    createTime: "2026-01-01T09:00:00"
+    createTime: "2026-01-01 09:00:00"
   },
   {
     id: 3,
@@ -47,7 +47,7 @@ const users = [
     status: 0,
     builtin: 1,
     remark: "门户女主",
-    createTime: "2026-01-01T09:01:00"
+    createTime: "2026-01-01 09:01:00"
   },
   {
     id: 4,
@@ -62,7 +62,7 @@ const users = [
     status: 1,
     builtin: 0,
     remark: "普通用户",
-    createTime: "2026-06-15T10:00:00"
+    createTime: "2026-06-15 10:00:00"
   }
 ];
 

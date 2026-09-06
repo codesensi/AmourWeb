@@ -7,7 +7,7 @@ import {
   routerArrays,
   storageLocal
 } from "../utils";
-import { type UserResult, getLogin, logoutApi } from "@/api/user";
+import { type LoginResult, login, logout } from "@/api/user";
 import { useMultiTagsStoreHook } from "./multiTags";
 import { type DataInfo, setToken, removeToken, userKey } from "@/utils/auth";
 
@@ -60,8 +60,8 @@ export const useUserStore = defineStore("pure-user", {
     },
     /** 登入 */
     async loginByUsername(data) {
-      return new Promise<UserResult>((resolve, reject) => {
-        getLogin(data)
+      return new Promise<LoginResult>((resolve, reject) => {
+        login(data)
           .then(res => {
             if (res.success) {
               setToken(res.data);
@@ -88,7 +88,7 @@ export const useUserStore = defineStore("pure-user", {
     /** 退出系统:先通知后端作废 token(尽力而为,失败不阻塞本地清理),再做前端登出 */
     async logOutWithServer() {
       try {
-        await logoutApi();
+        await logout();
       } catch {
         /* 后端不可用或 token 已失效时忽略,本地清理不受阻 */
       }
