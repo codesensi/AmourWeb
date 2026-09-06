@@ -175,7 +175,7 @@ watch(checked, bool => {
                 <el-input
                   v-model="ruleForm.username"
                   clearable
-                  placeholder="账号"
+                  placeholder="用户名 / QQ号"
                   :prefix-icon="useRenderIcon(User)"
                 />
               </el-form-item>
