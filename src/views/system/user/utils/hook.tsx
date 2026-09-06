@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import roleForm from "../form/role.vue";
 import editForm from "../form/index.vue";
 import { message } from "@/utils/message";
-import userAvatar from "@/assets/user.jpg";
+import { fallbackAvatar } from "@/utils/avatar";
 import { usePublicHooks } from "../../hooks";
 import { ZxcvbnFactory } from "@zxcvbn-ts/core";
 import { addDialog } from "@/components/ReDialog";
@@ -81,8 +81,8 @@ export function useUser(tableRef: Ref) {
         <el-image
           fit="cover"
           preview-teleported={true}
-          src={row.avatar || userAvatar}
-          preview-src-list={Array.of(row.avatar || userAvatar)}
+          src={row.avatar || fallbackAvatar}
+          preview-src-list={Array.of(row.avatar || fallbackAvatar)}
           class="size-6 rounded-full align-middle"
         />
       ),
@@ -349,7 +349,7 @@ export function useUser(tableRef: Ref) {
       contentRenderer: () =>
         h(ReCropperPreview, {
           ref: cropRef,
-          imgSrc: row.avatar || userAvatar,
+          imgSrc: row.avatar || fallbackAvatar,
           onCropper: info => (avatarInfo.value = info)
         }),
       beforeSure: async done => {

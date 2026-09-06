@@ -13,7 +13,7 @@ const users = [
     phone: "",
     qq: "12345678",
     gender: "U",
-    avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=admin",
+    avatar: "",
     status: 0,
     builtin: 1,
     remark: "超级管理员",
@@ -31,7 +31,7 @@ const users = [
     avatar: "",
     status: 0,
     builtin: 1,
-    remark: "门户男主(hero 角色)",
+    remark: "门户男主",
     createTime: "2026-01-01T09:00:00"
   },
   {
@@ -46,7 +46,7 @@ const users = [
     avatar: "",
     status: 0,
     builtin: 1,
-    remark: "门户女主(hero 角色)",
+    remark: "门户女主",
     createTime: "2026-01-01T09:01:00"
   },
   {
