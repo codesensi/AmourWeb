@@ -2,11 +2,11 @@
 import { computed } from "vue";
 import { RouterLink } from "vue-router";
 import icpSvg from "@/assets/portal/img/icp.svg?url";
-import type { SysConfigData } from "@/api/sysConfig";
+import type { SysConfig } from "@/utils/sysConfig";
 
 defineOptions({ name: "PortalFooter" });
 
-const props = defineProps<{ sysConfig: Partial<SysConfigData> }>();
+const props = defineProps<{ sysConfig: Partial<SysConfig> }>();
 
 /** 版权年份:配置起始年份早于当前年份时显示「起始-当前」区间;
  * 配置缺失、非法或恰为当前年份(防御性:配置晚于当前年份同理)时仅显示当前年份 */

@@ -11,7 +11,7 @@ import type { FormInstance } from "element-plus";
 import { useLayout } from "@/layout/hooks/useLayout";
 import { useUserStoreHook } from "@/store/modules/user";
 import { getCaptchaImage } from "@/api/captcha";
-import { useSysConfigStore } from "@/store/modules/sysConfig";
+import { fetchSysConfig } from "@/utils/sysConfig";
 import { initRouter, getTopMenu } from "@/router/utils";
 import { bg, avatar, illustration } from "./utils/static";
 import { ref, toRaw, reactive, watch, computed, onMounted } from "vue";
@@ -31,11 +31,8 @@ defineOptions({
 
 const captchaKey = ref("");
 const captchaImg = ref("");
-const sysConfigStore = useSysConfigStore();
-/** 验证码显隐开关:由 /sys/config 下发决定,缺省关闭 */
-const captchaEnabled = computed(
-  () => sysConfigStore.data.captchaEnabled ?? false
-);
+/** 验证码显隐开关:由 /sys/config/list-by-keys 下发决定,缺省关闭 */
+const captchaEnabled = ref(false);
 const router = useRouter();
 const loading = ref(false);
 const checked = ref(false);
@@ -68,7 +65,8 @@ const getCaptcha = async () => {
 
 /** 拉取站点公共配置:验证码开关开启时才拉取验证码 */
 const loadSiteConfig = async () => {
-  await sysConfigStore.fetch();
+  const { captchaEnabled: enabled } = await fetchSysConfig("captchaEnabled");
+  captchaEnabled.value = enabled ?? false;
   if (captchaEnabled.value) await getCaptcha();
 };
 
@@ -207,7 +205,8 @@ watch(checked, bool => {
                     <img
                       :src="captchaImg"
                       alt="验证码"
-                      class="h-10 cursor-pointer"
+                      title="点击刷新"
+                      class="h-8 cursor-pointer"
                       @click="getCaptcha"
                     />
                   </template>
@@ -257,7 +256,10 @@ watch(checked, bool => {
 </style>
 
 <style lang="scss" scoped>
-:deep(.el-input-group__append, .el-input-group__prepend) {
-  padding: 0;
+/* append 单元格边框由 inset box-shadow 绘制:留出内边距避免被验证码图片盖住;
+   背景置透明,避免灰色底形成一圈阴影观感 */
+:deep(.el-input-group__append) {
+  padding: 4px;
+  background-color: transparent;
 }
 </style>

@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { SysConfigData } from "@/api/sysConfig";
+import type { SysConfig } from "@/utils/sysConfig";
 import { RouterLink } from "vue-router";
 
 defineOptions({ name: "PortalHeader" });
 
-defineProps<{ sysConfig: Partial<SysConfigData> }>();
+defineProps<{ sysConfig: Partial<SysConfig> }>();
 </script>
 
 <template>

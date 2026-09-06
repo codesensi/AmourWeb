@@ -6,13 +6,13 @@ import cardMessage from "@/assets/portal/img/card/card-message.svg?url";
 import cardAbout from "@/assets/portal/img/card/card-about.svg?url";
 import cardLovePhoto from "@/assets/portal/img/card/card-love-photo.svg?url";
 import cardLoveList from "@/assets/portal/img/card/card-love-list.svg?url";
-import type { SysConfigData } from "@/api/sysConfig";
+import type { SysConfig } from "@/utils/sysConfig";
 import { parseDateTime } from "@/utils/date";
 
 defineOptions({ name: "PortalHome" });
 
 /** 站点展示配置:由 PortalLayout provide */
-const sysConfig = inject<Ref<Partial<SysConfigData>>>(
+const sysConfig = inject<Ref<Partial<SysConfig>>>(
   "portalSysConfig",
   ref({})
 );

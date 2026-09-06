@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, inject, onMounted, reactive, ref, type Ref } from "vue";
 import { getMessage, sendMessage, type MessageItem } from "@/api/portal";
-import type { SysConfigData } from "@/api/sysConfig";
+import type { SysConfig } from "@/utils/sysConfig";
 import { message } from "@/utils/message";
 import { fallbackAvatar, randomAvatar } from "@/utils/avatar";
 import { fetchQqInfo } from "@/utils/qqInfo";
@@ -46,7 +46,7 @@ function reloadMessages() {
 }
 
 /** 站点展示配置(portal 布局 provide):随机头像服务地址模板取自 sys_config avatar-service */
-const sysConfig = inject<Ref<Partial<SysConfigData>>>(
+const sysConfig = inject<Ref<Partial<SysConfig>>>(
   "portalSysConfig",
   ref({})
 );

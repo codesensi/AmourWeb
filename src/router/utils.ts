@@ -30,7 +30,7 @@ const modulesRoutes = import.meta.glob("/src/views/**/*.{vue,tsx}");
 // 动态路由(由当前登录用户菜单装配)
 import { getCurrentUser, type MenuItem } from "@/api/user";
 import { useUserStoreHook } from "@/store/modules/user";
-import { useSysConfigStore } from "@/store/modules/sysConfig";
+import { fetchSysConfig } from "@/utils/sysConfig";
 import { resolveUserDisplay } from "@/utils/userDisplay";
 
 const PAGE_NOT_FOUND_ROUTE_NAME = "PageNotFound" as const;
@@ -271,12 +271,8 @@ function initRouter() {
         handleAsyncRoutes(cloneDeep(transformMenus(data.menus)));
         // 头像/昵称按门户展示链路解析(QQ 优先,见 resolveUserDisplay):
         // 解析为网络请求,放在路由装配后异步回写,不阻塞首屏
-        const sysConfigStore = useSysConfigStore();
-        await sysConfigStore.fetch();
-        const display = await resolveUserDisplay(
-          data,
-          sysConfigStore.data.avatarService
-        );
+        const { avatarService } = await fetchSysConfig("avatarService");
+        const display = await resolveUserDisplay(data, avatarService);
         useUserStoreHook().SET_AVATAR(display.avatar);
         useUserStoreHook().SET_NICKNAME(display.name);
       }
