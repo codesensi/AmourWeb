@@ -114,7 +114,7 @@ export const deleteRole = (id: number | string) => {
 
 /** 角色管理-获取角色已勾选菜单 id(GET /sys/role/menu-ids/{id}) */
 export const getRoleMenuIds = (id: number | string) => {
-  return http.request<ApiResult<Array<number>>>(
+  return http.request<ApiResult<Array<string>>>(
     "get",
     `/sys/role/menu-ids/${id}`
   );
