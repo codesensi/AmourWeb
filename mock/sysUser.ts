@@ -141,21 +141,9 @@ export default defineFakeRoute([
     method: "post",
     response: () => ({ success: true, code: 200, msg: "操作成功" })
   },
-  // 修改(PUT /sys/user/update)
+  // 分配角色(PUT /sys/user/assign-roles)
   {
-    url: "/sys/user/update",
-    method: "put",
-    response: () => ({ success: true, code: 200, msg: "操作成功" })
-  },
-  // 删除(DELETE /sys/user/delete/:id)
-  {
-    url: "/sys/user/delete/:id",
-    method: "delete",
-    response: () => ({ success: true, code: 200, msg: "操作成功" })
-  },
-  // 分配角色(PUT /sys/user/assignRoles)
-  {
-    url: "/sys/user/assignRoles",
+    url: "/sys/user/assign-roles",
     method: "put",
     response: () => ({ success: true, code: 200, msg: "操作成功" })
   }

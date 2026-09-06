@@ -1,35 +1,76 @@
-// 系统公共配置(GET /sys/config):字段名 = sys_config 配置键转 camelCase;
-// qq-service/avatar-service 下发预留(留言头像降级方案后续实现)
+// 系统公共配置 mock(对齐后端 GET /sys/config/list-by-keys?keys=逗号分隔键)
+// 契约对齐 ConfigResponse:configKey/configValue/valueType/configGroup,keys 为空时返回空列表
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
+
+// 与后端 sys_config 表同源的公共配置键值(值统一字符串存储)
+const configs = [
+  {
+    configKey: "name",
+    configValue: "爱慕情侣小站",
+    valueType: "STRING",
+    configGroup: "base"
+  },
+  {
+    configKey: "icp",
+    configValue: "京ICP备2026010001号",
+    valueType: "STRING",
+    configGroup: "base"
+  },
+  {
+    configKey: "copyright-year",
+    configValue: "2026",
+    valueType: "STRING",
+    configGroup: "base"
+  },
+  {
+    configKey: "qq-service",
+    configValue: "https://uapis.cn/api/v1/social/qq/userinfo?qq=%s",
+    valueType: "STRING",
+    configGroup: "base"
+  },
+  {
+    configKey: "avatar-service",
+    configValue: "https://api.dicebear.com/7.x/bottts/svg?seed=%s",
+    valueType: "STRING",
+    configGroup: "base"
+  },
+  {
+    configKey: "site.slogan",
+    configValue:
+      "爱晨雾漫过青瓦，爱暮色染透篱笆，更爱与君并肩立，看遍这人间烟火里的朝暮与年华。",
+    valueType: "STRING",
+    configGroup: "site"
+  },
+  {
+    configKey: "site.love-start-date",
+    configValue: "2018-07-15 00:00:00",
+    valueType: "STRING",
+    configGroup: "site"
+  },
+  {
+    configKey: "captcha.enabled",
+    configValue: "true",
+    valueType: "BOOLEAN",
+    configGroup: "captcha"
+  }
+];
 
 export default defineFakeRoute([
   {
-    url: "/sys/config",
+    url: "/sys/config/list-by-keys",
     method: "get",
-    response: () => {
+    response: ({ query }) => {
+      // keys 为逗号分隔(对齐后端 @RequestParam List<String>),为空时返回空列表
+      const keys = String(query.keys ?? "")
+        .split(",")
+        .map(item => item.trim())
+        .filter(Boolean);
       return {
         success: true,
         code: 200,
         msg: "操作成功",
         timestamp: Date.now(),
-        data: {
-          // 项目/站点名称(对应后端 sys_config name)
-          name: "爱慕情侣小站",
-          // ICP 备案文案(对应后端 sys_config icp)
-          icp: "京ICP备2026010001号",
-          // 版权年份(对应后端 sys_config copyright-year)
-          copyrightYear: "2026",
-          // QQ 头像服务地址模板(对应后端 sys_config qq-service,%s 为 QQ 号;留言头像使用,降级方案后续实现)
-          qqService: "https://uapis.cn/api/v1/social/qq/userinfo?qq=%s",
-          // 用户随机头像服务地址模板(对应后端 sys_config avatar-service,%s 为种子)
-          avatarService: "https://api.dicebear.com/7.x/bottts/svg?seed=%s",
-          // 门户站点标语(对应后端 sys_config site.slogan)
-          siteSlogan: "爱晨雾漫过青瓦，爱暮色染透篱笆，更爱与君并肩立，看遍这人间烟火里的朝暮与年华。",
-          // 门户恋爱计时起点(对应后端 sys_config site.love-start-date,格式 yyyy-MM-dd HH:mm:ss)
-          siteLoveStartDate: "2018-07-15 00:00:00",
-          // 验证码显隐开关(对应后端 sys_config captcha.enabled)
-          captchaEnabled: true
-        }
+        data: configs.filter(item => keys.includes(item.configKey))
       };
     }
   }

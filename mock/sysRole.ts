@@ -125,21 +125,9 @@ export default defineFakeRoute([
     method: "post",
     response: () => ({ success: true, code: 200, msg: "操作成功" })
   },
-  // 修改(PUT /sys/role/update)
+  // 保存菜单授权(PUT /sys/role/assign-menus)
   {
-    url: "/sys/role/update",
-    method: "put",
-    response: () => ({ success: true, code: 200, msg: "操作成功" })
-  },
-  // 删除(DELETE /sys/role/delete/:id)
-  {
-    url: "/sys/role/delete/:id",
-    method: "delete",
-    response: () => ({ success: true, code: 200, msg: "操作成功" })
-  },
-  // 保存菜单授权(PUT /sys/role/assignMenus)
-  {
-    url: "/sys/role/assignMenus",
+    url: "/sys/role/assign-menus",
     method: "put",
     response: () => ({ success: true, code: 200, msg: "操作成功" })
   }

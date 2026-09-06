@@ -153,9 +153,11 @@ export const getRoleMenuIds = (id: number | string) => {
   );
 };
 
-/** 角色管理-保存菜单授权(PUT /sys/role/assignMenus) */
+/** 角色管理-保存菜单授权(PUT /sys/role/assign-menus) */
 export const assignMenus = (data?: object) => {
-  return http.request<ApiResult<any>>("put", "/sys/role/assignMenus", { data });
+  return http.request<ApiResult<any>>("put", "/sys/role/assign-menus", {
+    data
+  });
 };
 
 /** 菜单管理-列表查询(GET /sys/menu/list,返回全量菜单,前端自行组树) */

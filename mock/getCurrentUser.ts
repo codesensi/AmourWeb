@@ -277,7 +277,7 @@ export const menus: MenuItem[] = [
 
 export default defineFakeRoute([
   {
-    url: "/sys/user/getCurrentUser",
+    url: "/sys/user/current-user",
     method: "get",
     response: () => {
       return {
