@@ -92,7 +92,7 @@ export function useMenu() {
   ];
 
   function handleSelectionChange(val) {
-    console.log("handleSelectionChange", val);
+    // 多选操作暂无业务,保留钩子
   }
 
   function resetForm(formEl) {

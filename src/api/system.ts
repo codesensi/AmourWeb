@@ -1,6 +1,7 @@
 import { http } from "@/utils/http";
 import { omitEmpty } from "@/utils/params";
 import type { ApiResult, PageQuery, PageResult } from "@/api/types";
+import { type MenuItem } from "./user";
 
 /** 用户管理-行数据 */
 export type SysUserItem = {
@@ -52,22 +53,22 @@ export const getUserList = (params?: SysUserQuery) => {
 
 /** 用户管理-新增(POST /sys/user/insert) */
 export const insertUser = (data?: object) => {
-  return http.request<ApiResult<any>>("post", "/sys/user/insert", { data });
+  return http.request<ApiResult<null>>("post", "/sys/user/insert", { data });
 };
 
 /** 用户管理-修改(PUT /sys/user/update) */
 export const updateUser = (data?: object) => {
-  return http.request<ApiResult<any>>("put", "/sys/user/update", { data });
+  return http.request<ApiResult<null>>("put", "/sys/user/update", { data });
 };
 
 /** 用户管理-删除(DELETE /sys/user/delete/{id}) */
 export const deleteUser = (id: number | string) => {
-  return http.request<ApiResult<any>>("delete", `/sys/user/delete/${id}`);
+  return http.request<ApiResult<null>>("delete", `/sys/user/delete/${id}`);
 };
 
 /** 用户管理-分配角色(PUT /sys/user/assign-roles) */
 export const assignRoles = (data?: object) => {
-  return http.request<ApiResult<any>>("put", "/sys/user/assign-roles", {
+  return http.request<ApiResult<null>>("put", "/sys/user/assign-roles", {
     data
   });
 };
@@ -132,17 +133,17 @@ export const getRoleList = () => {
 
 /** 角色管理-新增(POST /sys/role/insert) */
 export const insertRole = (data?: object) => {
-  return http.request<ApiResult<any>>("post", "/sys/role/insert", { data });
+  return http.request<ApiResult<null>>("post", "/sys/role/insert", { data });
 };
 
 /** 角色管理-修改(PUT /sys/role/update) */
 export const updateRole = (data?: object) => {
-  return http.request<ApiResult<any>>("put", "/sys/role/update", { data });
+  return http.request<ApiResult<null>>("put", "/sys/role/update", { data });
 };
 
 /** 角色管理-删除(DELETE /sys/role/delete/{id}) */
 export const deleteRole = (id: number | string) => {
-  return http.request<ApiResult<any>>("delete", `/sys/role/delete/${id}`);
+  return http.request<ApiResult<null>>("delete", `/sys/role/delete/${id}`);
 };
 
 /** 角色管理-获取角色已勾选菜单 id(GET /sys/role/menu-ids/{id}) */
@@ -155,29 +156,48 @@ export const getRoleMenuIds = (id: number | string) => {
 
 /** 角色管理-保存菜单授权(PUT /sys/role/assign-menus) */
 export const assignMenus = (data?: object) => {
-  return http.request<ApiResult<any>>("put", "/sys/role/assign-menus", {
+  return http.request<ApiResult<null>>("put", "/sys/role/assign-menus", {
     data
   });
 };
 
 /** 菜单管理-列表查询(GET /sys/menu/list,返回全量菜单,前端自行组树) */
 export const getMenuList = () => {
-  return http.request<ApiResult<any[]>>("get", "/sys/menu/list");
+  return http.request<ApiResult<Array<MenuItem>>>("get", "/sys/menu/list");
 };
 
 /** 菜单管理-新增(POST /sys/menu/insert) */
 export const insertMenu = (data?: object) => {
-  return http.request<ApiResult<any>>("post", "/sys/menu/insert", { data });
+  return http.request<ApiResult<null>>("post", "/sys/menu/insert", { data });
 };
 
 /** 菜单管理-修改(PUT /sys/menu/update) */
 export const updateMenu = (data?: object) => {
-  return http.request<ApiResult<any>>("put", "/sys/menu/update", { data });
+  return http.request<ApiResult<null>>("put", "/sys/menu/update", { data });
 };
 
 /** 菜单管理-删除(DELETE /sys/menu/delete/{id}) */
 export const deleteMenu = (id: number | string) => {
-  return http.request<ApiResult<any>>("delete", `/sys/menu/delete/${id}`);
+  return http.request<ApiResult<null>>("delete", `/sys/menu/delete/${id}`);
+};
+
+/** 登录日志-行数据 */
+export type LoginLogItem = {
+  id: number;
+  username: string;
+  ip: string;
+  /** 登录地点 */
+  address: string;
+  /** 操作系统 */
+  system: string;
+  /** 浏览器类型 */
+  browser: string;
+  /** 登录状态:1-成功,0-失败 */
+  status: number;
+  /** 登录行为(如"账号登录") */
+  behavior: string;
+  /** 登录时间 */
+  loginTime: string;
 };
 
 /** 登录日志分页查询参数 */
@@ -192,9 +212,34 @@ export type LoginLogQuery = PageQuery & {
 
 /** 日志管理-登录日志列表(GET,分页参数 pageNumber/pageSize) */
 export const getLoginLogsList = (params?: LoginLogQuery) => {
-  return http.request<ApiResult<PageResult<any>>>("get", "/login-logs", {
-    params: omitEmpty(params)
-  });
+  return http.request<ApiResult<PageResult<LoginLogItem>>>(
+    "get",
+    "/login-logs",
+    {
+      params: omitEmpty(params)
+    }
+  );
+};
+
+/** 操作日志-行数据 */
+export type OperationLogItem = {
+  id: number;
+  username: string;
+  ip: string;
+  /** 登录地点 */
+  address: string;
+  /** 操作系统 */
+  system: string;
+  /** 浏览器类型 */
+  browser: string;
+  /** 操作状态:1-成功,0-失败 */
+  status: number;
+  /** 操作概要 */
+  summary: string;
+  /** 所属模块 */
+  module: string;
+  /** 操作时间 */
+  operatingTime: string;
 };
 
 /** 操作日志分页查询参数 */
@@ -209,7 +254,11 @@ export type OperationLogQuery = PageQuery & {
 
 /** 日志管理-操作日志列表(GET,分页参数 pageNumber/pageSize) */
 export const getOperationLogsList = (params?: OperationLogQuery) => {
-  return http.request<ApiResult<PageResult<any>>>("get", "/operation-logs", {
-    params: omitEmpty(params)
-  });
+  return http.request<ApiResult<PageResult<OperationLogItem>>>(
+    "get",
+    "/operation-logs",
+    {
+      params: omitEmpty(params)
+    }
+  );
 };

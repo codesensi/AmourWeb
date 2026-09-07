@@ -80,7 +80,6 @@ export function useColumns() {
   });
 
   function onCurrentChange(page: number) {
-    console.log("onCurrentChange", page);
     loading.value = true;
     delay(300).then(() => {
       loading.value = false;

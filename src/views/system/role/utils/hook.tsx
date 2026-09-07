@@ -167,7 +167,7 @@ export function useRole(treeRef: Ref) {
   }
 
   function handleSelectionChange(val) {
-    console.log("handleSelectionChange", val);
+    // 多选操作暂无业务,保留钩子
   }
 
   async function onSearch() {

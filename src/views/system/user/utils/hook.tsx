@@ -224,7 +224,7 @@ export function useUser(tableRef: Ref) {
   }
 
   function handleUpdate(row) {
-    console.log(row);
+    // 待后端修改接口落地后接入
   }
 
   async function handleDelete(row) {
@@ -439,7 +439,6 @@ export function useUser(tableRef: Ref) {
             message(`已成功重置 ${row.username} 用户的密码`, {
               type: "success"
             });
-            console.log(pwdForm.newPwd);
             // 根据实际业务使用pwdForm.newPwd和row里的某些字段去调用重置用户密码接口即可
             done(); // 关闭弹框
             onSearch(); // 刷新表格数据
