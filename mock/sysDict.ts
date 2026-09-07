@@ -1,4 +1,4 @@
-// 字典管理 mock(对齐后端 /sys/dict 查询与管理接口)
+// 字典管理 mock(对齐后端 /sys/dict 查询接口;写接口后端未实现,暂不提供 mock)
 // 行数据契约对齐 DictPageResponse:id/dictCode/dictName/dictValue/dictLabel/sort/status/builtin/remark/createTime
 // 组数据契约对齐 DictGroupResponse:dictCode/items(dictValue/dictLabel/sort)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
@@ -354,60 +354,6 @@ export default defineFakeRoute([
           totalPage: Math.ceil(filtered.length / pageSize)
         }
       };
-    }
-  },
-  // 新增(POST /sys/dict/insert)
-  {
-    url: "/sys/dict/insert",
-    method: "post",
-    response: ({ body }) => {
-      const nextId = String(
-        Math.max(...dicts.map(item => Number(item.id))) + 1
-      );
-      dicts.push({ ...(body as object), id: nextId, status: 0 } as never);
-      return { success: true, code: 200, msg: "操作成功", timestamp: Date.now() };
-    }
-  },
-  // 修改(PUT /sys/dict/update)
-  {
-    url: "/sys/dict/update",
-    method: "put",
-    response: ({ body }) => {
-      const cur = body as Record<string, unknown>;
-      const item = dicts.find(row => row.id === cur.id);
-      if (item) {
-        item.dictName = cur.dictName as string;
-        item.dictLabel = cur.dictLabel as string;
-        item.sort = cur.sort as number;
-        item.remark = cur.remark as string;
-      }
-      return { success: true, code: 200, msg: "操作成功", timestamp: Date.now() };
-    }
-  },
-  // 修改状态(PUT /sys/dict/change-status)
-  {
-    url: "/sys/dict/change-status",
-    method: "put",
-    response: ({ body }) => {
-      const cur = body as Record<string, unknown>;
-      const item = dicts.find(row => row.id === cur.id);
-      if (item) {
-        item.status = cur.status as number;
-      }
-      return { success: true, code: 200, msg: "操作成功", timestamp: Date.now() };
-    }
-  },
-  // 删除(DELETE /sys/dict/delete/:id)
-  {
-    url: "/sys/dict/delete/:id",
-    method: "delete",
-    response: ({ url }) => {
-      const id = url.slice(url.lastIndexOf("/") + 1);
-      const index = dicts.findIndex(item => item.id === id);
-      if (index >= 0) {
-        dicts.splice(index, 1);
-      }
-      return { success: true, code: 200, msg: "操作成功", timestamp: Date.now() };
     }
   }
 ]);

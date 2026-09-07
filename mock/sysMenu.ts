@@ -14,23 +14,5 @@ export default defineFakeRoute([
       msg: "操作成功",
       data: menus
     })
-  },
-  // 新增(POST /sys/menu/insert)
-  {
-    url: "/sys/menu/insert",
-    method: "post",
-    response: () => ({ success: true, code: 200, msg: "操作成功" })
-  },
-  // 修改(PUT /sys/menu/update)
-  {
-    url: "/sys/menu/update",
-    method: "put",
-    response: () => ({ success: true, code: 200, msg: "操作成功" })
-  },
-  // 删除(DELETE /sys/menu/delete/:id)
-  {
-    url: "/sys/menu/delete/:id",
-    method: "delete",
-    response: () => ({ success: true, code: 200, msg: "操作成功" })
   }
 ]);
