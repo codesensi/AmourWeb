@@ -10,7 +10,6 @@ const props = withDefaults(defineProps<FormProps>(), {
     title: "新增",
     nickname: "",
     username: "",
-    password: "",
     qq: "",
     gender: "",
     status: 0,
@@ -62,21 +61,6 @@ defineExpose({ getRef });
             v-model="newFormInline.username"
             clearable
             placeholder="请输入用户名称"
-          />
-        </el-form-item>
-      </re-col>
-
-      <re-col
-        v-if="newFormInline.title === '新增'"
-        :value="12"
-        :xs="24"
-        :sm="24"
-      >
-        <el-form-item label="用户密码" prop="password">
-          <el-input
-            v-model="newFormInline.password"
-            clearable
-            placeholder="请输入用户密码"
           />
         </el-form-item>
       </re-col>

@@ -301,7 +301,6 @@ export function useUser(tableRef: Ref) {
           title,
           nickname: row?.nickname ?? "",
           username: row?.username ?? "",
-          password: row?.password ?? "",
           qq: row?.qq ?? "",
           gender: row?.gender ?? "",
           status: row?.status ?? 0,

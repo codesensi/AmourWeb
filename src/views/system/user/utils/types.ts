@@ -7,7 +7,6 @@ interface FormItemProps {
   title: string;
   nickname: string;
   username: string;
-  password: string;
   qq: string;
   /** 用户性别:U-未知,M-男,F-女 */
   gender: string;
