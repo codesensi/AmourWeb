@@ -37,7 +37,7 @@ export function useNav() {
     };
   });
 
-  /** 头像（如果头像为空则使用本地兜底图 demo-avatar.webp ） */
+  /** 头像（如果头像为空则使用本地兜底图 fallback-avatar.png ） */
   const userAvatar = computed(() => {
     return isAllEmpty(useUserStoreHook()?.avatar)
       ? fallbackAvatar
