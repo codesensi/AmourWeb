@@ -138,7 +138,7 @@ export function useMenu() {
           id: row?.id,
           type: row?.type ?? "D",
           higherMenuOptions: formatHigherMenuOptions(cloneDeep(dataList.value)),
-          pid: row?.pid ?? 0,
+          pid: row?.pid ?? "0",
           title: row?.title ?? "",
           path: row?.path ?? "",
           component: row?.component ?? "",

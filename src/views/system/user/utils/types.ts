@@ -1,7 +1,8 @@
 import type { SysRoleOption } from "@/api/system";
 
 interface FormItemProps {
-  id?: number;
+  /** 用户ID(后端序列化为字符串,编辑时透传) */
+  id?: string;
   /** 用于判断是`新增`还是`修改` */
   title: string;
   nickname: string;

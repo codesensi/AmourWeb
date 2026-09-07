@@ -11,7 +11,7 @@ const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
     id: undefined,
     type: "D",
-    pid: 0,
+    pid: "0",
     title: "",
     path: "",
     component: "",

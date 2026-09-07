@@ -1,10 +1,10 @@
 interface FormItemProps {
   /** 菜单ID（修改时传入；后端 Long 序列化为字符串） */
-  id?: number | string;
+  id?: string;
   /** 菜单类型（D-目录、M-菜单、B-按钮） */
   type: "D" | "M" | "B";
   /** 父级菜单ID（0 表示根节点；后端 Long 序列化为字符串） */
-  pid: number | string;
+  pid: string;
   /** 菜单名称 */
   title: string;
   /** 路由路径 */
