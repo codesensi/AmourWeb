@@ -11,6 +11,7 @@ import { usePermissionStoreHook } from "@/store/modules/permission";
 import LaySidebarItem from "../lay-sidebar/components/SidebarItem.vue";
 import LaySidebarFullScreen from "../lay-sidebar/components/SidebarFullScreen.vue";
 
+import UserSettingsIcon from "~icons/ri/user-settings-line";
 import LogoutCircleRLine from "~icons/ri/logout-circle-r-line";
 import Setting from "~icons/ri/settings-3-line";
 
@@ -31,7 +32,8 @@ const {
   userAvatar,
   onUserAvatarError,
   backTopMenu,
-  avatarsStyle
+  avatarsStyle,
+  toProfile
 } = useNav();
 
 const defaultActive = computed(() =>
@@ -90,6 +92,13 @@ onMounted(() => {
           <p v-if="username" class="dark:text-white">{{ username }}</p>
         </span>
         <template #dropdown>
+          <el-dropdown-item @click="toProfile">
+            <IconifyIconOffline
+              :icon="UserSettingsIcon"
+              style="margin: 5px"
+            />
+            个人中心
+          </el-dropdown-item>
           <el-dropdown-menu class="logout">
             <el-dropdown-item @click="logout">
               <IconifyIconOffline

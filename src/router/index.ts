@@ -178,10 +178,15 @@ router.beforeEach((to: ToRouteType, _from) => {
         initRouter().then((router: Router) => {
           if (!useMultiTagsStoreHook().getMultiTagsCache) {
             const { path } = to;
-            const route = findRouteByPath(
+            let route = findRouteByPath(
               path,
               router.options.routes[0].children
             );
+            // 无 name 的目录级父路由(如"个人中心"父子同路径)时下钻取带 name 的子级,
+            // 保证恢复的页签 name 与当前路由一致,选中态才能正确高亮
+            while (route && !route.name && route.children?.length) {
+              route = findRouteByPath(path, route.children);
+            }
             getTopMenu(true);
             // query、params模式路由传参数的标签页不在此处处理
             if (route && route.meta?.title) {

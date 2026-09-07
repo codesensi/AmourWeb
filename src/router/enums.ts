@@ -6,6 +6,7 @@ const home = 0;
 /** 错误页为功能性基础设施，仅隐藏菜单，路由保留 */
 const error = 10;
 
-const about = 17;
+/** 个人中心 */
+const profile = 17;
 
-export { home, error, about };
+export { home, error, profile };

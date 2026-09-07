@@ -45,6 +45,7 @@ export function useUser(tableRef: Ref) {
   const form = reactive({
     username: "",
     nickname: "",
+    email: "",
     qq: "",
     gender: "",
     status: ""
@@ -99,6 +100,11 @@ export function useUser(tableRef: Ref) {
       label: "用户昵称",
       prop: "nickname",
       minWidth: 130
+    },
+    {
+      label: "邮箱",
+      prop: "email",
+      minWidth: 160
     },
     {
       label: "性别",

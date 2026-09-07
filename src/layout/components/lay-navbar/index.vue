@@ -7,6 +7,7 @@ import LaySidebarFullScreen from "../lay-sidebar/components/SidebarFullScreen.vu
 import LaySidebarBreadCrumb from "../lay-sidebar/components/SidebarBreadCrumb.vue";
 import LaySidebarTopCollapse from "../lay-sidebar/components/SidebarTopCollapse.vue";
 
+import UserSettingsIcon from "~icons/ri/user-settings-line";
 import LogoutCircleRLine from "~icons/ri/logout-circle-r-line";
 import Setting from "~icons/ri/settings-3-line";
 
@@ -20,7 +21,8 @@ const {
   userAvatar,
   onUserAvatarError,
   avatarsStyle,
-  toggleSideBar
+  toggleSideBar,
+  toProfile
 } = useNav();
 </script>
 
@@ -59,6 +61,13 @@ const {
         </span>
         <template #dropdown>
           <el-dropdown-menu class="logout">
+            <el-dropdown-item @click="toProfile">
+              <IconifyIconOffline
+                :icon="UserSettingsIcon"
+                style="margin: 5px"
+              />
+              个人中心
+            </el-dropdown-item>
             <el-dropdown-item @click="logout">
               <IconifyIconOffline
                 :icon="LogoutCircleRLine"

@@ -72,6 +72,14 @@ const {
           class="w-45!"
         />
       </el-form-item>
+      <el-form-item label="邮箱：" prop="email">
+        <el-input
+          v-model="form.email"
+          placeholder="请输入邮箱"
+          clearable
+          class="w-45!"
+        />
+      </el-form-item>
       <el-form-item label="QQ号码：" prop="qq">
         <el-input
           v-model="form.qq"

@@ -187,6 +187,12 @@ function dynamicRouteTag(value: string): void {
     if (!hasValue) {
       arr.forEach((arrItem: any) => {
         if (arrItem.path === value) {
+          // 命中的是无 name 的目录级父路由(如"个人中心"父子同路径)时,
+          // 下钻取带 name 的子级,保证页签 name 与当前路由一致,选中态才能正确高亮
+          if (!arrItem.name && arrItem.children?.length) {
+            concatPath(arrItem.children, value);
+            return;
+          }
           useMultiTagsStoreHook().handleTags("push", {
             path: value,
             meta: arrItem.meta,

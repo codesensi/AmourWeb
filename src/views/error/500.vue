@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
+import { getTopMenu } from "@/router/utils";
 import noServer from "@/assets/status/500.svg?component";
 
 defineOptions({
@@ -7,6 +8,11 @@ defineOptions({
 });
 
 const router = useRouter();
+
+/** 异常页属于管理端:返回管理端首页(顶部菜单),而非门户首页 */
+function backHome() {
+  router.push(getTopMenu()?.path ?? "/admin");
+}
 </script>
 
 <template>
@@ -62,7 +68,7 @@ const router = useRouter();
             delay: 160
           }
         }"
-        @click="router.push('/')"
+        @click="backHome"
       >
         返回首页
       </el-button>

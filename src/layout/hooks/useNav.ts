@@ -110,6 +110,11 @@ export function useNav() {
     emitter.emit("openPanel");
   }
 
+  /** 进入个人中心 */
+  function toProfile() {
+    router.push({ name: "UserProfile" });
+  }
+
   function toggleSideBar() {
     pureApp.toggleSideBar();
   }
@@ -171,6 +176,7 @@ export function useNav() {
     onUserAvatarError,
     avatarsStyle,
     tooltipEffect,
+    toProfile,
     getDropdownItemStyle,
     getDropdownItemClass
   };
