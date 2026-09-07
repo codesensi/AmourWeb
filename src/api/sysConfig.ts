@@ -1,5 +1,6 @@
 import { http } from "@/utils/http";
-import type { ApiResult } from "@/api/types";
+import { omitEmpty } from "@/utils/params";
+import type { ApiResult, PageQuery, PageResult } from "@/api/types";
 
 /** 系统公共配置条目(后端 sys_config 键值原样下发) */
 export interface SysConfigItem {
@@ -25,4 +26,58 @@ export const getSysConfig = (keys: Array<string>) => {
     // 逗号分隔传输(?keys=name,icp),Spring 默认按逗号拆分为 List<String>
     params: { keys: keys.join(",") }
   });
+};
+
+/** 系统配置管理-行数据(分页;含禁用条目与完整字段) */
+export type SysConfigPageItem = {
+  /** 主键ID(后端序列化为字符串,避免 JS 精度丢失) */
+  id: string;
+  /** 配置键(如 name、copyright-year、site.slogan、captcha.enabled) */
+  configKey: string;
+  /** 配置值(统一字符串存储) */
+  configValue: string;
+  /** 值类型:STRING,INTEGER,LONG,BOOLEAN */
+  valueType: string;
+  /** 分组(base/site/captcha) */
+  configGroup: string;
+  /** 状态:0-启用,1-禁用 */
+  status: number;
+  remark?: string;
+  /** 更新时间(yyyy-MM-dd HH:mm:ss) */
+  updateTime?: string;
+};
+
+/** 系统配置分页查询参数 */
+export type SysConfigQuery = PageQuery & {
+  /** 配置键(模糊匹配) */
+  configKey?: string;
+  /** 分组(精确匹配) */
+  configGroup?: string;
+  /** 状态 */
+  status?: string;
+};
+
+/** 系统配置管理-分页查询(GET /sys/config/page;登录态,含禁用条目) */
+export const getConfigPage = (params?: SysConfigQuery) => {
+  return http.request<ApiResult<PageResult<SysConfigPageItem>>>(
+    "get",
+    "/sys/config/page",
+    { params: omitEmpty(params) }
+  );
+};
+
+/** 系统配置管理-修改参数(仅允许修改值/状态/备注;键、类型与分组由代码侧约定) */
+export type SysConfigUpdate = {
+  /** 主键ID */
+  id: string;
+  /** 配置值(统一字符串存储) */
+  configValue: string;
+  /** 状态:0-启用,1-禁用 */
+  status: number;
+  remark?: string;
+};
+
+/** 修改系统配置(PUT /sys/config/update;更新后后端失效 config 缓存,热更新即时生效) */
+export const updateConfig = (data: SysConfigUpdate) => {
+  return http.request<ApiResult<null>>("put", "/sys/config/update", { data });
 };

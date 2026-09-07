@@ -33,7 +33,9 @@ export const DICT_CODES = {
   /** 菜单类型 */
   menuType: "menu-type",
   /** 图形验证码类型 */
-  imageType: "image-type"
+  imageType: "image-type",
+  /** 配置分组(与 sys_config.config_group 对齐) */
+  configGroup: "config-group"
 } as const;
 
 /** 字典批量查询(GET /sys/dict/list-by-codes,免登录;codes 逗号分隔) */

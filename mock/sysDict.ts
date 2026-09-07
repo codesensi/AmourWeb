@@ -3,7 +3,7 @@
 // 组数据契约对齐 DictGroupResponse:dictCode/items(dictValue/dictLabel/sort)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
-// 与后端 sys_dict 内置种子同源(8 组 17 条;组内顺序即 sort 升序)
+// 与后端 sys_dict 内置种子同源(9 组 20 条;组内顺序即 sort 升序)
 const dicts = [
   {
     id: "10001",
@@ -252,6 +252,42 @@ const dicts = [
     dictValue: "0",
     dictLabel: "失败",
     sort: 2,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "10801",
+    dictCode: "config-group",
+    dictName: "配置分组",
+    dictValue: "base",
+    dictLabel: "基础配置",
+    sort: 1,
+    status: 0,
+    builtin: 1,
+    remark: "内置字典：与 sys_config.config_group(base/site/captcha) 对齐",
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "10802",
+    dictCode: "config-group",
+    dictName: "配置分组",
+    dictValue: "site",
+    dictLabel: "门户配置",
+    sort: 2,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "10803",
+    dictCode: "config-group",
+    dictName: "配置分组",
+    dictValue: "captcha",
+    dictLabel: "验证码配置",
+    sort: 3,
     status: 0,
     builtin: 1,
     remark: null,

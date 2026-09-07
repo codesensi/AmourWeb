@@ -1,0 +1,189 @@
+import { message } from "@/utils/message";
+import { addDialog } from "@/components/ReDialog";
+import { DictTag } from "@/components/DictTag";
+import editForm from "../form.vue";
+import type { FormItemProps } from "./types";
+import { getConfigPage, updateConfig } from "@/api/sysConfig";
+import type { SysConfigPageItem } from "@/api/sysConfig";
+import type { PaginationProps } from "@pureadmin/table";
+import { deviceDetection } from "@pureadmin/utils";
+import { h, ref, toRaw, reactive, onMounted } from "vue";
+
+export function useConfigPage() {
+  const form = reactive({
+    configKey: "",
+    configGroup: "",
+    status: ""
+  });
+  const formRef = ref();
+  const dataList = ref<Array<SysConfigPageItem>>([]);
+  const loading = ref(true);
+  const pagination = reactive<PaginationProps>({
+    total: 0,
+    pageSize: 20,
+    currentPage: 1,
+    background: true
+  });
+
+  const columns: TableColumnList = [
+    {
+      label: "配置编号",
+      prop: "id",
+      width: 90
+    },
+    {
+      label: "配置键",
+      prop: "configKey",
+      minWidth: 170
+    },
+    {
+      label: "配置值",
+      prop: "configValue",
+      minWidth: 200
+    },
+    {
+      label: "值类型",
+      prop: "valueType",
+      minWidth: 100,
+      cellRenderer: ({ row, props }) => (
+        <el-tag size={props.size} effect="plain">
+          {row.valueType}
+        </el-tag>
+      )
+    },
+    {
+      label: "分组",
+      prop: "configGroup",
+      minWidth: 90,
+      cellRenderer: ({ row, props }) => (
+        <DictTag
+          dictCode="config-group"
+          value={row.configGroup}
+          size={props.size}
+          effect="light"
+        />
+      )
+    },
+    {
+      label: "状态",
+      prop: "status",
+      minWidth: 80,
+      cellRenderer: ({ row, props }) => (
+        <el-tag
+          size={props.size}
+          type={row.status === 0 ? "success" : "danger"}
+          effect="plain"
+        >
+          {row.status === 0 ? "启用" : "禁用"}
+        </el-tag>
+      )
+    },
+    {
+      label: "备注",
+      prop: "remark",
+      minWidth: 150
+    },
+    {
+      label: "更新时间",
+      minWidth: 160,
+      prop: "updateTime"
+    },
+    {
+      label: "操作",
+      fixed: "right",
+      width: 100,
+      slot: "operation"
+    }
+  ];
+
+  async function onSearch() {
+    loading.value = true;
+    const { success, data } = await getConfigPage({
+      ...toRaw(form),
+      pageNumber: pagination.currentPage,
+      pageSize: pagination.pageSize
+    });
+    if (success) {
+      dataList.value = data.records;
+      pagination.total = data.totalRow;
+      pagination.pageSize = data.pageSize;
+      pagination.currentPage = data.pageNumber;
+    }
+    loading.value = false;
+  }
+
+  const resetForm = formEl => {
+    if (!formEl) return;
+    formEl.resetFields();
+    onSearch();
+  };
+
+  /** 修改配置弹窗(仅值/状态/备注可改;保存后后端失效 config 缓存,新值即时生效) */
+  function openEdit(row: SysConfigPageItem) {
+    addDialog({
+      title: "修改系统配置",
+      props: {
+        formInline: {
+          title: "修改",
+          id: row.id,
+          configKey: row.configKey,
+          configValue: row.configValue,
+          valueType: row.valueType,
+          configGroup: row.configGroup,
+          status: row.status,
+          remark: row.remark ?? ""
+        }
+      },
+      width: "46%",
+      draggable: true,
+      fullscreen: deviceDetection(),
+      closeOnClickModal: false,
+      contentRenderer: () => h(editForm, { ref: formRef, formInline: null }),
+      beforeSure: (done, { options }) => {
+        const FormRef = formRef.value.getRef();
+        const curData = options.props.formInline as FormItemProps;
+        FormRef.validate(async valid => {
+          if (valid) {
+            await updateConfig({
+              id: curData.id,
+              configValue: curData.configValue,
+              status: curData.status,
+              remark: curData.remark
+            });
+            message(`已修改配置${curData.configKey}，新值即时生效`, {
+              type: "success"
+            });
+            onSearch();
+            done(); // 关闭弹框
+          }
+        });
+      }
+    });
+  }
+
+  /** pure-table 已回写 pagination.currentPage/pageSize,此处重新拉取分页数据 */
+  function handleSizeChange() {
+    onSearch();
+  }
+
+  function handleCurrentChange() {
+    onSearch();
+  }
+
+  onMounted(() => {
+    onSearch();
+  });
+
+  return {
+    form,
+    loading,
+    columns,
+    dataList,
+    pagination,
+    onSearch,
+    resetForm,
+    openEdit,
+    handleSizeChange,
+    handleCurrentChange
+  };
+}
