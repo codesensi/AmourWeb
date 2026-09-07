@@ -5,7 +5,7 @@ import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
 const users = [
   {
-    id: 1,
+    id: "1",
     username: "admin",
     nickname: "超级管理员",
     idCard: "",
@@ -20,7 +20,7 @@ const users = [
     createTime: "2026-01-01 08:00:00"
   },
   {
-    id: 2,
+    id: "2",
     username: "li",
     nickname: "Li",
     idCard: "",
@@ -35,7 +35,7 @@ const users = [
     createTime: "2026-01-01 09:00:00"
   },
   {
-    id: 3,
+    id: "3",
     username: "su",
     nickname: "Su",
     idCard: "",
@@ -50,7 +50,7 @@ const users = [
     createTime: "2026-01-01 09:01:00"
   },
   {
-    id: 4,
+    id: "4",
     username: "common",
     nickname: "小林",
     idCard: "",

@@ -5,7 +5,8 @@ import { type MenuItem } from "./user";
 
 /** 用户管理-行数据 */
 export type SysUserItem = {
-  id: number;
+  /** 用户ID(后端序列化为字符串,避免 JS 精度丢失) */
+  id: string;
   username: string;
   nickname: string;
   /** 用户身份证号码 */
