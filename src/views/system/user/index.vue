@@ -2,6 +2,7 @@
 import { ref } from "vue";
 import { useUser } from "./utils/hook";
 import { PureTableBar } from "@/components/RePureTableBar";
+import { DictSelect } from "@/components/DictSelect";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { hasPerms } from "@/utils/auth";
 
@@ -80,27 +81,22 @@ const {
         />
       </el-form-item>
       <el-form-item label="性别：" prop="gender">
-        <el-select
+        <DictSelect
           v-model="form.gender"
+          dict-code="gender"
           placeholder="请选择"
           clearable
           class="w-45!"
-        >
-          <el-option label="男" value="M" />
-          <el-option label="女" value="F" />
-          <el-option label="未知" value="U" />
-        </el-select>
+        />
       </el-form-item>
       <el-form-item label="状态：" prop="status">
-        <el-select
+        <DictSelect
           v-model="form.status"
+          dict-code="enable"
           placeholder="请选择"
           clearable
           class="w-45!"
-        >
-          <el-option label="启用" value="0" />
-          <el-option label="停用" value="1" />
-        </el-select>
+        />
       </el-form-item>
       <el-form-item>
         <el-button

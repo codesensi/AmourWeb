@@ -2,6 +2,7 @@
 import { useRole } from "./utils/hook";
 import { ref, computed, nextTick, onMounted } from "vue";
 import { PureTableBar } from "@/components/RePureTableBar";
+import { DictSelect } from "@/components/DictSelect";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import {
   delay,
@@ -111,15 +112,13 @@ onMounted(() => {
         />
       </el-form-item>
       <el-form-item label="状态：" prop="status">
-        <el-select
+        <DictSelect
           v-model="form.status"
+          dict-code="enable"
           placeholder="请选择状态"
           clearable
           class="w-45!"
-        >
-          <el-option label="已启用" value="0" />
-          <el-option label="已停用" value="1" />
-        </el-select>
+        />
       </el-form-item>
       <el-form-item>
         <el-button

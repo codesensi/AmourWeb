@@ -4,6 +4,7 @@ import roleForm from "../form/role.vue";
 import editForm from "../form/index.vue";
 import { message } from "@/utils/message";
 import { fallbackAvatar } from "@/utils/avatar";
+import { DictTag } from "@/components/DictTag";
 import { usePublicHooks } from "../../hooks";
 import { ZxcvbnFactory } from "@zxcvbn-ts/core";
 import { addDialog } from "@/components/ReDialog";
@@ -104,13 +105,13 @@ export function useUser(tableRef: Ref) {
       prop: "gender",
       minWidth: 90,
       cellRenderer: ({ row, props }) => (
-        <el-tag
+        <DictTag
+          dictCode="gender"
+          value={row.gender}
+          tagMap={{ F: "danger" }}
           size={props.size}
-          type={row.gender === "F" ? "danger" : null}
           effect="plain"
-        >
-          {row.gender === "F" ? "女" : row.gender === "M" ? "男" : "未知"}
-        </el-tag>
+        />
       )
     },
     {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import ReCol from "@/components/ReCol";
+import { DictSelect } from "@/components/DictSelect";
 import { formRules } from "../utils/rule";
 import { FormProps } from "../utils/types";
 import { usePublicHooks } from "../../hooks";
@@ -17,16 +18,6 @@ const props = withDefaults(defineProps<FormProps>(), {
   })
 });
 
-const genderOptions = [
-  {
-    value: "M",
-    label: "男"
-  },
-  {
-    value: "F",
-    label: "女"
-  }
-];
 const ruleFormRef = ref();
 const { switchStyle } = usePublicHooks();
 const newFormInline = ref(props.formInline);
@@ -76,19 +67,13 @@ defineExpose({ getRef });
 
       <re-col :value="12" :xs="24" :sm="24">
         <el-form-item label="用户性别">
-          <el-select
+          <DictSelect
             v-model="newFormInline.gender"
+            dict-code="gender"
             placeholder="请选择用户性别"
             class="w-full"
             clearable
-          >
-            <el-option
-              v-for="(item, index) in genderOptions"
-              :key="index"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
+          />
         </el-form-item>
       </re-col>
 

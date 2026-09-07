@@ -234,6 +234,74 @@ export const menus: MenuItem[] = [
     hidden: 0,
     builtin: 1
   },
+  {
+    id: "1500",
+    pid: "1000",
+    title: "字典管理",
+    type: "M",
+    path: "/admin/system/dict",
+    component: "system/dict/index",
+    sort: 4,
+    icon: "ep:collection",
+    status: 0,
+    hidden: 0,
+    builtin: 1
+  },
+  {
+    id: "1501",
+    pid: "1500",
+    title: "分页查询",
+    type: "B",
+    perms: "system:dict:page",
+    sort: 1,
+    status: 0,
+    hidden: 0,
+    builtin: 1
+  },
+  {
+    id: "1502",
+    pid: "1500",
+    title: "详情",
+    type: "B",
+    perms: "system:dict:detail",
+    sort: 2,
+    status: 0,
+    hidden: 0,
+    builtin: 1
+  },
+  {
+    id: "1503",
+    pid: "1500",
+    title: "修改",
+    type: "B",
+    perms: "system:dict:update",
+    sort: 3,
+    status: 0,
+    hidden: 0,
+    builtin: 1
+  },
+  {
+    id: "1504",
+    pid: "1500",
+    title: "增加",
+    type: "B",
+    perms: "system:dict:insert",
+    sort: 4,
+    status: 0,
+    hidden: 0,
+    builtin: 1
+  },
+  {
+    id: "1505",
+    pid: "1500",
+    title: "删除",
+    type: "B",
+    perms: "system:dict:delete",
+    sort: 5,
+    status: 0,
+    hidden: 0,
+    builtin: 1
+  },
   // 日志管理（模板保留的 monitor 页面已更名 logs，第 3 期与后端蓝图对齐）
   {
     id: "3000",
