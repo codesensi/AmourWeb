@@ -75,7 +75,7 @@ export const assignRoles = (data?: object) => {
 
 /** 用户管理-获取用户已有角色 id(GET /sys/user/role-ids/{id}) */
 export const getUserRoleIds = (id: number | string) => {
-  return http.request<ApiResult<Array<number>>>(
+  return http.request<ApiResult<Array<string>>>(
     "get",
     `/sys/user/role-ids/${id}`
   );
@@ -83,7 +83,8 @@ export const getUserRoleIds = (id: number | string) => {
 
 /** 角色管理-行数据(分页) */
 export type SysRoleItem = {
-  id: number;
+  /** 角色ID(后端序列化为字符串,避免 JS 精度丢失) */
+  id: string;
   name: string;
   code: string;
   sort?: number;
@@ -96,9 +97,10 @@ export type SysRoleItem = {
   createTime?: string;
 };
 
-/** 角色全量列表-选项数据(对齐后端 RoleListResponse) */
+/** 角色全量列表-选项数据(对齐后端 RoleResponse) */
 export type SysRoleOption = {
-  id: number;
+  /** 角色ID(后端序列化为字符串) */
+  id: string;
   name: string;
   code: string;
   /** 角色状态:0-启用,1-禁用 */

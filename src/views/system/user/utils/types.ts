@@ -24,7 +24,7 @@ interface RoleFormItemProps {
   /** 角色列表选项(来自 GET /sys/role/list) */
   roleOptions: SysRoleOption[];
   /** 选中的角色列表 */
-  ids: Record<number, unknown>[];
+  ids: Array<string>;
 }
 interface RoleFormProps {
   formInline: RoleFormItemProps;

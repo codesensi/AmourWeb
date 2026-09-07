@@ -67,11 +67,12 @@ const users = [
 ];
 
 // 响应剔除 idCard(对齐后端 UserPageResponse:可按身份证搜索但不下发)
-const rolesByUser: Record<number, number[]> = {
-  1: [1],
-  2: [2],
-  3: [2],
-  4: [2]
+// 角色ID以字符串下发(对齐后端 RoleResponse:ToStringSerializer 避免前端精度丢失)
+const rolesByUser: Record<number, string[]> = {
+  1: ["1"],
+  2: ["2"],
+  3: ["2"],
+  4: ["2"]
 };
 
 export default defineFakeRoute([
