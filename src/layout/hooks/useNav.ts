@@ -110,10 +110,6 @@ export function useNav() {
     emitter.emit("openPanel");
   }
 
-  function toAccountSettings() {
-    router.push({ name: "AccountSettings" });
-  }
-
   function toggleSideBar() {
     pureApp.toggleSideBar();
   }
@@ -175,7 +171,6 @@ export function useNav() {
     onUserAvatarError,
     avatarsStyle,
     tooltipEffect,
-    toAccountSettings,
     getDropdownItemStyle,
     getDropdownItemClass
   };

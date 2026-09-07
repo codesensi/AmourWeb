@@ -1,6 +1,5 @@
 import { http } from "@/utils/http";
-import { omitEmpty } from "@/utils/params";
-import type { ApiResult, PageQuery, PageResult } from "@/api/types";
+import type { ApiResult } from "@/api/types";
 
 /** 登录请求参数(对齐后端 LoginRequest) */
 export interface LoginRequest {
@@ -26,43 +25,6 @@ export type LoginResult = ApiResult<{
   tokenPrefix: string;
 }>;
 
-/** 账户设置-个人信息 */
-export type UserInfo = {
-  /** 头像 */
-  avatar: string;
-  /** 用户名 */
-  username: string;
-  /** 昵称 */
-  nickname: string;
-  /** 邮箱 */
-  email: string;
-  /** 联系电话 */
-  phone: string;
-  /** 简介 */
-  description: string;
-};
-
-export type UserInfoResult = ApiResult<UserInfo>;
-
-/** 账户设置-安全日志行数据 */
-export interface MineLogItem {
-  id: number;
-  ip: string;
-  /** 登录地点 */
-  address: string;
-  /** 操作系统 */
-  system: string;
-  /** 浏览器类型 */
-  browser: string;
-  /** 操作详情 */
-  summary: string;
-  /** 操作时间(毫秒时间戳) */
-  operatingTime: number;
-}
-
-/** 账户设置-安全日志分页查询参数 */
-export type MineLogQuery = PageQuery;
-
 /** 登录 */
 export const login = (data: LoginRequest) => {
   return http.request<LoginResult>("post", "/login", { data });
@@ -71,20 +33,6 @@ export const login = (data: LoginRequest) => {
 /** 退出系统(通知后端作废当前 token) */
 export const logout = () => {
   return http.request<ApiResult<null>>("post", "/logout");
-};
-
-/** 账户设置-个人信息 */
-export const getMine = (data?: object) => {
-  return http.request<UserInfoResult>("get", "/mine", {
-    params: omitEmpty(data)
-  });
-};
-
-/** 账户设置-个人安全日志 */
-export const getMineLogs = (params?: MineLogQuery) => {
-  return http.request<ApiResult<PageResult<MineLogItem>>>("get", "/mine-logs", {
-    params: omitEmpty(params)
-  });
 };
 
 /** 菜单项(后端扁平 D/M/B 结构) */

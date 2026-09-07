@@ -45,15 +45,6 @@ export default [
       }
     ]
   },
-  {
-    path: "/admin/account-settings",
-    name: "AccountSettings",
-    component: () => import("@/views/account-settings/index.vue"),
-    meta: {
-      title: "账户设置",
-      showLink: false
-    }
-  },
   // 门户公开外壳(第二期):所有门户页面经 PortalLayout 渲染;
   // public 标记由守卫顶部短路,访客免登录。原过渡重定向(/ → /admin/welcome)随门户首页落地删除
   {
