@@ -1,11 +1,11 @@
-// 字典管理表单字段(增删改共用)
+import type { SysDictTypeItem } from "@/api/dict";
 
 interface FormItemProps {
-  /** 弹窗标题(新增/修改) */
+  /** 弹窗标题(新增/修改/新建类型) */
   title: string;
   /** 行 id(编辑时传入) */
   id?: string;
-  /** 字典编码(内置行编辑时锁定) */
+  /** 字典编码(非"新建类型"时固定为选中类型) */
   dictCode: string;
   /** 字典名称 */
   dictName: string;
@@ -25,6 +25,10 @@ interface FormItemProps {
 
 interface FormProps {
   formInline: FormItemProps;
+  /** 字典类型选项(新建类型时可选择已有编码或创建新编码) */
+  typeOptions?: Array<SysDictTypeItem>;
+  /** 编码是否可编辑(仅"新建类型"时允许) */
+  codeEditable?: boolean;
 }
 
 export type { FormItemProps, FormProps };

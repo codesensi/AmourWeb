@@ -45,6 +45,24 @@ export const getDictByCodes = (codes: Array<string>) => {
   );
 };
 
+/** 字典类型(后端按 dict_code 聚合的类型概要,管理页左侧列表数据源) */
+export type SysDictTypeItem = {
+  /** 字典编码 */
+  dictCode: string;
+  /** 字典名称 */
+  dictName: string;
+  /** 该编码下的条目数 */
+  count: number;
+};
+
+/** 字典类型列表(GET /sys/dict/type-list,管理端) */
+export const getDictTypeList = () => {
+  return http.request<ApiResult<Array<SysDictTypeItem>>>(
+    "get",
+    "/sys/dict/type-list"
+  );
+};
+
 /** 字典管理-行数据(分页) */
 export type SysDictPageItem = {
   /** 主键ID(后端序列化为字符串,避免 JS 精度丢失) */

@@ -273,6 +273,36 @@ function groupByCodes(codes: Array<string>) {
 }
 
 export default defineFakeRoute([
+  // 字典类型列表(GET /sys/dict/type-list,按编码聚合,含条目数)
+  {
+    url: "/sys/dict/type-list",
+    method: "get",
+    response: () => {
+      const typeMap = new Map<
+        string,
+        { dictCode: string; dictName: string; count: number }
+      >();
+      for (const item of dicts) {
+        const exist = typeMap.get(item.dictCode);
+        if (exist) {
+          exist.count += 1;
+        } else {
+          typeMap.set(item.dictCode, {
+            dictCode: item.dictCode,
+            dictName: item.dictName,
+            count: 1
+          });
+        }
+      }
+      return {
+        success: true,
+        code: 200,
+        msg: "操作成功",
+        timestamp: Date.now(),
+        data: [...typeMap.values()]
+      };
+    }
+  },
   // 批量查询(GET /sys/dict/list-by-codes?codes=逗号分隔编码)
   {
     url: "/sys/dict/list-by-codes",
