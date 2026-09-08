@@ -8,6 +8,8 @@ import { addDialog } from "@/components/ReDialog";
 import type { FormItemProps } from "../utils/types";
 import type { PaginationProps } from "@pureadmin/table";
 import { getKeyList, deviceDetection } from "@pureadmin/utils";
+import { useDict } from "@/hooks/useDict";
+import { DICT_CODES } from "@/api/dict";
 import {
   assignMenus,
   deleteRole,
@@ -38,6 +40,8 @@ export function useRole(treeRef: Ref) {
   const isExpandAll = ref(false);
   const isSelectAll = ref(false);
   const { switchStyle } = usePublicHooks();
+  // 启停状态字典:开关文案与确认弹窗统一由 sys_dict(enable) 驱动
+  const { labelOf: enableLabelOf } = useDict(DICT_CODES.enable);
   const treeProps = {
     value: "id",
     label: "title",
@@ -71,8 +75,8 @@ export function useRole(treeRef: Ref) {
           v-model={scope.row.status}
           active-value={0}
           inactive-value={1}
-          active-text="已启用"
-          inactive-text="已停用"
+          active-text={enableLabelOf(0)}
+          inactive-text={enableLabelOf(1)}
           inline-prompt
           style={switchStyle.value}
           onChange={() => onChange(scope as any)}
@@ -112,7 +116,7 @@ export function useRole(treeRef: Ref) {
   function onChange({ row, index }) {
     ElMessageBox.confirm(
       `确认要<strong>${
-        row.status === 0 ? "启用" : "停用"
+        row.status === 0 ? enableLabelOf(0) : enableLabelOf(1)
       }</strong><strong style='color:var(--el-color-primary)'>${
         row.name
       }</strong>吗?`,
@@ -141,9 +145,12 @@ export function useRole(treeRef: Ref) {
               loading: false
             }
           );
-          message(`已${row.status === 0 ? "启用" : "停用"}${row.name}`, {
-            type: "success"
-          });
+          message(
+            `已${row.status === 0 ? enableLabelOf(0) : enableLabelOf(1)}${
+              row.name
+            }`,
+            { type: "success" }
+          );
         }, 300);
       })
       .catch(() => {
