@@ -52,6 +52,8 @@ export function useUser(tableRef: Ref) {
   const { switchStyle } = usePublicHooks();
   // 启停状态字典:开关文案与确认弹窗统一由 sys_dict(enable) 驱动
   const { labelOf: enableLabelOf } = useDict(DICT_CODES.enable);
+  // 是否字典:是否内置列文案由 sys_dict(yes) 驱动
+  const { labelOf: yesLabelOf } = useDict(DICT_CODES.yes);
   const selectedNum = ref(0);
   const pagination = reactive<PaginationProps>({
     total: 0,
@@ -142,6 +144,16 @@ export function useUser(tableRef: Ref) {
           style={switchStyle.value}
           onChange={() => onChange(scope as any)}
         />
+      )
+    },
+    {
+      label: "是否内置",
+      prop: "builtin",
+      minWidth: 90,
+      cellRenderer: ({ row }) => (
+        <el-tag size="small" type={row.builtin === 1 ? "warning" : "info"}>
+          {yesLabelOf(row.builtin)}
+        </el-tag>
       )
     },
     {
