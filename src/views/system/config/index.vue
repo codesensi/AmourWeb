@@ -14,6 +14,7 @@ defineOptions({
 });
 
 const formRef = ref();
+const tableRef = ref();
 
 const {
   form,
@@ -24,9 +25,15 @@ const {
   onSearch,
   resetForm,
   openEdit,
+  handleRefreshCache,
   handleSizeChange,
   handleCurrentChange
 } = useConfigPage();
+
+function onFullscreen() {
+  // 重置表格高度
+  tableRef.value.setAdaptive();
+}
 </script>
 
 <template>
@@ -55,15 +62,6 @@ const {
           class="w-45!"
         />
       </el-form-item>
-      <el-form-item label="状态：" prop="status">
-        <DictSelect
-          v-model="form.status"
-          dict-code="enable"
-          placeholder="请选择"
-          clearable
-          class="w-45!"
-        />
-      </el-form-item>
       <el-form-item>
         <el-button
           type="primary"
@@ -79,9 +77,24 @@ const {
       </el-form-item>
     </el-form>
 
-    <PureTableBar title="系统配置" :columns="columns" @refresh="onSearch">
+    <PureTableBar
+      title="系统配置"
+      :columns="columns"
+      @refresh="onSearch"
+      @fullscreen="onFullscreen"
+    >
+      <template #buttons>
+        <el-button
+          v-if="hasPerms('system:config:update')"
+          :icon="useRenderIcon(Refresh)"
+          @click="handleRefreshCache"
+        >
+          刷新缓存
+        </el-button>
+      </template>
       <template v-slot="{ size, dynamicColumns }">
         <pure-table
+          ref="tableRef"
           adaptive
           :adaptiveConfig="{ offsetBottom: 108 }"
           align-whole="center"

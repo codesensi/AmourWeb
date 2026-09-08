@@ -3,7 +3,7 @@
 // 组数据契约对齐 DictGroupResponse:dictCode/items(dictValue/dictLabel/sort)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
-// 与后端 sys_dict 内置种子同源(8 组 22 条;组内顺序即 sort 升序)
+// 与后端 sys_dict 内置种子同源(9 组 26 条;组内顺序即 sort 升序)
 const dicts = [
   {
     id: "10001",
@@ -14,7 +14,7 @@ const dicts = [
     sort: 1,
     status: 0,
     builtin: 1,
-    remark: "内置字典：与 GenderEnum(U/M/F) 对齐",
+    remark: "与 GenderEnum(U/M/F) 对齐",
     createTime: "2026-01-01 00:00:00"
   },
   {
@@ -50,7 +50,7 @@ const dicts = [
     sort: 1,
     status: 0,
     builtin: 1,
-    remark: "内置字典：与 EnableEnum(0/1) 对齐",
+    remark: "与 EnableEnum(0/1) 对齐",
     createTime: "2026-01-01 00:00:00"
   },
   {
@@ -74,7 +74,7 @@ const dicts = [
     sort: 1,
     status: 0,
     builtin: 1,
-    remark: "内置字典：与 YesEnum(1/0) 对齐",
+    remark: "与 YesEnum(1/0) 对齐",
     createTime: "2026-01-01 00:00:00"
   },
   {
@@ -98,7 +98,7 @@ const dicts = [
     sort: 1,
     status: 0,
     builtin: 1,
-    remark: "内置字典：与 DelFlagEnum(1/0) 对齐",
+    remark: "与 DelFlagEnum(1/0) 对齐",
     createTime: "2026-01-01 00:00:00"
   },
   {
@@ -122,7 +122,7 @@ const dicts = [
     sort: 1,
     status: 0,
     builtin: 1,
-    remark: "内置字典：与 MenuType(D/M/B) 对齐",
+    remark: "与 MenuType(D/M/B) 对齐",
     createTime: "2026-01-01 00:00:00"
   },
   {
@@ -158,7 +158,7 @@ const dicts = [
     sort: 1,
     status: 0,
     builtin: 1,
-    remark: "内置字典：与 ImageType 对齐",
+    remark: "与 ImageType 对齐",
     createTime: "2026-01-01 00:00:00"
   },
   {
@@ -218,7 +218,7 @@ const dicts = [
     sort: 1,
     status: 0,
     builtin: 1,
-    remark: "内置字典：与 SuccessEnum(1/0) 对齐",
+    remark: "与 SuccessEnum(1/0) 对齐",
     createTime: "2026-01-01 00:00:00"
   },
   {
@@ -242,7 +242,7 @@ const dicts = [
     sort: 1,
     status: 0,
     builtin: 1,
-    remark: "内置字典：与 sys_config.config_group(base/site/captcha) 对齐",
+    remark: "与 sys_config.config_group(base/site/captcha) 对齐",
     createTime: "2026-01-01 00:00:00"
   },
   {
@@ -268,6 +268,54 @@ const dicts = [
     builtin: 1,
     remark: null,
     createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "10801",
+    dictCode: "config-value-type",
+    dictName: "配置值类型",
+    dictValue: "STRING",
+    dictLabel: "字符串",
+    sort: 1,
+    status: 0,
+    builtin: 1,
+    remark: "与 sys_config.value_type(STRING/INTEGER/LONG/BOOLEAN) 对齐",
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "10802",
+    dictCode: "config-value-type",
+    dictName: "配置值类型",
+    dictValue: "INTEGER",
+    dictLabel: "整数",
+    sort: 2,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "10803",
+    dictCode: "config-value-type",
+    dictName: "配置值类型",
+    dictValue: "LONG",
+    dictLabel: "长整数",
+    sort: 3,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "10804",
+    dictCode: "config-value-type",
+    dictName: "配置值类型",
+    dictValue: "BOOLEAN",
+    dictLabel: "布尔",
+    sort: 4,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
   }
 ];
 
@@ -279,7 +327,11 @@ function groupByCodes(codes: Array<string>) {
       items: dicts
         .filter(item => item.dictCode === code && item.status === 0)
         .sort((a, b) => a.sort - b.sort)
-        .map(({ dictValue, dictLabel, sort }) => ({ dictValue, dictLabel, sort }))
+        .map(({ dictValue, dictLabel, sort }) => ({
+          dictValue,
+          dictLabel,
+          sort
+        }))
     }))
     .filter(group => group.items.length > 0);
 }

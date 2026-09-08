@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import type { FormItemProps, FormProps } from "./utils/types";
+import { DictTag } from "@/components/DictTag";
+import { DictSelect } from "@/components/DictSelect";
 import { usePublicHooks } from "../hooks";
 
 const props = withDefaults(defineProps<FormProps>(), {
@@ -11,7 +13,6 @@ const props = withDefaults(defineProps<FormProps>(), {
     configValue: "",
     valueType: "STRING",
     configGroup: "",
-    status: 0,
     remark: ""
   })
 });
@@ -46,10 +47,17 @@ const booleanProxy = computed<string>({
   set: value => (newFormInline.value.configValue = value)
 });
 
+/** 配置键 → 字典编码(取值可枚举的配置项用字典下拉替代自由文本,与 init_dml.sql 字典种子对齐) */
+const DICT_CODE_BY_CONFIG_KEY: Record<string, string> = {
+  "captcha.image-type": "image-type"
+};
+/** 当前配置绑定的字典编码;未绑定字典的配置返回 undefined,按值类型走默认控件 */
+const configDictCode = computed(
+  () => DICT_CODE_BY_CONFIG_KEY[newFormInline.value.configKey ?? ""]
+);
+
 const formRules = computed(() => ({
-  configValue: [
-    { required: true, message: "配置值为必填项", trigger: "blur" }
-  ]
+  configValue: [{ required: true, message: "配置值为必填项", trigger: "blur" }]
 }));
 
 function getRef() {
@@ -71,7 +79,7 @@ defineExpose({ getRef });
     </el-form-item>
 
     <el-form-item label="值类型" prop="valueType">
-      <el-tag effect="plain">{{ newFormInline.valueType }}</el-tag>
+      <DictTag dict-code="config-value-type" :value="newFormInline.valueType" />
       <span
         class="ml-2 text-xs text-[rgba(42,46,54,0.45)] dark:text-[rgba(220,220,242,0.45)]"
       >
@@ -80,8 +88,15 @@ defineExpose({ getRef });
     </el-form-item>
 
     <el-form-item label="配置值" prop="configValue">
+      <DictSelect
+        v-if="configDictCode"
+        v-model="newFormInline.configValue"
+        :dict-code="configDictCode"
+        placeholder="请选择配置值"
+        class="!w-full"
+      />
       <el-switch
-        v-if="booleanValue"
+        v-else-if="booleanValue"
         v-model="booleanProxy"
         inline-prompt
         active-value="true"
@@ -104,18 +119,6 @@ defineExpose({ getRef });
         :autosize="{ minRows: 1, maxRows: 6 }"
         clearable
         placeholder="请输入配置值"
-      />
-    </el-form-item>
-
-    <el-form-item label="状态">
-      <el-switch
-        v-model="newFormInline.status"
-        inline-prompt
-        :active-value="0"
-        :inactive-value="1"
-        active-text="启用"
-        inactive-text="禁用"
-        :style="switchStyle"
       />
     </el-form-item>
   </el-form>

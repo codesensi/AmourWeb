@@ -28,7 +28,7 @@ export const getSysConfig = (keys: Array<string>) => {
   });
 };
 
-/** 系统配置管理-行数据(分页;含禁用条目与完整字段) */
+/** 系统配置管理-行数据(分页;完整字段) */
 export type SysConfigPageItem = {
   /** 主键ID(后端序列化为字符串,避免 JS 精度丢失) */
   id: string;
@@ -40,8 +40,6 @@ export type SysConfigPageItem = {
   valueType: string;
   /** 分组(base/site/captcha) */
   configGroup: string;
-  /** 状态:0-启用,1-禁用 */
-  status: number;
   remark?: string;
   /** 更新时间(yyyy-MM-dd HH:mm:ss) */
   updateTime?: string;
@@ -53,11 +51,9 @@ export type SysConfigQuery = PageQuery & {
   configKey?: string;
   /** 分组(精确匹配) */
   configGroup?: string;
-  /** 状态 */
-  status?: string;
 };
 
-/** 系统配置管理-分页查询(GET /sys/config/page;登录态,含禁用条目) */
+/** 系统配置管理-分页查询(GET /sys/config/page;登录态) */
 export const getConfigPage = (params?: SysConfigQuery) => {
   return http.request<ApiResult<PageResult<SysConfigPageItem>>>(
     "get",
@@ -66,18 +62,20 @@ export const getConfigPage = (params?: SysConfigQuery) => {
   );
 };
 
-/** 系统配置管理-修改参数(仅允许修改值/状态/备注;键、类型与分组由代码侧约定) */
+/** 系统配置管理-修改参数(仅允许修改配置值;键、类型、分组与状态由代码侧约定) */
 export type SysConfigUpdate = {
   /** 主键ID */
   id: string;
   /** 配置值(统一字符串存储) */
   configValue: string;
-  /** 状态:0-启用,1-禁用 */
-  status: number;
-  remark?: string;
 };
 
 /** 修改系统配置(PUT /sys/config/update;更新后后端失效 config 缓存,热更新即时生效) */
 export const updateConfig = (data: SysConfigUpdate) => {
   return http.request<ApiResult<null>>("put", "/sys/config/update", { data });
+};
+
+/** 刷新配置缓存(POST /sys/config/refresh-cache;清空全部 config 缓存,下次读取回源查库) */
+export const refreshConfigCache = () => {
+  return http.request<ApiResult<null>>("post", "/sys/config/refresh-cache");
 };

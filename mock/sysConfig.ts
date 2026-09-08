@@ -1,10 +1,10 @@
 // 系统配置 mock(对齐后端 /sys/config 接口)
 // list-by-keys 契约对齐 ConfigResponse:configKey/configValue/valueType/configGroup,keys 为空时返回空列表
-// page 契约对齐 ConfigPageResponse:id/configKey/configValue/valueType/configGroup/status/remark/updateTime
-// update 契约对齐 ConfigUpdateRequest:id/configValue/status/remark(仅值/状态/备注可改)
+// page 契约对齐 ConfigPageResponse:id/configKey/configValue/valueType/configGroup/remark/updateTime
+// update 契约对齐 ConfigUpdateRequest:id/configValue(仅配置值可改;键、类型、分组与状态由代码侧约定)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
-// 与后端 sys_config 表同源的公共配置键值(值统一字符串存储;id/status/remark 与 init_dml.sql 对齐)
+// 与后端 sys_config 表同源的公共配置键值(值统一字符串存储;id/remark 与 init_dml.sql 对齐)
 const configs = [
   {
     id: "1001",
@@ -12,7 +12,6 @@ const configs = [
     configValue: "爱慕情侣小站",
     valueType: "STRING",
     configGroup: "base",
-    status: 0,
     remark: "项目/站点名称",
     updateTime: "2026-01-01 00:00:00"
   },
@@ -22,7 +21,6 @@ const configs = [
     configValue: "京ICP备2026010001号",
     valueType: "STRING",
     configGroup: "base",
-    status: 0,
     remark: "ICP备案文案",
     updateTime: "2026-01-01 00:00:00"
   },
@@ -32,7 +30,6 @@ const configs = [
     configValue: "2026",
     valueType: "STRING",
     configGroup: "base",
-    status: 0,
     remark: "版权年份",
     updateTime: "2026-01-01 00:00:00"
   },
@@ -42,7 +39,6 @@ const configs = [
     configValue: "https://uapis.cn/api/v1/social/qq/userinfo?qq=%s",
     valueType: "STRING",
     configGroup: "base",
-    status: 0,
     remark: "用户QQ信息接口地址",
     updateTime: "2026-01-01 00:00:00"
   },
@@ -52,7 +48,6 @@ const configs = [
     configValue: "https://api.dicebear.com/7.x/bottts/svg?seed=%s",
     valueType: "STRING",
     configGroup: "base",
-    status: 0,
     remark: "用户随机头像服务地址",
     updateTime: "2026-01-01 00:00:00"
   },
@@ -63,7 +58,6 @@ const configs = [
       "爱晨雾漫过青瓦，爱暮色染透篱笆，更爱与君并肩立，看遍这人间烟火里的朝暮与年华。",
     valueType: "STRING",
     configGroup: "site",
-    status: 0,
     remark: "门户标语文案",
     updateTime: "2026-01-01 00:00:00"
   },
@@ -73,7 +67,6 @@ const configs = [
     configValue: "2018-07-15 00:00:00",
     valueType: "STRING",
     configGroup: "site",
-    status: 0,
     remark: "门户恋爱计时起点",
     updateTime: "2026-01-01 00:00:00"
   },
@@ -83,7 +76,6 @@ const configs = [
     configValue: "true",
     valueType: "BOOLEAN",
     configGroup: "captcha",
-    status: 0,
     remark: "验证码开关",
     updateTime: "2026-01-01 00:00:00"
   },
@@ -93,7 +85,6 @@ const configs = [
     configValue: "arithmetic",
     valueType: "STRING",
     configGroup: "captcha",
-    status: 0,
     remark: "图形验证码类型",
     updateTime: "2026-01-01 00:00:00"
   },
@@ -103,7 +94,6 @@ const configs = [
     configValue: "300",
     valueType: "INTEGER",
     configGroup: "captcha",
-    status: 0,
     remark: "图形验证码过期秒",
     updateTime: "2026-01-01 00:00:00"
   }
@@ -121,7 +111,7 @@ function ok(data: unknown) {
 }
 
 export default defineFakeRoute([
-  // 公共配置批量查询(GET /sys/config/list-by-keys?keys=逗号分隔键;仅启用条目)
+  // 公共配置批量查询(GET /sys/config/list-by-keys?keys=逗号分隔键)
   {
     url: "/sys/config/list-by-keys",
     method: "get",
@@ -133,9 +123,7 @@ export default defineFakeRoute([
         .filter(Boolean);
       return ok(
         configs
-          .filter(
-            item => keys.includes(item.configKey) && item.status === 0
-          )
+          .filter(item => keys.includes(item.configKey))
           .map(({ configKey, configValue, valueType, configGroup }) => ({
             configKey,
             configValue,
@@ -145,7 +133,7 @@ export default defineFakeRoute([
       );
     }
   },
-  // 分页查询(GET /sys/config/page;登录态,含禁用条目)
+  // 分页查询(GET /sys/config/page;登录态)
   {
     url: "/sys/config/page",
     method: "get",
@@ -154,12 +142,10 @@ export default defineFakeRoute([
       const pageSize = Number(query.pageSize ?? 20);
       const configKey = String(query.configKey ?? "");
       const configGroup = String(query.configGroup ?? "");
-      const status = query.status == null ? "" : String(query.status);
       const filtered = configs.filter(item => {
         return (
           (configKey === "" || item.configKey.includes(configKey)) &&
-          (configGroup === "" || item.configGroup === configGroup) &&
-          (status === "" || String(item.status) === status)
+          (configGroup === "" || item.configGroup === configGroup)
         );
       });
       return ok({
@@ -174,15 +160,12 @@ export default defineFakeRoute([
       });
     }
   },
-  // 修改(PUT /sys/config/update;仅值/状态/备注可改)
+  // 修改(PUT /sys/config/update;仅配置值可改)
   {
     url: "/sys/config/update",
     method: "put",
     response: ({ body }) => {
-      const { id, configValue, status, remark } = body as Record<
-        string,
-        unknown
-      >;
+      const { id, configValue } = body as Record<string, unknown>;
       const target = configs.find(item => item.id === String(id));
       if (!target) {
         return {
@@ -194,12 +177,16 @@ export default defineFakeRoute([
         };
       }
       target.configValue = String(configValue ?? "");
-      target.status = Number(status ?? target.status);
-      if (remark != null) target.remark = String(remark);
       const now = new Date();
       const pad = (n: number) => String(n).padStart(2, "0");
       target.updateTime = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
       return ok(null);
     }
+  },
+  // 刷新配置缓存(POST /sys/config/refresh-cache,清空全部 config 缓存)
+  {
+    url: "/sys/config/refresh-cache",
+    method: "post",
+    response: () => ok(null)
   }
 ]);

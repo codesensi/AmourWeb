@@ -11,8 +11,6 @@ interface FormItemProps {
   valueType: string;
   /** 分组(base/site/captcha) */
   configGroup: string;
-  /** 状态:0-启用,1-禁用 */
-  status: number;
   /** 备注 */
   remark: string;
 }
