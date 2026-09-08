@@ -19,6 +19,9 @@ defineOptions({
 
 const userStore = useUserStoreHook();
 
+/** 右卡页签:个人信息 / 更改密码 */
+const activeTab = ref("profile");
+
 /** 资料表单(与 sys_user 资料字段对齐) */
 const form = reactive<ProfileInfo>({
   username: "",
@@ -243,217 +246,218 @@ loadProfile();
 
 <template>
   <div class="p-2">
-    <el-card shadow="never">
-      <div class="flex flex-col gap-4 lg:flex-row lg:gap-10">
-        <!-- 左栏:个人信息 -->
-        <div class="min-w-0 flex-1 lg:max-w-[600px]">
-          <h3 class="my-4! text-base font-medium">个人信息</h3>
-          <el-skeleton v-if="loading" :rows="9" animated />
-          <template v-else>
-            <!-- 身份卡:头像 + 昵称 + 角色标签 -->
-            <div class="mb-6 flex items-center gap-4">
-              <el-avatar :size="56" :src="imgSrc" />
-              <div class="flex flex-col gap-1">
-                <span class="text-lg font-bold">
-                  {{ form.nickname || form.username }}
-                </span>
-                <div class="flex flex-wrap gap-2">
-                  <el-tag
-                    v-for="role in userStore.roles"
-                    :key="role"
-                    size="small"
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-start">
+      <!-- 左卡:身份卡 -->
+      <el-card shadow="never" class="shrink-0 lg:w-[280px]">
+        <el-skeleton v-if="loading" :rows="5" animated />
+        <div v-else class="flex flex-col items-center gap-2 text-center">
+          <el-avatar :size="96" :src="imgSrc" />
+          <span class="text-lg font-bold">
+            {{ form.nickname || form.username }}
+          </span>
+          <span class="text-sm text-[var(--el-text-color-secondary)]">
+            {{ form.username }}
+          </span>
+          <div class="flex flex-wrap justify-center gap-2">
+            <el-tag v-for="role in userStore.roles" :key="role" size="small">
+              {{ role }}
+            </el-tag>
+          </div>
+          <el-divider class="w-full!" />
+          <p class="text-sm leading-6 text-[var(--el-text-color-regular)]">
+            {{ form.remark || "这个人很懒,什么都没有留下~" }}
+          </p>
+        </div>
+      </el-card>
+      <!-- 右卡:页签切换(个人信息 / 更改密码) -->
+      <el-card shadow="never" class="min-w-0 flex-1">
+        <el-tabs v-model="activeTab">
+          <el-tab-pane label="个人信息" name="profile">
+            <el-skeleton v-if="loading" :rows="8" animated />
+            <template v-else>
+              <el-form
+                ref="profileFormRef"
+                label-position="top"
+                :model="form"
+                :rules="profileRules"
+                class="max-w-[600px]"
+              >
+                <el-form-item label="头像">
+                  <el-avatar :size="80" :src="imgSrc" />
+                  <el-upload
+                    ref="uploadRef"
+                    accept="image/*"
+                    action="#"
+                    :limit="1"
+                    :auto-upload="false"
+                    :show-file-list="false"
+                    :on-change="onChange"
                   >
-                    {{ role }}
-                  </el-tag>
+                    <el-button plain class="ml-4!">
+                      <IconifyIconOffline :icon="uploadLine" />
+                      <span class="ml-2">更新头像</span>
+                    </el-button>
+                  </el-upload>
+                </el-form-item>
+                <el-form-item label="昵称" prop="nickname">
+                  <el-input
+                    v-model="form.nickname"
+                    clearable
+                    placeholder="请输入昵称"
+                  />
+                </el-form-item>
+                <el-form-item label="性别">
+                  <DictSelect
+                    v-model="form.gender"
+                    dict-code="gender"
+                    placeholder="请选择性别"
+                    class="w-full"
+                    clearable
+                  />
+                </el-form-item>
+                <el-form-item label="邮箱" prop="email">
+                  <el-autocomplete
+                    v-model="form.email"
+                    :fetch-suggestions="queryEmail"
+                    :trigger-on-focus="false"
+                    clearable
+                    placeholder="请输入邮箱"
+                    class="w-full"
+                  />
+                </el-form-item>
+                <el-form-item label="QQ号">
+                  <el-input
+                    v-model="form.qq"
+                    clearable
+                    placeholder="请输入QQ号"
+                  />
+                </el-form-item>
+                <el-form-item label="简介" prop="remark">
+                  <el-input
+                    v-model="form.remark"
+                    type="textarea"
+                    :autosize="{ minRows: 4, maxRows: 8 }"
+                    maxlength="56"
+                    show-word-limit
+                    placeholder="介绍一下自己吧"
+                  />
+                </el-form-item>
+              </el-form>
+              <!-- 资料有未保存更改时出现的粘性保存条 -->
+              <div
+                v-if="isDirty"
+                class="sticky bottom-0 z-10 mt-4 flex items-center gap-2 border-t border-[var(--el-border-color-lighter)] bg-[var(--el-card-bg-color)] py-3"
+              >
+                <span class="text-sm text-[var(--el-text-color-secondary)]">
+                  个人信息有未保存的更改
+                </span>
+                <div class="ml-auto flex gap-2">
+                  <el-button @click="resetProfile">放弃</el-button>
+                  <el-button
+                    type="primary"
+                    :loading="profileLoading"
+                    @click="saveProfile"
+                  >
+                    保存更改
+                  </el-button>
                 </div>
               </div>
-            </div>
-            <el-form
-              ref="profileFormRef"
-              label-position="top"
-              :model="form"
-              :rules="profileRules"
-            >
-              <el-form-item label="头像">
-                <el-avatar :size="80" :src="imgSrc" />
-                <el-upload
-                  ref="uploadRef"
-                  accept="image/*"
-                  action="#"
-                  :limit="1"
-                  :auto-upload="false"
-                  :show-file-list="false"
-                  :on-change="onChange"
-                >
-                  <el-button plain class="ml-4!">
-                    <IconifyIconOffline :icon="uploadLine" />
-                    <span class="ml-2">更新头像</span>
-                  </el-button>
-                </el-upload>
-              </el-form-item>
-              <el-form-item label="昵称" prop="nickname">
-                <el-input
-                  v-model="form.nickname"
-                  clearable
-                  placeholder="请输入昵称"
-                />
-              </el-form-item>
-              <el-form-item label="性别">
-                <DictSelect
-                  v-model="form.gender"
-                  dict-code="gender"
-                  placeholder="请选择性别"
-                  class="w-full"
-                  clearable
-                />
-              </el-form-item>
-              <el-form-item label="邮箱" prop="email">
-                <el-autocomplete
-                  v-model="form.email"
-                  :fetch-suggestions="queryEmail"
-                  :trigger-on-focus="false"
-                  clearable
-                  placeholder="请输入邮箱"
-                  class="w-full"
-                />
-              </el-form-item>
-              <el-form-item label="QQ号">
-                <el-input
-                  v-model="form.qq"
-                  clearable
-                  placeholder="请输入QQ号"
-                />
-              </el-form-item>
-              <el-form-item label="简介" prop="remark">
-                <el-input
-                  v-model="form.remark"
-                  type="textarea"
-                  :autosize="{ minRows: 6, maxRows: 8 }"
-                  maxlength="56"
-                  show-word-limit
-                  placeholder="介绍一下自己吧"
-                />
-              </el-form-item>
-            </el-form>
-            <!-- 未保存时出现的粘性保存条 -->
-            <div
-              v-if="isDirty"
-              class="sticky bottom-0 z-10 mt-2 flex items-center gap-2 border-t border-[var(--el-border-color-lighter)] bg-[var(--el-card-bg-color)] py-3"
-            >
-              <span class="text-sm text-[var(--el-text-color-secondary)]">
-                有未保存的更改
-              </span>
-              <div class="ml-auto flex gap-2">
-                <el-button @click="resetProfile">放弃</el-button>
-                <el-button
-                  type="primary"
-                  :loading="profileLoading"
-                  @click="saveProfile"
-                >
-                  保存更改
-                </el-button>
-              </div>
-            </div>
-          </template>
-          <!-- 编辑头像弹窗:选择图片后裁剪再上传 -->
-          <el-dialog
-            v-model="isShow"
-            width="40%"
-            title="编辑头像"
-            destroy-on-close
-            :close-on-click-modal="false"
-            :before-close="handleClose"
-            :fullscreen="deviceDetection()"
-          >
-            <ReCropperPreview
-              ref="cropRef"
-              :imgSrc="cropSrc"
-              @cropper="onCropper"
-            />
-            <template #footer>
-              <el-button bg text @click="handleClose">取消</el-button>
-              <el-button
-                bg
-                text
-                type="primary"
-                :loading="avatarLoading"
-                @click="saveAvatar"
-              >
-                确定
-              </el-button>
             </template>
-          </el-dialog>
-        </div>
-        <!-- 右栏:更改密码 -->
-        <div class="min-w-0 flex-1 lg:max-w-[520px]">
-          <h3 class="my-4! text-base font-medium">更改密码</h3>
-          <el-form
-            ref="pwdFormRef"
-            label-position="top"
-            :model="pwdForm"
-            :rules="pwdRules"
-          >
-            <el-form-item label="原密码" prop="oldPwd">
-              <el-input
-                v-model="pwdForm.oldPwd"
-                type="password"
-                show-password
-                clearable
-                placeholder="请输入原密码"
-              />
-            </el-form-item>
-            <el-form-item label="新密码" prop="newPwd">
-              <el-input
-                v-model="pwdForm.newPwd"
-                type="password"
-                show-password
-                clearable
-                placeholder="请输入新密码"
-              />
-            </el-form-item>
-            <el-form-item label="确认密码" prop="confirmPwd">
-              <el-input
-                v-model="pwdForm.confirmPwd"
-                type="password"
-                show-password
-                clearable
-                placeholder="请再次输入新密码"
-              />
-            </el-form-item>
-            <div v-if="pwdForm.newPwd" class="mb-4 flex">
-              <div
-                v-for="({ color, text }, idx) in pwdProgress"
-                :key="idx"
-                class="flex-1"
-                :style="{ marginLeft: idx !== 0 ? '4px' : 0 }"
-              >
-                <el-progress
-                  :percentage="curScore >= idx ? 100 : 0"
-                  :color="color"
-                  :duration="curScore === idx ? 6 : 0"
-                  :stroke-width="10"
-                  striped
-                  striped-flow
-                  :show-text="false"
-                />
-                <p
-                  class="text-center"
-                  :style="{ color: curScore === idx ? color : '' }"
-                >
-                  {{ text }}
-                </p>
-              </div>
-            </div>
-            <el-button
-              type="primary"
-              :loading="pwdLoading"
-              @click="savePassword"
+          </el-tab-pane>
+          <el-tab-pane label="更改密码" name="password" lazy>
+            <el-form
+              ref="pwdFormRef"
+              label-position="top"
+              :model="pwdForm"
+              :rules="pwdRules"
+              class="max-w-[600px]"
             >
-              确认修改
-            </el-button>
-          </el-form>
-        </div>
-      </div>
-    </el-card>
+              <el-form-item label="原密码" prop="oldPwd">
+                <el-input
+                  v-model="pwdForm.oldPwd"
+                  type="password"
+                  show-password
+                  clearable
+                  placeholder="请输入原密码"
+                />
+              </el-form-item>
+              <el-form-item label="新密码" prop="newPwd">
+                <el-input
+                  v-model="pwdForm.newPwd"
+                  type="password"
+                  show-password
+                  clearable
+                  placeholder="请输入新密码"
+                />
+              </el-form-item>
+              <el-form-item label="确认密码" prop="confirmPwd">
+                <el-input
+                  v-model="pwdForm.confirmPwd"
+                  type="password"
+                  show-password
+                  clearable
+                  placeholder="请再次输入新密码"
+                />
+              </el-form-item>
+              <div v-if="pwdForm.newPwd" class="mb-4 flex">
+                <div
+                  v-for="({ color, text }, idx) in pwdProgress"
+                  :key="idx"
+                  class="flex-1"
+                  :style="{ marginLeft: idx !== 0 ? '4px' : 0 }"
+                >
+                  <el-progress
+                    :percentage="curScore >= idx ? 100 : 0"
+                    :color="color"
+                    :duration="curScore === idx ? 6 : 0"
+                    :stroke-width="10"
+                    striped
+                    striped-flow
+                    :show-text="false"
+                  />
+                  <p
+                    class="text-center"
+                    :style="{ color: curScore === idx ? color : '' }"
+                  >
+                    {{ text }}
+                  </p>
+                </div>
+              </div>
+              <el-button
+                type="primary"
+                :loading="pwdLoading"
+                @click="savePassword"
+              >
+                确认修改
+              </el-button>
+            </el-form>
+          </el-tab-pane>
+        </el-tabs>
+      </el-card>
+    </div>
+    <!-- 编辑头像弹窗:选择图片后裁剪再上传 -->
+    <el-dialog
+      v-model="isShow"
+      width="40%"
+      title="编辑头像"
+      destroy-on-close
+      :close-on-click-modal="false"
+      :before-close="handleClose"
+      :fullscreen="deviceDetection()"
+    >
+      <ReCropperPreview ref="cropRef" :imgSrc="cropSrc" @cropper="onCropper" />
+      <template #footer>
+        <el-button bg text @click="handleClose">取消</el-button>
+        <el-button
+          bg
+          text
+          type="primary"
+          :loading="avatarLoading"
+          @click="saveAvatar"
+        >
+          确定
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
