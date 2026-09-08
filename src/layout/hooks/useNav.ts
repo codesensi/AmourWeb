@@ -110,9 +110,9 @@ export function useNav() {
     emitter.emit("openPanel");
   }
 
-  /** 进入个人中心 */
+  /** 进入个人中心(动态路由,菜单未配置 name,按路径跳转) */
   function toProfile() {
-    router.push({ name: "UserProfile" });
+    router.push("/admin/profile");
   }
 
   function toggleSideBar() {
