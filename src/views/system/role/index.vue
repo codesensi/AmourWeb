@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useRole } from "./utils/hook";
 import { ref, computed, nextTick, onMounted } from "vue";
+import { hasPerms } from "@/utils/auth";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { DictSelect } from "@/components/DictSelect";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
@@ -60,6 +61,7 @@ const {
   isExpandAll,
   isSelectAll,
   treeSearchValue,
+  selectedNum,
   // buttonClass,
   onSearch,
   resetForm,
@@ -72,8 +74,10 @@ const {
   // handleDatabase,
   handleSizeChange,
   handleCurrentChange,
-  handleSelectionChange
-} = useRole(treeRef);
+  handleSelectionChange,
+  onSelectionCancel,
+  onbatchDel
+} = useRole(treeRef, tableRef);
 
 onMounted(() => {
   useResizeObserver(contentRef, async () => {
@@ -148,6 +152,7 @@ onMounted(() => {
       >
         <template #buttons>
           <el-button
+            v-if="hasPerms('system:role:insert')"
             type="primary"
             :icon="useRenderIcon(AddFill)"
             @click="openDialog()"
@@ -156,11 +161,38 @@ onMounted(() => {
           </el-button>
         </template>
         <template v-slot="{ size, dynamicColumns }">
+          <div
+            v-if="selectedNum > 0"
+            v-motion-fade
+            class="bg-(--el-fill-color-light) w-full h-11.5 mb-2 pl-4 flex items-center"
+          >
+            <div class="flex-auto">
+              <span
+                style="font-size: var(--el-font-size-base)"
+                class="text-[rgba(42,46,54,0.5)] dark:text-[rgba(220,220,242,0.5)]"
+              >
+                已选 {{ selectedNum }} 项
+              </span>
+              <el-button type="primary" text @click="onSelectionCancel">
+                取消选择
+              </el-button>
+            </div>
+            <el-button
+              v-if="hasPerms('system:role:delete')"
+              type="danger"
+              text
+              class="mr-1!"
+              @click="onbatchDel"
+            >
+              批量删除
+            </el-button>
+          </div>
           <pure-table
             ref="tableRef"
             align-whole="center"
             showOverflowTooltip
             table-layout="auto"
+            row-key="id"
             :loading="loading"
             :size="size"
             adaptive
@@ -179,6 +211,7 @@ onMounted(() => {
           >
             <template #operation="{ row }">
               <el-button
+                v-if="hasPerms('system:role:update')"
                 class="reset-margin"
                 link
                 type="primary"
@@ -188,22 +221,17 @@ onMounted(() => {
               >
                 修改
               </el-button>
-              <el-popconfirm
-                :title="`是否确认删除角色名称为${row.name}的这条数据`"
-                @confirm="handleDelete(row)"
+              <el-button
+                v-if="hasPerms('system:role:delete') && row.builtin === 0"
+                class="reset-margin"
+                link
+                type="primary"
+                :size="size"
+                :icon="useRenderIcon(Delete)"
+                @click="handleDelete(row)"
               >
-                <template #reference>
-                  <el-button
-                    class="reset-margin"
-                    link
-                    type="primary"
-                    :size="size"
-                    :icon="useRenderIcon(Delete)"
-                  >
-                    删除
-                  </el-button>
-                </template>
-              </el-popconfirm>
+                删除
+              </el-button>
               <el-button
                 v-if="row.builtin === 0"
                 class="reset-margin"

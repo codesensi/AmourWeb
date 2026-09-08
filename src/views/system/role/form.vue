@@ -5,8 +5,10 @@ import { FormProps } from "./utils/types";
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
+    title: "新增",
     name: "",
     code: "",
+    sort: 1,
     remark: ""
   })
 });
@@ -28,6 +30,15 @@ defineExpose({ getRef });
     :rules="formRules"
     label-width="82px"
   >
+    <el-form-item label="角色标识" prop="code">
+      <el-input
+        v-model="newFormInline.code"
+        clearable
+        placeholder="请输入角色标识"
+        :disabled="newFormInline.title === '修改'"
+      />
+    </el-form-item>
+
     <el-form-item label="角色名称" prop="name">
       <el-input
         v-model="newFormInline.name"
@@ -36,11 +47,11 @@ defineExpose({ getRef });
       />
     </el-form-item>
 
-    <el-form-item label="角色标识" prop="code">
-      <el-input
-        v-model="newFormInline.code"
-        clearable
-        placeholder="请输入角色标识"
+    <el-form-item label="排序" prop="sort">
+      <el-input-number
+        v-model="newFormInline.sort"
+        :min="1"
+        controls-position="right"
       />
     </el-form-item>
 

@@ -12,6 +12,7 @@ import { useDict } from "@/hooks/useDict";
 import { DICT_CODES } from "@/api/dict";
 import {
   assignMenus,
+  changeRoleStatus,
   deleteRole,
   getMenuList,
   getRolePage,
@@ -21,7 +22,7 @@ import {
 } from "@/api/system";
 import { type Ref, reactive, ref, onMounted, h, toRaw, watch } from "vue";
 
-export function useRole(treeRef: Ref) {
+export function useRole(treeRef: Ref, tableRef: Ref) {
   const form = reactive({
     name: "",
     code: "",
@@ -30,6 +31,7 @@ export function useRole(treeRef: Ref) {
   const curRow = ref();
   const formRef = ref();
   const dataList = ref([]);
+  const selectedNum = ref(0);
   const treeIds = ref([]);
   const treeData = ref([]);
   const isShow = ref(false);
@@ -55,8 +57,12 @@ export function useRole(treeRef: Ref) {
   });
   const columns: TableColumnList = [
     {
-      label: "角色编号",
-      prop: "id"
+      label: "勾选列", // 如果需要表格多选，此处label必须设置
+      type: "selection",
+      fixed: "left",
+      reserveSelection: true, // 数据刷新后保留选项
+      /** 内置角色禁用勾选,全选时自动跳过(删除入口与后端校验对齐) */
+      selectable: row => row.builtin === 0
     },
     {
       label: "角色名称",
@@ -77,6 +83,7 @@ export function useRole(treeRef: Ref) {
           inactive-value={1}
           active-text={enableLabelOf(0)}
           inactive-text={enableLabelOf(1)}
+          disabled={scope.row.builtin === 1}
           inline-prompt
           style={switchStyle.value}
           onChange={() => onChange(scope as any)}
@@ -129,7 +136,7 @@ export function useRole(treeRef: Ref) {
         draggable: true
       }
     )
-      .then(() => {
+      .then(async () => {
         switchLoadMap.value[index] = Object.assign(
           {},
           switchLoadMap.value[index],
@@ -137,7 +144,17 @@ export function useRole(treeRef: Ref) {
             loading: true
           }
         );
-        setTimeout(() => {
+        try {
+          await changeRoleStatus({ id: row.id, status: row.status });
+          message(
+            `已${enableLabelOf(row.status)}<strong style='color:var(--el-color-primary)'>${row.name}</strong>角色`,
+            { type: "success", dangerouslyUseHTMLString: true }
+          );
+        } catch (error) {
+          // 接口失败(含内置角色禁用被拒)时回滚开关状态
+          row.status === 0 ? (row.status = 1) : (row.status = 0);
+          throw error;
+        } finally {
           switchLoadMap.value[index] = Object.assign(
             {},
             switchLoadMap.value[index],
@@ -145,13 +162,7 @@ export function useRole(treeRef: Ref) {
               loading: false
             }
           );
-          message(
-            `已${row.status === 0 ? enableLabelOf(0) : enableLabelOf(1)}${
-              row.name
-            }`,
-            { type: "success" }
-          );
-        }, 300);
+        }
       })
       .catch(() => {
         row.status === 0 ? (row.status = 1) : (row.status = 0);
@@ -159,9 +170,62 @@ export function useRole(treeRef: Ref) {
   }
 
   async function handleDelete(row) {
-    await deleteRole(row.id);
-    message(`您删除了角色名称为${row.name}的这条数据`, { type: "success" });
-    onSearch();
+    // 确认弹窗与用户管理风格一致;角色名样式加粗 + 主题主色
+    ElMessageBox.confirm(
+      `确认要删除<strong style='color:var(--el-color-primary)'>${row.name}</strong>角色吗?`,
+      "系统提示",
+      {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+        dangerouslyUseHTMLString: true,
+        draggable: true
+      }
+    )
+      .then(async () => {
+        await deleteRole(row.id);
+        message(
+          `成功删除<strong style='color:var(--el-color-primary)'>${row.name}</strong>角色`,
+          { type: "success", dangerouslyUseHTMLString: true }
+        );
+        onSearch();
+      })
+      .catch(() => {});
+  }
+
+  /** 批量删除(复用删除接口,ID 逗号拼接,后端整批校验) */
+  function onbatchDel() {
+    // 返回当前选中的行(selectable 已禁用内置角色勾选,选中项不会包含内置角色)
+    const curSelected = tableRef.value.getTableRef().getSelectionRows();
+    const ids = getKeyList(curSelected, "id");
+    const names = getKeyList(curSelected, "name");
+    // 超过 3 个折叠展示,避免弹窗内容过长
+    const displayNames =
+      names.length > 3
+        ? `${names.slice(0, 3).join("、")} 等 ${names.length} 个`
+        : names.join("、");
+    // 确认弹窗与单条删除/状态开关风格一致;角色名加粗 + 主题主色
+    ElMessageBox.confirm(
+      `确认要删除<strong style='color:var(--el-color-primary)'>${displayNames}</strong>角色吗?`,
+      "系统提示",
+      {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+        dangerouslyUseHTMLString: true,
+        draggable: true
+      }
+    )
+      .then(async () => {
+        await deleteRole(ids.join(","));
+        message(
+          `成功删除<strong style='color:var(--el-color-primary)'>${displayNames}</strong>角色`,
+          { type: "success", dangerouslyUseHTMLString: true }
+        );
+        tableRef.value.getTableRef().clearSelection();
+        onSearch();
+      })
+      .catch(() => {});
   }
 
   /** pure-table 已回写 pagination.currentPage/pageSize,此处重新拉取分页数据 */
@@ -173,8 +237,18 @@ export function useRole(treeRef: Ref) {
     onSearch();
   }
 
+  /** 当CheckBox选择项发生变化时会触发该事件 */
   function handleSelectionChange(val) {
-    // 多选操作暂无业务,保留钩子
+    selectedNum.value = val.length;
+    // 重置表格高度
+    tableRef.value.setAdaptive();
+  }
+
+  /** 取消选择 */
+  function onSelectionCancel() {
+    selectedNum.value = 0;
+    // 用于多选表格，清空用户的选择
+    tableRef.value.getTableRef().clearSelection();
   }
 
   async function onSearch() {
@@ -207,8 +281,10 @@ export function useRole(treeRef: Ref) {
       title: `${title}角色`,
       props: {
         formInline: {
+          title,
           name: row?.name ?? "",
           code: row?.code ?? "",
+          sort: row?.sort ?? 1,
           remark: row?.remark ?? ""
         }
       },
@@ -222,9 +298,11 @@ export function useRole(treeRef: Ref) {
         const FormRef = formRef.value.getRef();
         const curData = options.props.formInline as FormItemProps;
         function chores() {
-          message(`您${title}了角色名称为${curData.name}的这条数据`, {
-            type: "success"
-          });
+          // 提示风格与用户管理统一(角色名样式加粗 + 主题主色)
+          message(
+            `${title === "新增" ? "成功新增" : "成功修改"}<strong style='color:var(--el-color-primary)'>${curData.name}</strong>角色`,
+            { type: "success", dangerouslyUseHTMLString: true }
+          );
           done(); // 关闭弹框
           onSearch(); // 刷新表格数据
         }
@@ -234,7 +312,13 @@ export function useRole(treeRef: Ref) {
             if (title === "新增") {
               await insertRole(curData);
             } else {
-              await updateRole(curData);
+              // 角色编码创建后不可修改,仅提交名称/排序/备注(对齐后端 RoleUpdateRequest)
+              await updateRole({
+                id: row.id,
+                name: curData.name,
+                sort: curData.sort,
+                remark: curData.remark
+              });
             }
             chores();
           }
@@ -324,6 +408,8 @@ export function useRole(treeRef: Ref) {
     isExpandAll,
     isSelectAll,
     treeSearchValue,
+    selectedNum,
+    onSelectionCancel,
     // buttonClass,
     onSearch,
     resetForm,
@@ -331,6 +417,7 @@ export function useRole(treeRef: Ref) {
     handleMenu,
     handleSave,
     handleDelete,
+    onbatchDel,
     filterMethod,
     onQueryChanged,
     // handleDatabase,

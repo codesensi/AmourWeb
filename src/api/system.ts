@@ -159,7 +159,14 @@ export const updateRole = (data?: object) => {
   return http.request<ApiResult<null>>("put", "/sys/role/update", { data });
 };
 
-/** 角色管理-删除(DELETE /sys/role/delete/{id}) */
+/** 角色管理-修改角色状态(PUT /sys/role/change-status) */
+export const changeRoleStatus = (data?: object) => {
+  return http.request<ApiResult<null>>("put", "/sys/role/change-status", {
+    data
+  });
+};
+
+/** 角色管理-删除(DELETE /sys/role/delete/{ids},id 支持英文逗号分隔批量删除) */
 export const deleteRole = (id: number | string) => {
   return http.request<ApiResult<null>>("delete", `/sys/role/delete/${id}`);
 };
