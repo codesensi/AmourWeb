@@ -106,7 +106,7 @@ export type SysRoleItem = {
   sort?: number;
   /** 角色状态:0-启用,1-禁用 */
   status?: number;
-  /** 内置标识:0-非内置,1-内置 */
+  /** 是否内置:0-否,1-是 */
   builtin?: number;
   remark?: string;
   /** 创建时间(yyyy-MM-dd HH:mm:ss) */
@@ -121,7 +121,7 @@ export type SysRoleOption = {
   code: string;
   /** 角色状态:0-启用,1-禁用 */
   status?: number;
-  /** 内置标识:0-非内置,1-内置 */
+  /** 是否内置:0-否,1-是 */
   builtin?: number;
 };
 

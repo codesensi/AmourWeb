@@ -3,7 +3,7 @@
 // 组数据契约对齐 DictGroupResponse:dictCode/items(dictValue/dictLabel/sort)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
-// 与后端 sys_dict 内置种子同源(9 组 20 条;组内顺序即 sort 升序)
+// 与后端 sys_dict 内置种子同源(8 组 22 条;组内顺序即 sort 升序)
 const dicts = [
   {
     id: "10001",
@@ -90,31 +90,7 @@ const dicts = [
     createTime: "2026-01-01 00:00:00"
   },
   {
-    id: "10301",
-    dictCode: "builtin",
-    dictName: "内置标识",
-    dictValue: "1",
-    dictLabel: "内置",
-    sort: 1,
-    status: 0,
-    builtin: 1,
-    remark: "内置字典：与 BuiltinEnum(1/0) 对齐",
-    createTime: "2026-01-01 00:00:00"
-  },
-  {
     id: "10302",
-    dictCode: "builtin",
-    dictName: "内置标识",
-    dictValue: "0",
-    dictLabel: "非内置",
-    sort: 2,
-    status: 0,
-    builtin: 1,
-    remark: null,
-    createTime: "2026-01-01 00:00:00"
-  },
-  {
-    id: "10401",
     dictCode: "del-flag",
     dictName: "删除标识",
     dictValue: "1",
@@ -126,7 +102,7 @@ const dicts = [
     createTime: "2026-01-01 00:00:00"
   },
   {
-    id: "10402",
+    id: "10301",
     dictCode: "del-flag",
     dictName: "删除标识",
     dictValue: "0",
@@ -138,7 +114,7 @@ const dicts = [
     createTime: "2026-01-01 00:00:00"
   },
   {
-    id: "10501",
+    id: "10401",
     dictCode: "menu-type",
     dictName: "菜单类型",
     dictValue: "D",
@@ -150,7 +126,7 @@ const dicts = [
     createTime: "2026-01-01 00:00:00"
   },
   {
-    id: "10502",
+    id: "10402",
     dictCode: "menu-type",
     dictName: "菜单类型",
     dictValue: "M",
@@ -162,7 +138,7 @@ const dicts = [
     createTime: "2026-01-01 00:00:00"
   },
   {
-    id: "10503",
+    id: "10403",
     dictCode: "menu-type",
     dictName: "菜单类型",
     dictValue: "B",
@@ -174,7 +150,7 @@ const dicts = [
     createTime: "2026-01-01 00:00:00"
   },
   {
-    id: "10601",
+    id: "10501",
     dictCode: "image-type",
     dictName: "图形验证码类型",
     dictValue: "spec",
@@ -186,7 +162,7 @@ const dicts = [
     createTime: "2026-01-01 00:00:00"
   },
   {
-    id: "10602",
+    id: "10502",
     dictCode: "image-type",
     dictName: "图形验证码类型",
     dictValue: "gif",
@@ -198,7 +174,7 @@ const dicts = [
     createTime: "2026-01-01 00:00:00"
   },
   {
-    id: "10603",
+    id: "10503",
     dictCode: "image-type",
     dictName: "图形验证码类型",
     dictValue: "chinese",
@@ -210,7 +186,7 @@ const dicts = [
     createTime: "2026-01-01 00:00:00"
   },
   {
-    id: "10604",
+    id: "10504",
     dictCode: "image-type",
     dictName: "图形验证码类型",
     dictValue: "chinese-gif",
@@ -222,7 +198,7 @@ const dicts = [
     createTime: "2026-01-01 00:00:00"
   },
   {
-    id: "10605",
+    id: "10505",
     dictCode: "image-type",
     dictName: "图形验证码类型",
     dictValue: "arithmetic",
@@ -234,7 +210,7 @@ const dicts = [
     createTime: "2026-01-01 00:00:00"
   },
   {
-    id: "10701",
+    id: "10601",
     dictCode: "success",
     dictName: "成功状态",
     dictValue: "1",
@@ -246,7 +222,7 @@ const dicts = [
     createTime: "2026-01-01 00:00:00"
   },
   {
-    id: "10702",
+    id: "10602",
     dictCode: "success",
     dictName: "成功状态",
     dictValue: "0",
@@ -258,7 +234,7 @@ const dicts = [
     createTime: "2026-01-01 00:00:00"
   },
   {
-    id: "10801",
+    id: "10701",
     dictCode: "config-group",
     dictName: "配置分组",
     dictValue: "base",
@@ -270,7 +246,7 @@ const dicts = [
     createTime: "2026-01-01 00:00:00"
   },
   {
-    id: "10802",
+    id: "10702",
     dictCode: "config-group",
     dictName: "配置分组",
     dictValue: "site",
@@ -282,7 +258,7 @@ const dicts = [
     createTime: "2026-01-01 00:00:00"
   },
   {
-    id: "10803",
+    id: "10703",
     dictCode: "config-group",
     dictName: "配置分组",
     dictValue: "captcha",

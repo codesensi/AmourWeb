@@ -106,17 +106,6 @@ export function useDictPage() {
       width: 70
     },
     {
-      label: "内置",
-      prop: "builtin",
-      minWidth: 80,
-      cellRenderer: ({ row, props }) =>
-        row.builtin === 1 ? (
-          <el-tag size={props.size} effect="plain">
-            内置
-          </el-tag>
-        ) : null
-    },
-    {
       label: "状态",
       prop: "status",
       minWidth: 90,

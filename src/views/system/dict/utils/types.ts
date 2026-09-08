@@ -17,7 +17,7 @@ interface FormItemProps {
   sort: number;
   /** 状态:0-启用,1-禁用 */
   status: number;
-  /** 内置标识:1-内置,0-非内置 */
+  /** 是否内置:1-是,0-否 */
   builtin: number;
   /** 备注 */
   remark: string;
