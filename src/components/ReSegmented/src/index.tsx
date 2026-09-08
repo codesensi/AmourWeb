@@ -11,7 +11,6 @@ import {
   type PropType,
   h,
   ref,
-  toRef,
   watch,
   nextTick,
   defineComponent,
@@ -23,7 +22,7 @@ const props = {
     type: Array<OptionsType>,
     default: () => []
   },
-  /** 默认选中，按照第一个索引为 `0` 的模式，可选（`modelValue`只有传`number`类型时才为响应式） */
+  /** 默认选中:`modelValue` 为 `number` 时按索引语义,其余类型按 `options` 的 `value` 匹配 */
   modelValue: {
     type: undefined,
     require: false,
@@ -62,18 +61,29 @@ export default defineComponent({
     const curMouseActive = ref(-1);
     const segmentedItembg = ref("");
     const instance = getCurrentInstance()!;
-    const curIndex = isNumber(props.modelValue)
-      ? toRef(props, "modelValue")
-      : ref(0);
+    /** 当前选中项索引:number 为索引语义,其余类型按 option.value 反查 */
+    const curIndex = ref(
+      isNumber(props.modelValue)
+        ? props.modelValue
+        : resolveIndex(props.modelValue)
+    );
 
     function handleChange({ option, index }, event: Event) {
       if (props.disabled || option.disabled) return;
       event.preventDefault();
+      // number 保持索引语义(兼容既有用法),其余类型回写命中的 option.value
       isNumber(props.modelValue)
         ? emit("update:modelValue", index)
-        : (curIndex.value = index);
+        : emit("update:modelValue", option.value);
+      curIndex.value = index;
       segmentedItembg.value = "";
       emit("change", { index, option });
+    }
+
+    /** 按值反查选中项索引,未匹配时回落到第一项 */
+    function resolveIndex(val: unknown): number {
+      const index = props.options.findIndex(option => option.value === val);
+      return index === -1 ? 0 : index;
     }
 
     function handleMouseenter({ option, index }, event: Event) {
@@ -124,6 +134,14 @@ export default defineComponent({
       },
       {
         immediate: true
+      }
+    );
+
+    // 外部 modelValue 变化时同步选中索引(值语义下支持回显)
+    watch(
+      () => props.modelValue,
+      val => {
+        curIndex.value = isNumber(val) ? Number(val) : resolveIndex(val);
       }
     );
 

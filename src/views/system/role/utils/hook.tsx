@@ -2,6 +2,7 @@ import dayjs from "dayjs";
 import editForm from "../form.vue";
 import { handleTree } from "@/utils/tree";
 import { message } from "@/utils/message";
+import { hasPerms } from "@/utils/auth";
 import { ElMessageBox } from "element-plus";
 import { usePublicHooks } from "../../hooks";
 import { addDialog } from "@/components/ReDialog";
@@ -85,7 +86,8 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
           inactive-value={1}
           active-text={enableLabelOf(0)}
           inactive-text={enableLabelOf(1)}
-          disabled={scope.row.builtin === 1}
+          /** 内置角色禁用启停;无修改权限时同步禁用,与操作列门控对齐 */
+          disabled={scope.row.builtin === 1 || !hasPerms("system:role:update")}
           inline-prompt
           style={switchStyle.value}
           onChange={() => onChange(scope as any)}
@@ -366,7 +368,7 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
   /** 菜单权限-保存 */
   async function handleSave() {
     const { id, name } = curRow.value;
-    await assignMenus({ id, menuIds: treeRef.value.getCheckedKeys() });
+    await assignMenus({ roleId: id, menuIds: treeRef.value.getCheckedKeys() });
     message(`角色名称为${name}的菜单权限修改成功`, {
       type: "success"
     });

@@ -2,16 +2,24 @@
 import { ref } from "vue";
 import { useMenu } from "./utils/hook";
 import { PureTableBar } from "@/components/RePureTableBar";
+import { DictSelect } from "@/components/DictSelect";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import { hasPerms } from "@/utils/auth";
+import { typeOptions } from "./utils/enums";
 
 import Delete from "~icons/ep/delete";
 import EditPen from "~icons/ep/edit-pen";
 import Refresh from "~icons/ep/refresh";
+import Expand from "~icons/ep/expand";
+import Fold from "~icons/ep/fold";
 import AddFill from "~icons/ri/add-circle-line";
 
 defineOptions({
   name: "SystemMenu"
 });
+
+// el-option 的 value 仅接受字符串/数字,ReSegmented 的 OptionsType.value 含函数分支,此处收敛为字符串
+const menuTypeOptions = typeOptions as Array<{ label: string; value: string }>;
 
 const formRef = ref();
 const tableRef = ref();
@@ -20,11 +28,13 @@ const {
   loading,
   columns,
   dataList,
+  isExpandAll,
+  expandRowKeys,
+  toggleExpandAll,
   onSearch,
   resetForm,
   openDialog,
-  handleDelete,
-  handleSelectionChange
+  handleDelete
 } = useMenu();
 
 function onFullscreen() {
@@ -45,6 +55,39 @@ function onFullscreen() {
         <el-input
           v-model="form.title"
           placeholder="请输入菜单名称"
+          clearable
+          class="w-45!"
+        />
+      </el-form-item>
+      <el-form-item label="菜单类型：" prop="type">
+        <el-select
+          v-model="form.type"
+          placeholder="请选择"
+          clearable
+          class="w-45!"
+        >
+          <el-option
+            v-for="item in menuTypeOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="状态：" prop="status">
+        <DictSelect
+          v-model="form.status"
+          dict-code="enable"
+          placeholder="请选择"
+          clearable
+          class="w-45!"
+        />
+      </el-form-item>
+      <el-form-item label="隐藏：" prop="hidden">
+        <DictSelect
+          v-model="form.hidden"
+          dict-code="yes"
+          placeholder="请选择"
           clearable
           class="w-45!"
         />
@@ -72,8 +115,23 @@ function onFullscreen() {
       @refresh="onSearch"
       @fullscreen="onFullscreen"
     >
+      <template #title>
+        <div class="flex items-center">
+          <span class="font-bold truncate">菜单管理</span>
+          <el-button
+            class="ml-2!"
+            link
+            type="primary"
+            :icon="useRenderIcon(isExpandAll ? Fold : Expand)"
+            @click="toggleExpandAll"
+          >
+            {{ isExpandAll ? "折叠" : "展开" }}
+          </el-button>
+        </div>
+      </template>
       <template #buttons>
         <el-button
+          v-if="hasPerms('system:menu:insert')"
           type="primary"
           :icon="useRenderIcon(AddFill)"
           @click="openDialog()"
@@ -88,6 +146,7 @@ function onFullscreen() {
           :adaptiveConfig="{ offsetBottom: 45 }"
           align-whole="center"
           row-key="id"
+          :expand-row-keys="expandRowKeys"
           showOverflowTooltip
           table-layout="auto"
           :loading="loading"
@@ -98,10 +157,10 @@ function onFullscreen() {
             background: 'var(--el-fill-color-light)',
             color: 'var(--el-text-color-primary)'
           }"
-          @selection-change="handleSelectionChange"
         >
           <template #operation="{ row }">
             <el-button
+              v-if="hasPerms('system:menu:update')"
               class="reset-margin"
               link
               type="primary"
@@ -112,7 +171,7 @@ function onFullscreen() {
               修改
             </el-button>
             <el-button
-              v-show="row.type !== 'B'"
+              v-if="hasPerms('system:menu:insert') && row.type !== 'B'"
               class="reset-margin"
               link
               type="primary"
@@ -122,22 +181,17 @@ function onFullscreen() {
             >
               新增
             </el-button>
-            <el-popconfirm
-              :title="`是否确认删除菜单名称为${row.title}的这条数据${row?.children?.length > 0 ? '。注意下级菜单也会一并删除，请谨慎操作' : ''}`"
-              @confirm="handleDelete(row)"
+            <el-button
+              v-if="hasPerms('system:menu:delete') && row.builtin === 0"
+              class="reset-margin"
+              link
+              type="primary"
+              :size="size"
+              :icon="useRenderIcon(Delete)"
+              @click="handleDelete(row)"
             >
-              <template #reference>
-                <el-button
-                  class="reset-margin"
-                  link
-                  type="primary"
-                  :size="size"
-                  :icon="useRenderIcon(Delete)"
-                >
-                  删除
-                </el-button>
-              </template>
-            </el-popconfirm>
+              删除
+            </el-button>
           </template>
         </pure-table>
       </template>
@@ -156,6 +210,7 @@ function onFullscreen() {
 
 .search-form {
   :deep(.el-form-item) {
+    margin-right: 12px;
     margin-bottom: 12px;
   }
 }

@@ -1,6 +1,8 @@
 interface FormItemProps {
   /** 菜单ID（修改时传入；后端 Long 序列化为字符串） */
   id?: string;
+  /** 是否内置:0-否,1-是（编辑时禁改结构字段用） */
+  builtin?: number;
   /** 菜单类型（D-目录、M-菜单、B-按钮） */
   type: "D" | "M" | "B";
   /** 父级菜单ID（0 表示根节点；后端 Long 序列化为字符串） */

@@ -51,6 +51,8 @@ export interface MenuItem {
   builtin: number;
   /** 备注 */
   remark?: string;
+  /** 创建时间(yyyy-MM-dd HH:mm:ss,菜单管理列表展示用) */
+  createTime?: string;
 }
 
 /** 当前登录用户信息(含菜单) */

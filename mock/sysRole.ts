@@ -237,12 +237,12 @@ export default defineFakeRoute([
     url: "/sys/role/assign-menus",
     method: "put",
     response: ({ body }) => {
-      const target = roles.find(item => item.id === String(body?.id));
+      const target = roles.find(item => item.id === String(body?.roleId));
       if (!target) return fail("角色不存在");
       if (target.builtin === 1) {
         return fail("系统内置角色不允许修改权限");
       }
-      menusByRole[Number(body?.id)] = body?.menuIds ?? [];
+      menusByRole[Number(body?.roleId)] = body?.menuIds ?? [];
       return ok();
     }
   }

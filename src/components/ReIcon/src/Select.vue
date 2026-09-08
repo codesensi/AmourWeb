@@ -122,7 +122,8 @@ watch(
 
 <template>
   <div class="selector">
-    <el-input v-model="inputValue" disabled>
+    <!-- 只读而非禁用:仍阻止手动键入路径,但保持正常配色,避免误认为禁用态 -->
+    <el-input v-model="inputValue" readonly placeholder="点击右侧图标选择">
       <template #append>
         <el-popover
           :width="350"

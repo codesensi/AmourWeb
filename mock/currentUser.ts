@@ -14,6 +14,10 @@ interface MenuItem {
   status: number;
   hidden: number;
   builtin: number;
+  /** 备注(对齐后端 MenuResponse,菜单管理 mock 增删改使用) */
+  remark?: string;
+  /** 创建时间(yyyy-MM-dd HH:mm:ss) */
+  createTime?: string;
 }
 
 export const menus: MenuItem[] = [
