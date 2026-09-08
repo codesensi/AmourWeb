@@ -3,13 +3,11 @@ import dayjs from "dayjs";
 import roleForm from "../form/role.vue";
 import editForm from "../form/index.vue";
 import { message } from "@/utils/message";
-import { fallbackAvatar } from "@/utils/avatar";
 import { DictTag } from "@/components/DictTag";
 import { usePublicHooks } from "../../hooks";
 import { ZxcvbnFactory } from "@zxcvbn-ts/core";
 import { addDialog } from "@/components/ReDialog";
 import type { PaginationProps } from "@pureadmin/table";
-import ReCropperPreview from "@/components/ReCropperPreview";
 import type { FormItemProps, RoleFormItemProps } from "../utils/types";
 import { getKeyList, isAllEmpty, deviceDetection } from "@pureadmin/utils";
 import type { SysRoleOption } from "@/api/system";
@@ -22,7 +20,6 @@ import {
   updateUser,
   assignRoles
 } from "@/api/system";
-import { uploadAvatar } from "@/api/file";
 import {
   ElForm,
   ElInput,
@@ -54,8 +51,6 @@ export function useUser(tableRef: Ref) {
   const ruleFormRef = ref();
   const dataList = ref([]);
   const loading = ref(true);
-  // 上传头像信息
-  const avatarInfo = ref();
   const switchLoadMap = ref({});
   const { switchStyle } = usePublicHooks();
   const selectedNum = ref(0);
@@ -80,15 +75,18 @@ export function useUser(tableRef: Ref) {
     {
       label: "用户头像",
       prop: "avatar",
-      cellRenderer: ({ row }) => (
-        <el-image
-          fit="cover"
-          preview-teleported={true}
-          src={row.avatar || fallbackAvatar}
-          preview-src-list={Array.of(row.avatar || fallbackAvatar)}
-          class="size-6 rounded-full align-middle"
-        />
-      ),
+      cellRenderer: ({ row }) =>
+        row.avatar ? (
+          <el-image
+            fit="cover"
+            preview-teleported={true}
+            src={row.avatar}
+            preview-src-list={Array.of(row.avatar)}
+            class="size-6 rounded-full align-middle"
+          />
+        ) : (
+          ""
+        ),
       width: 90
     },
     {
@@ -308,8 +306,10 @@ export function useUser(tableRef: Ref) {
           title,
           nickname: row?.nickname ?? "",
           username: row?.username ?? "",
+          avatar: row?.avatar ?? "",
           qq: row?.qq ?? "",
-          gender: row?.gender ?? "",
+          email: row?.email ?? "",
+          gender: row?.gender || "U",
           status: row?.status ?? 0,
           remark: row?.remark ?? ""
         }
@@ -342,34 +342,6 @@ export function useUser(tableRef: Ref) {
           }
         });
       }
-    });
-  }
-
-  const cropRef = ref();
-  /** 上传头像 */
-  function handleUpload(row) {
-    addDialog({
-      title: "裁剪、上传头像",
-      width: "40%",
-      closeOnClickModal: false,
-      fullscreen: deviceDetection(),
-      contentRenderer: () =>
-        h(ReCropperPreview, {
-          ref: cropRef,
-          imgSrc: row.avatar || fallbackAvatar,
-          onCropper: info => (avatarInfo.value = info)
-        }),
-      beforeSure: async done => {
-        // 调用 mock 上传接口(第 3 期切真接口),用返回的 URL 更新头像
-        const res = await uploadAvatar({ id: row.id, file: avatarInfo.value });
-        if (res.success) {
-          row.avatar = res.data.url;
-          message("头像上传成功", { type: "success" });
-        }
-        done(); // 关闭弹框
-        onSearch(); // 刷新表格数据
-      },
-      closeCallBack: () => cropRef.value.hidePopover()
     });
   }
 
@@ -507,7 +479,6 @@ export function useUser(tableRef: Ref) {
     openDialog,
     handleUpdate,
     handleDelete,
-    handleUpload,
     handleReset,
     handleRole,
     handleSizeChange,

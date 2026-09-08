@@ -53,12 +53,12 @@ provide("portalSysConfig", sysConfig);
 /* 门户基础观感:承接 layui.css 原 body 级全局规则
    (前缀隔离后 body 选择器不再命中,统一收敛到 .portal 根容器) */
 .portal {
-  line-height: 1.6;
-  color: rgba(0, 0, 0, 0.85);
-  font-size: 14px;
   font-family:
     -apple-system, Roboto, "PingFang SC", "Helvetica Neue", Arial, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgb(0 0 0 / 85%);
 }
 
 /* 内容区最小高度:避免短页面(如空态列表页)切换时页脚大幅上跳 */

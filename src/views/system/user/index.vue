@@ -6,7 +6,6 @@ import { DictSelect } from "@/components/DictSelect";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { hasPerms } from "@/utils/auth";
 
-import Upload from "~icons/ri/upload-line";
 import Role from "~icons/ri/admin-line";
 import Password from "~icons/ri/lock-password-line";
 import More from "~icons/ep/more-filled";
@@ -37,7 +36,6 @@ const {
   openDialog,
   handleUpdate,
   handleDelete,
-  handleUpload,
   handleReset,
   handleRole,
   handleSizeChange,
@@ -215,22 +213,8 @@ const {
               />
               <template #dropdown>
                 <el-dropdown-menu>
-                  <el-dropdown-item>
+                  <el-dropdown-item v-if="hasPerms('system:user:update')">
                     <el-button
-                      v-if="hasPerms('system:user:update')"
-                      :class="buttonClass"
-                      link
-                      type="primary"
-                      :size="size"
-                      :icon="useRenderIcon(Upload)"
-                      @click="handleUpload(row)"
-                    >
-                      上传头像
-                    </el-button>
-                  </el-dropdown-item>
-                  <el-dropdown-item>
-                    <el-button
-                      v-if="hasPerms('system:user:update')"
                       :class="buttonClass"
                       link
                       type="primary"
@@ -241,9 +225,10 @@ const {
                       重置密码
                     </el-button>
                   </el-dropdown-item>
-                  <el-dropdown-item>
+                  <el-dropdown-item
+                    v-if="hasPerms('system:user:update') && row.builtin === 0"
+                  >
                     <el-button
-                      v-if="hasPerms('system:user:update') && row.builtin === 0"
                       :class="buttonClass"
                       link
                       type="primary"
@@ -279,8 +264,8 @@ const {
 
 .search-form {
   :deep(.el-form-item) {
-    margin-bottom: 12px;
     margin-right: 12px;
+    margin-bottom: 12px;
   }
 
   :deep(.el-input),

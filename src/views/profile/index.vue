@@ -1,17 +1,14 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from "vue";
-import ReCropperPreview from "@/components/ReCropperPreview";
+import ReAvatarUpload from "@/components/ReAvatarUpload";
 import { DictSelect } from "@/components/DictSelect";
 import { message } from "@/utils/message";
 import { fallbackAvatar } from "@/utils/avatar";
 import { useUserStoreHook } from "@/store/modules/user";
 import { ZxcvbnFactory } from "@zxcvbn-ts/core";
 import type { FormInstance, FormRules } from "element-plus";
-import { deviceDetection } from "@pureadmin/utils";
-import uploadLine from "~icons/ri/upload-line";
 import { changePassword, updateProfile, type ProfileInfo } from "@/api/profile";
 import { getCurrentUser } from "@/api/user";
-import { uploadAvatar } from "@/api/file";
 
 defineOptions({
   name: "UserProfile"
@@ -78,6 +75,7 @@ async function loadProfile() {
     if (success) {
       form.username = data.username;
       form.nickname = data.nickname ?? "";
+      nameForm.nickname = data.nickname ?? "";
       form.gender = data.gender ?? "";
       form.email = data.email ?? "";
       form.qq = data.qq ?? "";
@@ -106,6 +104,35 @@ async function saveProfile() {
   }
 }
 
+/* ================= 更改名称 ================= */
+const nameFormRef = ref();
+const nameLoading = ref(false);
+const nameForm = reactive({ nickname: "" });
+const nameRules = reactive<FormRules<{ nickname: string }>>({
+  nickname: [{ required: true, message: "请输入昵称", trigger: "blur" }]
+});
+
+/** 保存昵称:昵称随资料一起提交,同时同步导航栏显示 */
+async function saveName() {
+  await nameFormRef.value?.validate();
+  nameLoading.value = true;
+  try {
+    const { success } = await updateProfile({
+      ...form,
+      nickname: nameForm.nickname
+    });
+    if (success) {
+      form.nickname = nameForm.nickname;
+      // 同步导航栏昵称显示
+      userStore.SET_NICKNAME(form.nickname);
+      syncSnapshot();
+      message("昵称修改成功", { type: "success" });
+    }
+  } finally {
+    nameLoading.value = false;
+  }
+}
+
 /** 邮箱后缀联想(对齐 pure-admin 个人信息页) */
 function queryEmail(queryString, callback) {
   const emailList = [
@@ -125,56 +152,15 @@ function queryEmail(queryString, callback) {
   );
 }
 
-/* 头像上传:选择文件 → 弹窗裁剪 → 确认上传 */
-const uploadRef = ref();
-const cropRef = ref();
-const isShow = ref(false);
-const cropSrc = ref("");
-const cropperPayload = ref();
-const avatarLoading = ref(false);
-
-function onChange(uploadFile) {
-  const reader = new FileReader();
-  reader.onload = e => {
-    cropSrc.value = e.target.result as string;
-    isShow.value = true;
-  };
-  reader.readAsDataURL(uploadFile.raw);
-}
-
-function onCropper(payload) {
-  cropperPayload.value = payload;
-}
-
-function handleClose() {
-  cropRef.value?.hidePopover();
-  uploadRef.value?.clearFiles();
-  isShow.value = false;
-}
-
-async function saveAvatar() {
-  if (!cropperPayload.value) {
-    message("请先裁剪头像", { type: "warning" });
-    return;
-  }
-  avatarLoading.value = true;
-  try {
-    // mock 阶段:裁剪产物直接回传 base64;后端文件服务落地后返回真实文件 URL
-    const res = await uploadAvatar({ file: cropperPayload.value });
-    if (res.success) {
-      form.avatar = res.data.url;
-      const { success } = await updateProfile({ ...form });
-      if (success) {
-        // 同步导航栏头像显示
-        userStore.SET_AVATAR(form.avatar);
-        message("头像更新成功", { type: "success" });
-        syncSnapshot();
-      }
-      handleClose();
+/** 头像上传成功:保存资料并同步导航栏头像显示 */
+function onUploaded(url: string) {
+  userStore.SET_AVATAR(url);
+  updateProfile({ ...form }).then(({ success }) => {
+    if (success) {
+      message("头像更新成功", { type: "success" });
+      syncSnapshot();
     }
-  } finally {
-    avatarLoading.value = false;
-  }
+  });
 }
 
 /* ================= 更改密码 ================= */
@@ -283,21 +269,10 @@ loadProfile();
                 class="max-w-[600px]"
               >
                 <el-form-item label="头像">
-                  <el-avatar :size="80" :src="imgSrc" />
-                  <el-upload
-                    ref="uploadRef"
-                    accept="image/*"
-                    action="#"
-                    :limit="1"
-                    :auto-upload="false"
-                    :show-file-list="false"
-                    :on-change="onChange"
-                  >
-                    <el-button plain class="ml-4!">
-                      <IconifyIconOffline :icon="uploadLine" />
-                      <span class="ml-2">更新头像</span>
-                    </el-button>
-                  </el-upload>
+                  <ReAvatarUpload
+                    v-model="form.avatar"
+                    @uploaded="onUploaded"
+                  />
                 </el-form-item>
                 <el-form-item label="昵称" prop="nickname">
                   <el-input
@@ -363,6 +338,34 @@ loadProfile();
                 </div>
               </div>
             </template>
+          </el-tab-pane>
+          <el-tab-pane label="更改名称" name="name" lazy>
+            <el-skeleton v-if="loading" :rows="3" animated />
+            <el-form
+              v-else
+              ref="nameFormRef"
+              label-position="top"
+              :model="nameForm"
+              :rules="nameRules"
+              class="max-w-[400px]"
+            >
+              <el-form-item label="用户昵称" prop="nickname">
+                <el-input
+                  v-model="nameForm.nickname"
+                  clearable
+                  placeholder="请输入新的用户昵称"
+                />
+              </el-form-item>
+              <el-form-item>
+                <el-button
+                  type="primary"
+                  :loading="nameLoading"
+                  @click="saveName"
+                >
+                  保存更改
+                </el-button>
+              </el-form-item>
+            </el-form>
           </el-tab-pane>
           <el-tab-pane label="更改密码" name="password" lazy>
             <el-form
@@ -435,29 +438,5 @@ loadProfile();
         </el-tabs>
       </el-card>
     </div>
-    <!-- 编辑头像弹窗:选择图片后裁剪再上传 -->
-    <el-dialog
-      v-model="isShow"
-      width="40%"
-      title="编辑头像"
-      destroy-on-close
-      :close-on-click-modal="false"
-      :before-close="handleClose"
-      :fullscreen="deviceDetection()"
-    >
-      <ReCropperPreview ref="cropRef" :imgSrc="cropSrc" @cropper="onCropper" />
-      <template #footer>
-        <el-button bg text @click="handleClose">取消</el-button>
-        <el-button
-          bg
-          text
-          type="primary"
-          :loading="avatarLoading"
-          @click="saveAvatar"
-        >
-          确定
-        </el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>

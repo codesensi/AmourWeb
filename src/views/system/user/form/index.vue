@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import ReCol from "@/components/ReCol";
+import ReAvatarUpload from "@/components/ReAvatarUpload";
 import { DictSelect } from "@/components/DictSelect";
 import { formRules } from "../utils/rule";
 import { FormProps } from "../utils/types";
@@ -11,8 +12,10 @@ const props = withDefaults(defineProps<FormProps>(), {
     title: "新增",
     nickname: "",
     username: "",
+    avatar: "",
     qq: "",
-    gender: "",
+    email: "",
+    gender: "U",
     status: 0,
     remark: ""
   })
@@ -37,6 +40,21 @@ defineExpose({ getRef });
     label-width="82px"
   >
     <el-row :gutter="30">
+      <re-col>
+        <el-form-item label="用户头像">
+          <ReAvatarUpload v-model="newFormInline.avatar" />
+        </el-form-item>
+      </re-col>
+      <re-col :value="12" :xs="24" :sm="24">
+        <el-form-item label="用户名称" prop="username">
+          <el-input
+            v-model="newFormInline.username"
+            clearable
+            placeholder="请输入用户名称"
+            :disabled="newFormInline.title === '修改'"
+          />
+        </el-form-item>
+      </re-col>
       <re-col :value="12" :xs="24" :sm="24">
         <el-form-item label="用户昵称" prop="nickname">
           <el-input
@@ -47,20 +65,20 @@ defineExpose({ getRef });
         </el-form-item>
       </re-col>
       <re-col :value="12" :xs="24" :sm="24">
-        <el-form-item label="用户名称" prop="username">
-          <el-input
-            v-model="newFormInline.username"
-            clearable
-            placeholder="请输入用户名称"
-          />
-        </el-form-item>
-      </re-col>
-      <re-col :value="12" :xs="24" :sm="24">
         <el-form-item label="QQ号" prop="qq">
           <el-input
             v-model="newFormInline.qq"
             clearable
             placeholder="请输入QQ号"
+          />
+        </el-form-item>
+      </re-col>
+      <re-col :value="12" :xs="24" :sm="24">
+        <el-form-item label="邮箱" prop="email">
+          <el-input
+            v-model="newFormInline.email"
+            clearable
+            placeholder="请输入邮箱"
           />
         </el-form-item>
       </re-col>

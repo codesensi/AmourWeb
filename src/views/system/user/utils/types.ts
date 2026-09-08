@@ -7,7 +7,11 @@ interface FormItemProps {
   title: string;
   nickname: string;
   username: string;
+  /** 用户头像地址(裁剪上传后由文件服务返回) */
+  avatar?: string;
   qq: string;
+  /** 用户邮箱(选填,格式校验见 rule.ts) */
+  email?: string;
   /** 用户性别:U-未知,M-男,F-女 */
   gender: string;
   /** 用户状态:0-启用,1-禁用 */

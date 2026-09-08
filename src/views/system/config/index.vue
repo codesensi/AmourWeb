@@ -121,8 +121,8 @@ const {
 <style lang="scss" scoped>
 .search-form {
   :deep(.el-form-item) {
-    margin-bottom: 12px;
     margin-right: 12px;
+    margin-bottom: 12px;
   }
 
   :deep(.el-input),
