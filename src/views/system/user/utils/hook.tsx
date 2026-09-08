@@ -5,12 +5,13 @@ import editForm from "../form/index.vue";
 import { message } from "@/utils/message";
 import { DictTag } from "@/components/DictTag";
 import { usePublicHooks } from "../../hooks";
-import { ZxcvbnFactory } from "@zxcvbn-ts/core";
 import { addDialog } from "@/components/ReDialog";
 import type { PaginationProps } from "@pureadmin/table";
 import type { FormItemProps, RoleFormItemProps } from "../utils/types";
-import { getKeyList, isAllEmpty, deviceDetection } from "@pureadmin/utils";
+import { getKeyList, deviceDetection } from "@pureadmin/utils";
 import type { SysRoleOption } from "@/api/system";
+import { useDict } from "@/hooks/useDict";
+import { DICT_CODES } from "@/api/dict";
 import {
   deleteUser,
   getRoleList,
@@ -18,13 +19,11 @@ import {
   getUserRoleIds,
   insertUser,
   updateUser,
+  resetUserPwd,
+  changeUserStatus,
   assignRoles
 } from "@/api/system";
 import {
-  ElForm,
-  ElInput,
-  ElFormItem,
-  ElProgress,
   ElMessageBox
 } from "element-plus";
 import {
@@ -32,7 +31,6 @@ import {
   h,
   ref,
   toRaw,
-  watch,
   computed,
   reactive,
   onMounted
@@ -48,11 +46,12 @@ export function useUser(tableRef: Ref) {
     status: ""
   });
   const formRef = ref();
-  const ruleFormRef = ref();
   const dataList = ref([]);
   const loading = ref(true);
   const switchLoadMap = ref({});
   const { switchStyle } = usePublicHooks();
+  // 启停状态字典:开关文案与确认弹窗统一由 sys_dict(enable) 驱动
+  const { labelOf: enableLabelOf } = useDict(DICT_CODES.enable);
   const selectedNum = ref(0);
   const pagination = reactive<PaginationProps>({
     total: 0,
@@ -65,29 +64,9 @@ export function useUser(tableRef: Ref) {
       label: "勾选列", // 如果需要表格多选，此处label必须设置
       type: "selection",
       fixed: "left",
-      reserveSelection: true // 数据刷新后保留选项
-    },
-    {
-      label: "用户编号",
-      prop: "id",
-      width: 90
-    },
-    {
-      label: "用户头像",
-      prop: "avatar",
-      cellRenderer: ({ row }) =>
-        row.avatar ? (
-          <el-image
-            fit="cover"
-            preview-teleported={true}
-            src={row.avatar}
-            preview-src-list={Array.of(row.avatar)}
-            class="size-6 rounded-full align-middle"
-          />
-        ) : (
-          ""
-        ),
-      width: 90
+      reserveSelection: true, // 数据刷新后保留选项
+      /** 内置用户禁用勾选,全选时自动跳过(删除入口与后端校验对齐) */
+      selectable: row => row.builtin === 0
     },
     {
       label: "用户名称",
@@ -124,6 +103,23 @@ export function useUser(tableRef: Ref) {
       minWidth: 90
     },
     {
+      label: "用户头像",
+      prop: "avatar",
+      cellRenderer: ({ row }) =>
+        row.avatar ? (
+          <el-image
+            fit="cover"
+            preview-teleported={true}
+            src={row.avatar}
+            preview-src-list={Array.of(row.avatar)}
+            class="size-6 rounded-full align-middle"
+          />
+        ) : (
+          ""
+        ),
+      width: 90
+    },
+    {
       label: "备注",
       prop: "remark",
       minWidth: 130
@@ -139,8 +135,9 @@ export function useUser(tableRef: Ref) {
           v-model={scope.row.status}
           active-value={0}
           inactive-value={1}
-          active-text="已启用"
-          inactive-text="已停用"
+          active-text={enableLabelOf(0)}
+          inactive-text={enableLabelOf(1)}
+          disabled={scope.row.builtin === 1}
           inline-prompt
           style={switchStyle.value}
           onChange={() => onChange(scope as any)}
@@ -170,26 +167,12 @@ export function useUser(tableRef: Ref) {
       "dark:hover:text-primary!"
     ];
   });
-  // 重置的新密码
-  const pwdForm = reactive({
-    newPwd: ""
-  });
-  const pwdProgress = [
-    { color: "#e74242", text: "非常弱" },
-    { color: "#EFBD47", text: "弱" },
-    { color: "#ffa500", text: "一般" },
-    { color: "#1bbf1b", text: "强" },
-    { color: "#008000", text: "非常强" }
-  ];
-  // 当前密码强度（0-4）
-  const curScore = ref();
   const roleOptions = ref<SysRoleOption[]>([]);
-  const zxcvbnFactory = new ZxcvbnFactory();
 
   function onChange({ row, index }) {
     ElMessageBox.confirm(
       `确认要<strong>${
-        row.status === 0 ? "启用" : "停用"
+        row.status === 0 ? enableLabelOf(0) : enableLabelOf(1)
       }</strong><strong style='color:var(--el-color-primary)'>${
         row.username
       }</strong>用户吗?`,
@@ -202,7 +185,7 @@ export function useUser(tableRef: Ref) {
         draggable: true
       }
     )
-      .then(() => {
+      .then(async () => {
         switchLoadMap.value[index] = Object.assign(
           {},
           switchLoadMap.value[index],
@@ -210,7 +193,19 @@ export function useUser(tableRef: Ref) {
             loading: true
           }
         );
-        setTimeout(() => {
+        try {
+          await changeUserStatus({ id: row.id, status: row.status });
+          message(
+            `已${enableLabelOf(row.status)}<strong style='color:var(--el-color-primary)'>${row.username}</strong>用户`,
+            {
+              type: "success",
+              dangerouslyUseHTMLString: true
+            }
+          );
+        } catch (e) {
+          // 接口失败回滚开关,与取消回滚共用同一处理
+          row.status = row.status === 0 ? 1 : 0;
+        } finally {
           switchLoadMap.value[index] = Object.assign(
             {},
             switchLoadMap.value[index],
@@ -218,24 +213,35 @@ export function useUser(tableRef: Ref) {
               loading: false
             }
           );
-          message("已成功修改用户状态", {
-            type: "success"
-          });
-        }, 300);
+        }
       })
       .catch(() => {
         row.status === 0 ? (row.status = 1) : (row.status = 0);
       });
   }
 
-  function handleUpdate(row) {
-    // 待后端修改接口落地后接入
-  }
-
   async function handleDelete(row) {
-    await deleteUser(row.id);
-    message(`您删除了用户编号为${row.id}的这条数据`, { type: "success" });
-    onSearch();
+    // 确认弹窗与状态开关/修改新增弹窗风格一致;用户名样式加粗 + 主题主色
+    ElMessageBox.confirm(
+      `确认要删除<strong style='color:var(--el-color-primary)'>${row.username}</strong>用户吗?`,
+      "系统提示",
+      {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+        dangerouslyUseHTMLString: true,
+        draggable: true
+      }
+    )
+      .then(async () => {
+        await deleteUser(row.id);
+        message(
+          `成功删除<strong style='color:var(--el-color-primary)'>${row.username}</strong>用户`,
+          { type: "success", dangerouslyUseHTMLString: true }
+        );
+        onSearch();
+      })
+      .catch(() => {});
   }
 
   /** pure-table 已回写 pagination.currentPage/pageSize,此处重新拉取分页数据 */
@@ -261,16 +267,39 @@ export function useUser(tableRef: Ref) {
     tableRef.value.getTableRef().clearSelection();
   }
 
-  /** 批量删除 */
+  /** 批量删除(复用删除接口,ID 逗号拼接,后端整批校验) */
   function onbatchDel() {
-    // 返回当前选中的行
+    // 返回当前选中的行(selectable 已禁用内置用户勾选,选中项不会包含内置用户)
     const curSelected = tableRef.value.getTableRef().getSelectionRows();
-    // 接下来根据实际业务，通过选中行的某项数据，比如下面的id，调用接口进行批量删除
-    message(`已删除用户编号为 ${getKeyList(curSelected, "id")} 的数据`, {
-      type: "success"
-    });
-    tableRef.value.getTableRef().clearSelection();
-    onSearch();
+    const ids = getKeyList(curSelected, "id");
+    const names = getKeyList(curSelected, "username");
+    // 超过 3 个折叠展示,避免弹窗内容过长
+    const displayNames =
+      names.length > 3
+        ? `${names.slice(0, 3).join("、")} 等 ${names.length} 位`
+        : names.join("、");
+    // 确认弹窗与单条删除/状态开关风格一致;用户名加粗 + 主题主色
+    ElMessageBox.confirm(
+      `确认要删除<strong style='color:var(--el-color-primary)'>${displayNames}</strong>用户吗?`,
+      "系统提示",
+      {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+        dangerouslyUseHTMLString: true,
+        draggable: true
+      }
+    )
+      .then(async () => {
+        await deleteUser(ids.join(","));
+        message(
+          `成功删除<strong style='color:var(--el-color-primary)'>${displayNames}</strong>用户`,
+          { type: "success", dangerouslyUseHTMLString: true }
+        );
+        tableRef.value.getTableRef().clearSelection();
+        onSearch();
+      })
+      .catch(() => {});
   }
 
   async function onSearch() {
@@ -304,6 +333,7 @@ export function useUser(tableRef: Ref) {
       props: {
         formInline: {
           title,
+          id: row?.id ?? "",
           nickname: row?.nickname ?? "",
           username: row?.username ?? "",
           avatar: row?.avatar ?? "",
@@ -324,9 +354,22 @@ export function useUser(tableRef: Ref) {
         const FormRef = formRef.value.getRef();
         const curData = options.props.formInline as FormItemProps;
         function chores() {
-          message(`您${title}了用户名称为${curData.username}的这条数据`, {
-            type: "success"
-          });
+          if (title === "修改") {
+            // 用户名样式与状态开关确认弹窗对齐(加粗 + 主题主色)
+            message(
+              `成功修改<strong style='color:var(--el-color-primary)'>${curData.username}</strong>用户信息`,
+              {
+                type: "success",
+                dangerouslyUseHTMLString: true
+              }
+            );
+          } else {
+            // 用户名样式与状态开关确认弹窗对齐(加粗 + 主题主色)
+            message(
+              `成功新增<strong style='color:var(--el-color-primary)'>${curData.username}</strong>用户`,
+              { type: "success", dangerouslyUseHTMLString: true }
+            );
+          }
           done(); // 关闭弹框
           onSearch(); // 刷新表格数据
         }
@@ -336,7 +379,16 @@ export function useUser(tableRef: Ref) {
             if (title === "新增") {
               await insertUser(curData);
             } else {
-              await updateUser(curData);
+              // 修改:仅提交后端 UserUpdateRequest 接收的资料字段(id 定位,用户名/状态禁改)
+              await updateUser({
+                id: curData.id,
+                nickname: curData.nickname,
+                avatar: curData.avatar,
+                qq: curData.qq,
+                email: curData.email,
+                gender: curData.gender,
+                remark: curData.remark
+              });
             }
             chores();
           }
@@ -345,85 +397,26 @@ export function useUser(tableRef: Ref) {
     });
   }
 
-  watch(
-    pwdForm,
-    ({ newPwd }) =>
-      (curScore.value = isAllEmpty(newPwd)
-        ? -1
-        : zxcvbnFactory.check(newPwd).score)
-  );
-
-  /** 重置密码 */
+  /** 重置密码(重置为系统默认密码) */
   function handleReset(row) {
-    addDialog({
-      title: `重置 ${row.username} 用户的密码`,
-      width: "30%",
-      draggable: true,
-      closeOnClickModal: false,
-      fullscreen: deviceDetection(),
-      contentRenderer: () => (
-        <>
-          <ElForm ref={ruleFormRef} model={pwdForm}>
-            <ElFormItem
-              prop="newPwd"
-              rules={[
-                {
-                  required: true,
-                  message: "请输入新密码",
-                  trigger: "blur"
-                }
-              ]}
-            >
-              <ElInput
-                clearable
-                show-password
-                type="password"
-                v-model={pwdForm.newPwd}
-                placeholder="请输入新密码"
-              />
-            </ElFormItem>
-          </ElForm>
-          <div class="my-4 flex">
-            {pwdProgress.map(({ color, text }, idx) => (
-              <div
-                class="w-[19vw]"
-                style={{ marginLeft: idx !== 0 ? "4px" : 0 }}
-              >
-                <ElProgress
-                  striped
-                  striped-flow
-                  duration={curScore.value === idx ? 6 : 0}
-                  percentage={curScore.value >= idx ? 100 : 0}
-                  color={color}
-                  stroke-width={10}
-                  show-text={false}
-                />
-                <p
-                  class="text-center"
-                  style={{ color: curScore.value === idx ? color : "" }}
-                >
-                  {text}
-                </p>
-              </div>
-            ))}
-          </div>
-        </>
-      ),
-      closeCallBack: () => (pwdForm.newPwd = ""),
-      beforeSure: done => {
-        ruleFormRef.value.validate(valid => {
-          if (valid) {
-            // 表单规则校验通过
-            message(`已成功重置 ${row.username} 用户的密码`, {
-              type: "success"
-            });
-            // 根据实际业务使用pwdForm.newPwd和row里的某些字段去调用重置用户密码接口即可
-            done(); // 关闭弹框
-            onSearch(); // 刷新表格数据
-          }
-        });
+    ElMessageBox.confirm(
+      `确认要将<strong style='color:var(--el-color-primary)'>${row.username}</strong>用户的密码重置为系统默认密码吗?`,
+      "系统提示",
+      {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+        dangerouslyUseHTMLString: true,
+        draggable: true
       }
-    });
+    )
+      .then(async () => {
+        await resetUserPwd(row.id);
+        message(`已成功重置 ${row.username} 用户的密码`, {
+          type: "success"
+        });
+      })
+      .catch(() => {});
   }
 
   /** 分配角色 */
@@ -477,7 +470,6 @@ export function useUser(tableRef: Ref) {
     resetForm,
     onbatchDel,
     openDialog,
-    handleUpdate,
     handleDelete,
     handleReset,
     handleRole,

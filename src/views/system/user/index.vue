@@ -34,7 +34,6 @@ const {
   resetForm,
   onbatchDel,
   openDialog,
-  handleUpdate,
   handleDelete,
   handleReset,
   handleRole,
@@ -147,11 +146,15 @@ const {
               取消选择
             </el-button>
           </div>
-          <el-popconfirm title="是否确认删除?" @confirm="onbatchDel">
-            <template #reference>
-              <el-button type="danger" text class="mr-1!"> 批量删除 </el-button>
-            </template>
-          </el-popconfirm>
+          <el-button
+            v-if="hasPerms('system:user:delete')"
+            type="danger"
+            text
+            class="mr-1!"
+            @click="onbatchDel"
+          >
+            批量删除
+          </el-button>
         </div>
         <pure-table
           ref="tableRef"
@@ -185,23 +188,17 @@ const {
             >
               修改
             </el-button>
-            <el-popconfirm
-              :title="`是否确认删除用户编号为${row.id}的这条数据`"
-              @confirm="handleDelete(row)"
+            <el-button
+              v-if="hasPerms('system:user:delete') && row.builtin === 0"
+              class="reset-margin"
+              link
+              type="primary"
+              :size="size"
+              :icon="useRenderIcon(Delete)"
+              @click="handleDelete(row)"
             >
-              <template #reference>
-                <el-button
-                  v-if="hasPerms('system:user:delete')"
-                  class="reset-margin"
-                  link
-                  type="primary"
-                  :size="size"
-                  :icon="useRenderIcon(Delete)"
-                >
-                  删除
-                </el-button>
-              </template>
-            </el-popconfirm>
+              删除
+            </el-button>
             <el-dropdown>
               <el-button
                 class="ml-3! mt-0.5!"
@@ -209,7 +206,6 @@ const {
                 type="primary"
                 :size="size"
                 :icon="useRenderIcon(More)"
-                @click="handleUpdate(row)"
               />
               <template #dropdown>
                 <el-dropdown-menu>

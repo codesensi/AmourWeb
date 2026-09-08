@@ -62,9 +62,24 @@ export const updateUser = (data?: object) => {
   return http.request<ApiResult<null>>("put", "/sys/user/update", { data });
 };
 
-/** 用户管理-删除(DELETE /sys/user/delete/{id}) */
+/** 用户管理-删除(DELETE /sys/user/delete/{ids},id 支持英文逗号分隔批量删除) */
 export const deleteUser = (id: number | string) => {
   return http.request<ApiResult<null>>("delete", `/sys/user/delete/${id}`);
+};
+
+/** 用户管理-重置密码为系统默认密码(PUT /sys/user/reset-password/{id}) */
+export const resetUserPwd = (id: number | string) => {
+  return http.request<ApiResult<null>>(
+    "put",
+    `/sys/user/reset-password/${id}`
+  );
+};
+
+/** 用户管理-修改用户状态(PUT /sys/user/change-status) */
+export const changeUserStatus = (data?: object) => {
+  return http.request<ApiResult<null>>("put", "/sys/user/change-status", {
+    data
+  });
 };
 
 /** 用户管理-分配角色(PUT /sys/user/assign-roles) */
