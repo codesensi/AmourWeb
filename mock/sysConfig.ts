@@ -56,7 +56,7 @@ const configs = [
     id: "2002",
     configKey: "site.love-start-date",
     configValue: "2018-07-15 00:00:00",
-    valueType: "STRING",
+    valueType: "DATETIME",
     configGroup: "site",
     remark: "门户恋爱计时起点",
     updateTime: "2026-01-01 00:00:00"

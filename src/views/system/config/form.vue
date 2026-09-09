@@ -30,6 +30,11 @@ const booleanValue = computed(
   () => newFormInline.value.valueType === "BOOLEAN"
 );
 
+/** 是否日期时间型配置(DATETIME 用时间选择器渲染,产出 yyyy-MM-dd HH:mm:ss 字符串) */
+const datetimeValue = computed(
+  () => newFormInline.value.valueType === "DATETIME"
+);
+
 /** 数字输入框与字符串值的桥接(清空回落为空串,交由必填校验拦截) */
 const numericProxy = computed<number | undefined>({
   get: () => {
@@ -45,6 +50,12 @@ const numericProxy = computed<number | undefined>({
 const booleanProxy = computed<string>({
   get: () => newFormInline.value.configValue,
   set: value => (newFormInline.value.configValue = value)
+});
+
+/** 日期时间选择器与字符串值的桥接(清空回落为空串,交由必填校验拦截) */
+const datetimeProxy = computed<string>({
+  get: () => newFormInline.value.configValue,
+  set: value => (newFormInline.value.configValue = value ?? "")
 });
 
 /** 配置键 → 字典编码(取值可枚举的配置项用字典下拉替代自由文本,与 init_dml.sql 字典种子对齐) */
@@ -110,6 +121,14 @@ defineExpose({ getRef });
         v-model="numericProxy"
         :precision="0"
         controls-position="right"
+        class="!w-full"
+      />
+      <el-date-picker
+        v-else-if="datetimeValue"
+        v-model="datetimeProxy"
+        type="datetime"
+        value-format="YYYY-MM-DD HH:mm:ss"
+        placeholder="请选择日期时间"
         class="!w-full"
       />
       <el-input
