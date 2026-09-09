@@ -16,16 +16,14 @@ const props = withDefaults(defineProps<FormProps>(), {
     status: 0,
     builtin: 0,
     remark: ""
-  }),
-  typeOptions: () => [],
-  codeEditable: false
+  })
 });
 
 const ruleFormRef = ref();
 const { switchStyle } = usePublicHooks();
 const newFormInline = ref(props.formInline);
 
-/** 内置行(builtin=1)编辑时锁定字典值,仅允许改名称/标签/排序/备注/状态 */
+/** 内置行(builtin=1)编辑时锁定字典值,仅允许改名称/标签/排序/备注;状态经列表启停开关维护 */
 const builtinLocked = computed(() => newFormInline.value.builtin === 1);
 
 function getRef() {
@@ -43,31 +41,12 @@ defineExpose({ getRef });
     label-width="82px"
   >
     <el-form-item label="字典编码" prop="dictCode">
-      <el-select
-        v-if="codeEditable"
-        v-model="newFormInline.dictCode"
-        filterable
-        allow-create
-        default-first-option
-        placeholder="选择已有编码或输入新编码"
-        class="w-full"
-      >
-        <el-option
-          v-for="item in typeOptions"
-          :key="item.dictCode"
-          :label="`${item.dictName}（${item.dictCode}）`"
-          :value="item.dictCode"
-        />
-      </el-select>
-      <el-input v-else v-model="newFormInline.dictCode" disabled />
+      <el-input v-model="newFormInline.dictCode" disabled />
     </el-form-item>
 
     <el-form-item label="字典名称" prop="dictName">
-      <el-input
-        v-model="newFormInline.dictName"
-        clearable
-        placeholder="请输入字典名称"
-      />
+      <!-- 字典名称即类型名(组内共享):新增时预填当前类型中文名,修改时回填原值,均由后端按组内首条自动继承 -->
+      <el-input v-model="newFormInline.dictName" disabled />
     </el-form-item>
 
     <el-form-item label="字典值" prop="dictValue">
@@ -95,7 +74,8 @@ defineExpose({ getRef });
       />
     </el-form-item>
 
-    <el-form-item label="状态">
+    <!-- 修改时状态经列表启停开关维护,仅新增时可选 -->
+    <el-form-item v-if="newFormInline.title === '新增'" label="状态">
       <el-switch
         v-model="newFormInline.status"
         inline-prompt

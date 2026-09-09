@@ -1,4 +1,4 @@
-// 字典管理 mock(对齐后端 /sys/dict 查询接口;写接口后端未实现,暂不提供 mock)
+// 字典管理 mock(对齐后端 SysDictController:/sys/dict/*;写接口落地内存数据,刷新页面即还原)
 // 行数据契约对齐 DictPageResponse:id/dictCode/dictName/dictValue/dictLabel/sort/status/builtin/remark/createTime
 // 组数据契约对齐 DictGroupResponse:dictCode/items(dictValue/dictLabel/sort)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
@@ -336,6 +336,31 @@ function groupByCodes(codes: Array<string>) {
     .filter(group => group.items.length > 0);
 }
 
+/** 当前时间,格式对齐后端 createTime(yyyy-MM-dd HH:mm:ss) */
+const formatNow = () => {
+  const d = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+};
+
+/** 对齐后端 Result<T> 的成功响应(自动携带 timestamp) */
+const ok = (data = null, msg = "操作成功") => ({
+  success: true,
+  code: 200,
+  msg,
+  data,
+  timestamp: Date.now()
+});
+
+/** 对齐后端 Result<T> 的失败响应 */
+const fail = (msg: string) => ({
+  success: false,
+  code: 400,
+  msg,
+  data: null,
+  timestamp: Date.now()
+});
+
 export default defineFakeRoute([
   // 字典类型列表(GET /sys/dict/type-list,按编码聚合,含条目数)
   {
@@ -385,7 +410,8 @@ export default defineFakeRoute([
       };
     }
   },
-  // 分页查询(GET /sys/dict/page)
+  // 分页查询(GET /sys/dict/page;过滤与排序对齐后端:编码/名称/值模糊,状态精确,
+  // 排序为编码升序 → 组内 sort 升序 → id 升序)
   {
     url: "/sys/dict/page",
     method: "get",
@@ -394,14 +420,22 @@ export default defineFakeRoute([
       const pageSize = Number(query.pageSize ?? 20);
       const dictCode = String(query.dictCode ?? "");
       const dictName = String(query.dictName ?? "");
+      const dictValue = String(query.dictValue ?? "");
       const status = query.status == null ? "" : String(query.status);
       const filtered = dicts.filter(item => {
         return (
           (dictCode === "" || item.dictCode.includes(dictCode)) &&
           (dictName === "" || item.dictName.includes(dictName)) &&
+          (dictValue === "" || item.dictValue.includes(dictValue)) &&
           (status === "" || String(item.status) === status)
         );
       });
+      filtered.sort(
+        (a, b) =>
+          a.dictCode.localeCompare(b.dictCode) ||
+          a.sort - b.sort ||
+          Number(a.id) - Number(b.id)
+      );
       const records = filtered
         .slice((pageNumber - 1) * pageSize, pageNumber * pageSize)
         .map(({ remark, ...rest }) => ({ ...rest, remark }));
@@ -418,6 +452,96 @@ export default defineFakeRoute([
           totalPage: Math.ceil(filtered.length / pageSize)
         }
       };
+    }
+  },
+  // 新增(POST /sys/dict/insert,落地内存数据;同编码下字典值唯一;字典名称自动继承组内首条,对齐后端校验)
+  {
+    url: "/sys/dict/insert",
+    method: "post",
+    response: ({ body }) => {
+      const dictCode = String(body?.dictCode ?? "");
+      const dictValue = String(body?.dictValue ?? "");
+      const exists = dicts.some(
+        item => item.dictCode === dictCode && item.dictValue === dictValue
+      );
+      if (exists) {
+        return fail(`字典编码[${dictCode}]下字典值[${dictValue}]已存在`);
+      }
+      const first = dicts.find(item => item.dictCode === dictCode);
+      const maxId = Math.max(...dicts.map(item => Number(item.id)), 0);
+      dicts.push({
+        id: String(maxId + 1),
+        dictCode,
+        dictName: first?.dictName ?? dictCode,
+        dictValue,
+        dictLabel: body?.dictLabel ?? "",
+        sort: body?.sort ?? 1,
+        status: body?.status ?? 0,
+        builtin: 0,
+        remark: body?.remark ?? "",
+        createTime: formatNow()
+      });
+      return ok();
+    }
+  },
+  // 修改(PUT /sys/dict/update,落地内存数据;字典编码/字典名称/内置标识/创建时间不可改;
+  // 内置条目锁定字典值,对齐后端 DictUpdateRequest 与 builtin 校验)
+  {
+    url: "/sys/dict/update",
+    method: "put",
+    response: ({ body }) => {
+      const target = dicts.find(item => item.id === String(body?.id));
+      if (!target) return fail("字典条目不存在");
+      if (
+        target.builtin === 1 &&
+        target.dictValue !== String(body?.dictValue)
+      ) {
+        return fail("内置字典条目不允许修改字典值");
+      }
+      target.dictValue = body?.dictValue ?? target.dictValue;
+      target.dictLabel = body?.dictLabel ?? target.dictLabel;
+      target.sort = body?.sort ?? target.sort;
+      target.remark = body?.remark ?? target.remark;
+      return ok();
+    }
+  },
+  // 删除(DELETE /sys/dict/delete/:id,落地内存数据;id 支持英文逗号分隔批量,
+  // 内置条目不可删且整批失败,对齐后端校验)
+  {
+    url: "/sys/dict/delete/:id",
+    method: "delete",
+    response: ({ params }) => {
+      const ids = String(params.id)
+        .split(",")
+        .map(item => item.trim())
+        .filter(Boolean);
+      const missing = ids.filter(id => !dicts.some(item => item.id === id));
+      if (missing.length) {
+        return fail(`字典条目不存在：${missing.join("、")}`);
+      }
+      const containsBuiltin = dicts.some(
+        item => ids.includes(item.id) && item.builtin === 1
+      );
+      if (containsBuiltin) {
+        return fail("内置字典条目不允许删除");
+      }
+      for (const id of ids) {
+        const index = dicts.findIndex(item => item.id === id);
+        if (index !== -1) dicts.splice(index, 1);
+      }
+      return ok();
+    }
+  },
+  // 修改状态(PUT /sys/dict/change-status,落地内存数据;内置条目不允许更改状态)
+  {
+    url: "/sys/dict/change-status",
+    method: "put",
+    response: ({ body }) => {
+      const target = dicts.find(item => item.id === String(body?.id));
+      if (!target) return fail("字典条目不存在");
+      if (target.builtin === 1) return fail("内置字典条目不允许更改状态");
+      target.status = Number(body?.status);
+      return ok();
     }
   }
 ]);

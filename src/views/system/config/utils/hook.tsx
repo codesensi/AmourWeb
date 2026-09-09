@@ -5,7 +5,6 @@ import editForm from "../form.vue";
 import type { FormItemProps } from "./types";
 import {
   getConfigPage,
-  refreshConfigCache,
   updateConfig
 } from "@/api/sysConfig";
 import type { SysConfigPageItem } from "@/api/sysConfig";
@@ -154,12 +153,6 @@ export function useConfigPage() {
     onSearch();
   }
 
-  /** 清空全部 config 缓存,下次读取时回源查库(清空动作在后端完成) */
-  async function handleRefreshCache() {
-    await refreshConfigCache();
-    message("配置缓存已刷新", { type: "success" });
-  }
-
   onMounted(() => {
     onSearch();
   });
@@ -173,7 +166,6 @@ export function useConfigPage() {
     onSearch,
     resetForm,
     openEdit,
-    handleRefreshCache,
     handleSizeChange,
     handleCurrentChange
   };

@@ -25,7 +25,6 @@ const {
   onSearch,
   resetForm,
   openEdit,
-  handleRefreshCache,
   handleSizeChange,
   handleCurrentChange
 } = useConfigPage();
@@ -83,15 +82,6 @@ function onFullscreen() {
       @refresh="onSearch"
       @fullscreen="onFullscreen"
     >
-      <template #buttons>
-        <el-button
-          v-if="hasPerms('system:config:update')"
-          :icon="useRenderIcon(Refresh)"
-          @click="handleRefreshCache"
-        >
-          刷新缓存
-        </el-button>
-      </template>
       <template v-slot="{ size, dynamicColumns }">
         <pure-table
           ref="tableRef"

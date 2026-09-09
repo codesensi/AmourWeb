@@ -74,8 +74,3 @@ export type SysConfigUpdate = {
 export const updateConfig = (data: SysConfigUpdate) => {
   return http.request<ApiResult<null>>("put", "/sys/config/update", { data });
 };
-
-/** 刷新配置缓存(POST /sys/config/refresh-cache;清空全部 config 缓存,下次读取回源查库) */
-export const refreshConfigCache = () => {
-  return http.request<ApiResult<null>>("post", "/sys/config/refresh-cache");
-};

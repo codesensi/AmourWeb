@@ -16,7 +16,6 @@ defineOptions({
 });
 
 const formRef = ref();
-const tableRef = ref();
 
 const {
   typeKeyword,
@@ -30,12 +29,16 @@ const {
   columns,
   dataList,
   pagination,
+  tableRef,
+  selectedNum,
   onSearch,
   resetForm,
   openCreate,
-  openCreateType,
   openEdit,
   handleDelete,
+  handleSelectionChange,
+  onSelectionCancel,
+  onbatchDel,
   handleSizeChange,
   handleCurrentChange
 } = useDictPage();
@@ -76,15 +79,6 @@ const {
           description="暂无字典类型"
         />
       </el-scrollbar>
-      <el-button
-        v-if="hasPerms('system:dict:insert')"
-        type="primary"
-        class="mt-2"
-        :icon="useRenderIcon(AddFill)"
-        @click="openCreateType"
-      >
-        新建类型
-      </el-button>
     </div>
 
     <!-- 右侧:选中类型下的字典数据(从) -->
@@ -145,8 +139,35 @@ const {
           </el-button>
         </template>
         <template v-slot="{ size, dynamicColumns }">
+          <div
+            v-if="selectedNum > 0"
+            v-motion-fade
+            class="bg-(--el-fill-color-light) w-full h-11.5 mb-2 pl-4 flex items-center"
+          >
+            <div class="flex-auto">
+              <span
+                style="font-size: var(--el-font-size-base)"
+                class="text-[rgba(42,46,54,0.5)] dark:text-[rgba(220,220,242,0.5)]"
+              >
+                已选 {{ selectedNum }} 项
+              </span>
+              <el-button type="primary" text @click="onSelectionCancel">
+                取消选择
+              </el-button>
+            </div>
+            <el-button
+              v-if="hasPerms('system:dict:delete')"
+              type="danger"
+              text
+              class="mr-1!"
+              @click="onbatchDel"
+            >
+              批量删除
+            </el-button>
+          </div>
           <pure-table
             ref="tableRef"
+            row-key="id"
             adaptive
             :adaptiveConfig="{ offsetBottom: 108 }"
             align-whole="center"
@@ -161,6 +182,7 @@ const {
               background: 'var(--el-fill-color-light)',
               color: 'var(--el-text-color-primary)'
             }"
+            @selection-change="handleSelectionChange"
             @page-size-change="handleSizeChange"
             @page-current-change="handleCurrentChange"
           >
@@ -176,23 +198,17 @@ const {
               >
                 修改
               </el-button>
-              <el-popconfirm
-                :title="`是否确认删除字典标签为${row.dictLabel}的这条数据`"
-                @confirm="handleDelete(row)"
+              <el-button
+                v-if="hasPerms('system:dict:delete') && row.builtin === 0"
+                class="reset-margin"
+                link
+                type="primary"
+                :size="size"
+                :icon="useRenderIcon(Delete)"
+                @click="handleDelete(row)"
               >
-                <template #reference>
-                  <el-button
-                    v-if="hasPerms('system:dict:delete')"
-                    class="reset-margin"
-                    link
-                    type="primary"
-                    :size="size"
-                    :icon="useRenderIcon(Delete)"
-                  >
-                    删除
-                  </el-button>
-                </template>
-              </el-popconfirm>
+                删除
+              </el-button>
             </template>
           </pure-table>
         </template>
