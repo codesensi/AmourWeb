@@ -6,9 +6,8 @@ import { usePagedList } from "@/hooks/usePagedList";
 defineOptions({ name: "PortalMoments" });
 
 /** 门户「加载更多」分页加载(每页 6 条,与原站 PAGE_SIZE 一致) */
-const { items, loading, hasMore, loadMore } = usePagedList<MomentsItem>(
-  getMoments
-);
+const { items, loading, hasMore, loadMore } =
+  usePagedList<MomentsItem>(getMoments);
 
 onMounted(() => loadMore());
 </script>

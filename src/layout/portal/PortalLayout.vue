@@ -17,12 +17,7 @@ const sysConfig = ref<Partial<SysConfig>>({});
 onMounted(async () => {
   Object.assign(
     sysConfig.value,
-    await fetchSysConfig(
-      "name",
-      "icp",
-      "copyrightYear",
-      "siteLoveStartDate"
-    )
+    await fetchSysConfig("name", "icp", "copyrightYear", "siteLoveStartDate")
   );
 });
 provide("portalSysConfig", sysConfig);

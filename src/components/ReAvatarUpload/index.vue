@@ -146,7 +146,7 @@ async function saveAvatar() {
           @blur="validateUrl"
           @input="validateUrl"
         />
-        <div v-if="urlError" class="mt-1 text-xs text-[var(--el-color-danger)]">
+        <div v-if="urlError" class="mt-1 text-xs text-(--el-color-danger)">
           {{ urlError }}
         </div>
       </div>

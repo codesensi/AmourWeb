@@ -234,14 +234,14 @@ loadProfile();
   <div class="p-2">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-start">
       <!-- 左卡:身份卡 -->
-      <el-card shadow="never" class="shrink-0 lg:w-[280px]">
+      <el-card shadow="never" class="shrink-0 lg:w-70">
         <el-skeleton v-if="loading" :rows="5" animated />
         <div v-else class="flex flex-col items-center gap-2 text-center">
           <el-avatar :size="96" :src="imgSrc" />
           <span class="text-lg font-bold">
             {{ form.nickname || form.username }}
           </span>
-          <span class="text-sm text-[var(--el-text-color-secondary)]">
+          <span class="text-sm text-(--el-text-color-secondary)">
             {{ form.username }}
           </span>
           <div class="flex flex-wrap justify-center gap-2">
@@ -250,7 +250,7 @@ loadProfile();
             </el-tag>
           </div>
           <el-divider class="w-full!" />
-          <p class="text-sm leading-6 text-[var(--el-text-color-regular)]">
+          <p class="text-sm/6 text-(--el-text-color-regular)">
             {{ form.remark || "这个人很懒,什么都没有留下~" }}
           </p>
         </div>
@@ -266,7 +266,7 @@ loadProfile();
                 label-position="top"
                 :model="form"
                 :rules="profileRules"
-                class="max-w-[600px]"
+                class="max-w-150"
               >
                 <el-form-item label="头像">
                   <ReAvatarUpload
@@ -321,9 +321,9 @@ loadProfile();
               <!-- 资料有未保存更改时出现的粘性保存条 -->
               <div
                 v-if="isDirty"
-                class="sticky bottom-0 z-10 mt-4 flex items-center gap-2 border-t border-[var(--el-border-color-lighter)] bg-[var(--el-card-bg-color)] py-3"
+                class="sticky bottom-0 z-10 mt-4 flex items-center gap-2 border-t border-(--el-border-color-lighter) bg-(--el-card-bg-color) py-3"
               >
-                <span class="text-sm text-[var(--el-text-color-secondary)]">
+                <span class="text-sm text-(--el-text-color-secondary)">
                   个人信息有未保存的更改
                 </span>
                 <div class="ml-auto flex gap-2">
@@ -347,7 +347,7 @@ loadProfile();
               label-position="top"
               :model="nameForm"
               :rules="nameRules"
-              class="max-w-[400px]"
+              class="max-w-100"
             >
               <el-form-item label="用户昵称" prop="nickname">
                 <el-input
@@ -373,7 +373,7 @@ loadProfile();
               label-position="top"
               :model="pwdForm"
               :rules="pwdRules"
-              class="max-w-[600px]"
+              class="max-w-150"
             >
               <el-form-item label="原密码" prop="oldPwd">
                 <el-input

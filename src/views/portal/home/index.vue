@@ -12,10 +12,7 @@ import { parseDateTime } from "@/utils/date";
 defineOptions({ name: "PortalHome" });
 
 /** 站点展示配置:由 PortalLayout provide */
-const sysConfig = inject<Ref<Partial<SysConfig>>>(
-  "portalSysConfig",
-  ref({})
-);
+const sysConfig = inject<Ref<Partial<SysConfig>>>("portalSysConfig", ref({}));
 
 /** 功能卡片:文案与结构照搬原站 */
 const cards = [

@@ -19,7 +19,7 @@ import { ElMessageBox } from "element-plus";
 import type { PaginationProps } from "@pureadmin/table";
 import { deviceDetection, getKeyList } from "@pureadmin/utils";
 import { h, ref, toRaw, reactive, computed, onMounted } from "vue";
-import type { SysDictPageItem, SysDictTypeItem } from "@/api/dict";
+import type { SysDictTypeItem } from "@/api/dict";
 
 export function useDictPage() {
   // ===== 左侧:字典类型列表 =====
@@ -193,7 +193,7 @@ export function useDictPage() {
             `已${row.status === 0 ? "启用" : "禁用"}<strong style='color:var(--el-color-primary)'>${row.dictLabel}</strong>字典条目`,
             { type: "success", dangerouslyUseHTMLString: true }
           );
-        } catch (e) {
+        } catch {
           // 接口失败回滚开关,与取消回滚共用同一处理
           row.status = row.status === 0 ? 1 : 0;
         } finally {

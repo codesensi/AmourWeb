@@ -306,6 +306,30 @@ export const menus: MenuItem[] = [
     hidden: 0,
     builtin: 1
   },
+  {
+    id: "1600",
+    pid: "1000",
+    title: "缓存监控",
+    type: "M",
+    path: "/admin/system/cache",
+    component: "system/cache/index",
+    sort: 6,
+    icon: "ep:monitor",
+    status: 0,
+    hidden: 0,
+    builtin: 1
+  },
+  {
+    id: "1601",
+    pid: "1600",
+    title: "查询",
+    type: "B",
+    perms: "system:cache:list",
+    sort: 1,
+    status: 0,
+    hidden: 0,
+    builtin: 1
+  },
   // 日志管理（模板保留的 monitor 页面已更名 logs，第 3 期与后端蓝图对齐）
   {
     id: "3000",
@@ -360,7 +384,8 @@ export default defineFakeRoute([
         data: {
           username: "admin",
           nickname: "超级管理员",
-          avatar: "https://q.qlogo.cn/headimg_dl?dst_uin=12345678&spec=640&img_type=jpg",
+          avatar:
+            "https://q.qlogo.cn/headimg_dl?dst_uin=12345678&spec=640&img_type=jpg",
           idCard: "",
           email: "",
           phone: "",

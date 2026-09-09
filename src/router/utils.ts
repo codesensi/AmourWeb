@@ -30,7 +30,6 @@ const modulesRoutes = import.meta.glob("/src/views/**/*.{vue,tsx}");
 // 动态路由(由当前登录用户菜单装配)
 import { getCurrentUser, type MenuItem } from "@/api/user";
 import { useUserStoreHook } from "@/store/modules/user";
-import { resolveUserDisplay } from "@/utils/userDisplay";
 
 const PAGE_NOT_FOUND_ROUTE_NAME = "PageNotFound" as const;
 

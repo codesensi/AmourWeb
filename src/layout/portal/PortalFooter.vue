@@ -13,7 +13,8 @@ const props = defineProps<{ sysConfig: Partial<SysConfig> }>();
 const copyrightYears = computed(() => {
   const nowYear = new Date().getFullYear();
   const startYear = Number.parseInt(props.sysConfig.copyrightYear ?? "", 10);
-  const start = Number.isInteger(startYear) && startYear < nowYear ? startYear : null;
+  const start =
+    Number.isInteger(startYear) && startYear < nowYear ? startYear : null;
   return start ? `${start}-${nowYear}` : String(nowYear);
 });
 

@@ -70,7 +70,8 @@ onMounted(resolveSaying);
             ref="sayingText"
             class="wenan"
             :class="{ 'wenan-marquee': sayingOverflow }"
-          >{{ saying.content }}</span>
+            >{{ saying.content }}</span
+          >
           <span v-if="sayingFrom" class="wenan-from">—— {{ sayingFrom }}</span>
         </div>
       </el-tooltip>

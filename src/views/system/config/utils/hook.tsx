@@ -3,10 +3,7 @@ import { addDialog } from "@/components/ReDialog";
 import { DictTag } from "@/components/DictTag";
 import editForm from "../form.vue";
 import type { FormItemProps } from "./types";
-import {
-  getConfigPage,
-  updateConfig
-} from "@/api/sysConfig";
+import { getConfigPage, updateConfig } from "@/api/sysConfig";
 import type { SysConfigPageItem } from "@/api/sysConfig";
 import type { PaginationProps } from "@pureadmin/table";
 import { deviceDetection } from "@pureadmin/utils";

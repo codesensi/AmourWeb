@@ -1,7 +1,7 @@
 import { http } from "@/utils/http";
 import { omitEmpty } from "@/utils/params";
 import type { ApiResult, PageQuery, PageResult } from "@/api/types";
-import { type MenuItem } from "./user";
+import type { MenuItem } from "./user";
 
 /** 用户管理-行数据 */
 export type SysUserItem = {

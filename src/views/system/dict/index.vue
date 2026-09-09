@@ -48,7 +48,7 @@ const {
   <div class="flex items-start">
     <!-- 左侧:字典类型列表(主) -->
     <div
-      class="bg-bg_color w-[220px] flex-none px-2 pt-3 pb-2 overflow-hidden flex flex-col self-stretch"
+      class="bg-bg_color w-55 flex-none px-2 pt-3 pb-2 overflow-hidden flex flex-col self-stretch"
     >
       <el-input v-model="typeKeyword" placeholder="搜索字典类型" clearable />
       <el-scrollbar class="flex-1 mt-2" max-height="calc(100vh - 250px)">
@@ -56,7 +56,7 @@ const {
           v-for="item in filteredTypes"
           :key="item.dictCode"
           :class="[
-            'flex items-center justify-between gap-1 rounded-sm px-3 py-2 cursor-pointer select-none transition-colors',
+            'flex-bc   gap-1 rounded-sm px-3 py-2 cursor-pointer select-none transition-colors',
             item.dictCode === selectedCode
               ? 'bg-(--el-color-primary-light-9) text-primary'
               : 'hover:bg-[#0000000f] dark:hover:bg-[#ffffff1f]'

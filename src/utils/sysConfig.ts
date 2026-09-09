@@ -33,7 +33,9 @@ export type SysConfig = {
 export async function fetchSysConfig<F extends SysConfigField>(
   ...fields: F[]
 ): Promise<Pick<SysConfig, F>> {
-  const res = await getSysConfig(fields.map(field => SYS_CONFIG_KEYS[field].key));
+  const res = await getSysConfig(
+    fields.map(field => SYS_CONFIG_KEYS[field].key)
+  );
   const data = {} as Pick<SysConfig, F>;
   if (res.success) {
     for (const item of res.data) {

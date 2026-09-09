@@ -104,7 +104,7 @@ defineExpose({ getRef });
         v-model="newFormInline.configValue"
         :dict-code="configDictCode"
         placeholder="请选择配置值"
-        class="!w-full"
+        class="w-full!"
       />
       <el-switch
         v-else-if="booleanValue"
@@ -121,7 +121,7 @@ defineExpose({ getRef });
         v-model="numericProxy"
         :precision="0"
         controls-position="right"
-        class="!w-full"
+        class="w-full!"
       />
       <el-date-picker
         v-else-if="datetimeValue"
@@ -129,7 +129,7 @@ defineExpose({ getRef });
         type="datetime"
         value-format="YYYY-MM-DD HH:mm:ss"
         placeholder="请选择日期时间"
-        class="!w-full"
+        class="w-full!"
       />
       <el-input
         v-else

@@ -192,7 +192,7 @@ export function useMenu() {
             `已${action}<strong style='color:var(--el-color-primary)'>${row.title}</strong>菜单`,
             { type: "success", dangerouslyUseHTMLString: true }
           );
-        } catch (e) {
+        } catch {
           // 接口失败回滚开关,与取消回滚共用同一处理
           row.status = row.status === 0 ? 1 : 0;
         } finally {

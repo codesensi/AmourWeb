@@ -93,10 +93,7 @@ onMounted(() => {
         </span>
         <template #dropdown>
           <el-dropdown-item @click="toProfile">
-            <IconifyIconOffline
-              :icon="UserSettingsIcon"
-              style="margin: 5px"
-            />
+            <IconifyIconOffline :icon="UserSettingsIcon" style="margin: 5px" />
             个人中心
           </el-dropdown-item>
           <el-dropdown-menu class="logout">

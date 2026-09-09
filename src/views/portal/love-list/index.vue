@@ -6,9 +6,8 @@ import { usePagedList } from "@/hooks/usePagedList";
 defineOptions({ name: "PortalLoveList" });
 
 /** 门户「加载更多」分页加载(每页 6 条,与原站 PAGE_SIZE 一致) */
-const { items, loading, hasMore, loadMore } = usePagedList<LoveListItem>(
-  getLoveList
-);
+const { items, loading, hasMore, loadMore } =
+  usePagedList<LoveListItem>(getLoveList);
 
 onMounted(() => loadMore());
 </script>
