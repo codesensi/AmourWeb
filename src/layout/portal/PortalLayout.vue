@@ -21,8 +21,6 @@ onMounted(async () => {
       "name",
       "icp",
       "copyrightYear",
-      "qqService",
-      "avatarService",
       "siteSlogan",
       "siteLoveStartDate"
     )

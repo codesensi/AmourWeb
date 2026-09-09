@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { computed, inject, onMounted, reactive, ref, type Ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { getMessage, sendMessage, type MessageItem } from "@/api/portal";
-import type { SysConfig } from "@/utils/sysConfig";
 import { message } from "@/utils/message";
-import { fallbackAvatar, randomAvatar } from "@/utils/avatar";
+import { fallbackAvatar } from "@/utils/avatar";
 import { fetchQqInfo } from "@/utils/qqInfo";
 
 defineOptions({ name: "PortalMessage" });
@@ -31,6 +30,7 @@ async function loadMore() {
       items.value.push(...data.records);
       totalRow.value = data.totalRow;
       pageNumber.value = data.pageNumber;
+      resolveListAvatars(data.records);
     }
   } finally {
     loading.value = false;
@@ -45,12 +45,6 @@ function reloadMessages() {
   loadMore();
 }
 
-/** 站点展示配置(portal 布局 provide):随机头像服务地址模板取自 sys_config avatar-service */
-const sysConfig = inject<Ref<Partial<SysConfig>>>(
-  "portalSysConfig",
-  ref({})
-);
-
 /** 留言表单:校验文案逐字保留原站 */
 const form = reactive({ qq: "", name: "", text: "" });
 const submitting = ref(false);
@@ -62,14 +56,34 @@ const DEMO_QQ = "1234567";
 /** 表单区头像 QQ(初始为演示号,QQ 失焦后切换,对齐原站) */
 const previewQq = ref(DEMO_QQ);
 
+/** 留言列表头像地址表(按 QQ 号;地址经 /qq-info 获取,后端已降级,同号恒定) */
+const listAvatars = reactive<Record<string, string>>({});
+
 /** 列表头像加载失败标记(按 QQ 号记录,失败后固定本地兜底图) */
 const listAvatarErrors = reactive<Record<string, boolean>>({});
 
-/** 留言列表头像地址:avatar-service(QQ 号种子,同号恒定)→ 加载失败本地兜底图 */
+/** 列表头像地址:已解析用解析地址,解析中/失败用本地兜底图 */
 function listAvatarSrc(qq: string): string {
-  return listAvatarErrors[qq]
-    ? fallbackAvatar
-    : randomAvatar(qq, sysConfig.value.avatarService);
+  return listAvatars[qq] || fallbackAvatar;
+}
+
+/**
+ * 批量解析留言头像:逐条调用 /qq-info(后端 qq-api 优先、失败降级 avatar-api,带 15 分钟缓存)。
+ * 同号去重,已解析/已失败的跳过;失败静默,保持本地兜底图展示。
+ */
+function resolveListAvatars(records: MessageItem[]) {
+  const qqs = new Set(
+    records
+      .map(m => m.qq)
+      .filter(qq => qq && !listAvatars[qq] && !listAvatarErrors[qq])
+  );
+  qqs.forEach(qq => {
+    void fetchQqInfo(qq).then(({ avatarUrl }) => {
+      if (avatarUrl) {
+        listAvatars[qq] = avatarUrl;
+      }
+    });
+  });
 }
 
 /** 列表头像加载失败:改用本地兜底图 */
@@ -77,7 +91,7 @@ function onListAvatarError(qq: string) {
   listAvatarErrors[qq] = true;
 }
 
-/** qq-info 工具返回的头像地址(接口解析地址优先,缺省为 avatar-service 兜底地址) */
+/** qq-info 返回的头像地址(后端已降级,恒非空;后端 avatar-api 未配置时为空) */
 const previewQqAvatar = ref("");
 
 /** 表单预览头像地址:空态/工具头像失败时展示本地兜底图,工具链接可展示则直接展示 */
@@ -94,15 +108,11 @@ let qqInfoSeq = 0;
 /**
  * 拉取 QQ 信息并回填表单。
  * <p>
- * 头像取 qq-info 工具返回值(接口解析地址优先,为空 avatar-service 按 QQ 号兜底);
- * 昵称非空则填充昵称输入框,为空则提示手动输入。
+ * 头像取 qq-info 返回值(后端已降级,地址恒非空);昵称非空则填充昵称输入框,为空则提示手动输入。
  */
 async function applyQqInfo(qq: string) {
   const seq = ++qqInfoSeq;
-  const { avatarUrl, nickname } = await fetchQqInfo(
-    qq,
-    sysConfig.value.avatarService
-  );
+  const { avatarUrl, nickname } = await fetchQqInfo(qq);
   if (seq !== qqInfoSeq) return;
   previewQqAvatar.value = avatarUrl;
   const name = nickname.trim();

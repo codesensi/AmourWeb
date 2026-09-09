@@ -1,21 +1,21 @@
 // QQ 信息 mock(GET /qq-info,免登录;契约对齐后端 QqInfoResponse)
-// 默认返回空值:本地验证 avatar-service 兜底与「手动填写昵称」路径;
-// 如需验证接口头像/昵称回填路径,可为 avatarUrl/nickname 填入示例值
+// 返回「后端降级后」的形态:后端 qq-api 失败时已按 avatar-api 以 QQ 号为种子降级拼接,头像恒非空,昵称可空;
+// 本地默认返回降级地址 + 空昵称,验证「手动填写昵称」路径;如需验证昵称回填路径,可为 nickname 填入示例值
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
 export default defineFakeRoute([
   {
     url: "/qq-info",
     method: "get",
-    response: () => {
+    response: ({ query }) => {
       return {
         success: true,
         code: 200,
         msg: "操作成功",
         timestamp: Date.now(),
         data: {
-          avatarUrl: "https://q.qlogo.cn/g?b=qq&nk=2623669948&s=640",
-          nickname: "龙猫"
+          avatarUrl: `https://api.dicebear.com/7.x/bottts/svg?seed=${String(query.qq ?? "")}`,
+          nickname: ""
         }
       };
     }

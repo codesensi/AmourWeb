@@ -1,18 +1,11 @@
 <script setup lang="ts">
-import { inject, onMounted, ref, type Ref } from "vue";
+import { onMounted, ref } from "vue";
 import likeSvg from "@/assets/portal/img/like.svg?url";
 import { getHeroes } from "@/api/portal";
-import type { SysConfig } from "@/utils/sysConfig";
 import { fallbackAvatar } from "@/utils/avatar";
 import { resolveUserDisplay } from "@/utils/userDisplay";
 
 defineOptions({ name: "PortalHero" });
-
-/** 站点展示配置(portal 布局 provide):随机头像服务地址模板取自 sys_config avatar-service */
-const sysConfig = inject<Ref<Partial<SysConfig>>>(
-  "portalSysConfig",
-  ref({})
-);
 
 /** 男女主展示信息:初始头像为本地兜底图,昵称留空(为空时不显示),挂载后由 /portal/hero 回填 */
 const female = ref({ name: "", avatar: fallbackAvatar });
@@ -30,8 +23,8 @@ onMounted(async () => {
     const { success, data } = await getHeroes();
     if (!success || !data) return;
     [female.value, male.value] = await Promise.all([
-      resolveUserDisplay(data.female, sysConfig.value.avatarService),
-      resolveUserDisplay(data.male, sysConfig.value.avatarService)
+      resolveUserDisplay(data.female),
+      resolveUserDisplay(data.male)
     ]);
   } catch {
     // 后端不可用:静默降级

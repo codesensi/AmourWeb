@@ -35,20 +35,11 @@ const configs = [
   },
   {
     id: "1004",
-    configKey: "qq-service",
-    configValue: "https://uapis.cn/api/v1/social/qq/userinfo?qq=%s",
+    configKey: "qq-api-key",
+    configValue: "",
     valueType: "STRING",
     configGroup: "base",
-    remark: "用户QQ信息接口地址",
-    updateTime: "2026-01-01 00:00:00"
-  },
-  {
-    id: "1005",
-    configKey: "avatar-service",
-    configValue: "https://api.dicebear.com/7.x/bottts/svg?seed=%s",
-    valueType: "STRING",
-    configGroup: "base",
-    remark: "用户随机头像服务地址",
+    remark: "QQ信息接口密钥(qq-api 请求头 X-API-KEY,空=不携带)",
     updateTime: "2026-01-01 00:00:00"
   },
   {

@@ -116,15 +116,15 @@ export const getHeroes = () => {
   return http.request<ApiResult<HeroData>>("get", "/portal/hero");
 };
 
-/** QQ 信息(GET /qq-info 免登录;字段允许为空,由前端判空兜底) */
+/** QQ 信息(GET /qq-info 免登录;后端已降级,头像恒非空,仅后端 avatar-api 未配置时为空) */
 export interface QqInfoData {
-  /** QQ 头像地址(qq-service 解析的真实图片地址,降级时为空) */
+  /** QQ 头像地址(qq-api 解析的真实图片地址,强制 https;降级时为 avatar-api 按 QQ 号拼接地址) */
   avatarUrl: string;
-  /** QQ 昵称(仅解析成功时返回,降级时为空) */
+  /** QQ 昵称(仅 qq-api 解析成功时返回,降级时为空) */
   nickname: string;
 }
 
-/** 查询 QQ 信息(GET /qq-info,免登录;头像与昵称可能为空,由前端兜底) */
+/** 查询 QQ 信息(GET /qq-info,免登录;昵称可能为空,由前端提示手动填写) */
 export const getQqInfo = (qq: string) => {
   return http.request<ApiResult<QqInfoData>>("get", "/qq-info", {
     params: { qq }

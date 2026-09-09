@@ -8,10 +8,6 @@ export const SYS_CONFIG_KEYS = {
   icp: { key: "icp", boolean: false },
   /** 版权年份 */
   copyrightYear: { key: "copyright-year", boolean: false },
-  /** QQ 头像服务地址模板(%s 为 QQ 号) */
-  qqService: { key: "qq-service", boolean: false },
-  /** 用户随机头像服务地址模板(%s 为种子) */
-  avatarService: { key: "avatar-service", boolean: false },
   /** 门户站点标语 */
   siteSlogan: { key: "site.slogan", boolean: false },
   /** 门户恋爱计时起点 */
