@@ -87,15 +87,6 @@ const configs = [
     configGroup: "captcha",
     remark: "图形验证码类型",
     updateTime: "2026-01-01 00:00:00"
-  },
-  {
-    id: "3003",
-    configKey: "captcha.image-expire",
-    configValue: "300",
-    valueType: "INTEGER",
-    configGroup: "captcha",
-    remark: "图形验证码过期秒",
-    updateTime: "2026-01-01 00:00:00"
   }
 ];
 
