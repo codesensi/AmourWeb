@@ -2,7 +2,7 @@
 import { onMounted, ref } from "vue";
 import likeSvg from "@/assets/portal/img/like.svg?url";
 import { getHeroes } from "@/api/portal";
-import { fallbackAvatar } from "@/utils/avatar";
+import { fallbackAvatar, notifyFallbackAvatar } from "@/utils/avatar";
 import { resolveUserDisplay } from "@/utils/userDisplay";
 
 defineOptions({ name: "PortalHero" });
@@ -14,6 +14,7 @@ const male = ref({ name: "", avatar: fallbackAvatar });
 /** 头像加载失败:改用本地兜底图 */
 function onHeroAvatarError(target: { avatar: string }) {
   target.avatar = fallbackAvatar;
+  notifyFallbackAvatar();
 }
 
 onMounted(async () => {

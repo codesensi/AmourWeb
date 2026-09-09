@@ -257,9 +257,10 @@ function handleAsyncRoutes(routeList) {
 /** 初始化路由（`new Promise` 写法防止在异步请求中造成无限循环）*/
 function initRouter() {
   return new Promise(resolve => {
-    getCurrentUser().then(async ({ success, data }) => {
+    getCurrentUser().then(({ success, data }) => {
       if (success) {
-        // 同步用户信息(perms 映射为 permissions)后装配动态路由
+        // 同步用户信息(perms 映射为 permissions)后装配动态路由;
+        // 头像/昵称直接用 sys_user 维护的上传头像与昵称,不走 QQ 解析链路
         useUserStoreHook().syncUserInfo({
           avatar: data.avatar,
           username: data.username,
@@ -268,11 +269,6 @@ function initRouter() {
           permissions: data.perms ?? []
         });
         handleAsyncRoutes(cloneDeep(transformMenus(data.menus)));
-        // 头像/昵称按门户展示链路解析(QQ 优先,见 resolveUserDisplay):
-        // 解析为网络请求,放在路由装配后异步回写,不阻塞首屏
-        const display = await resolveUserDisplay(data);
-        useUserStoreHook().SET_AVATAR(display.avatar);
-        useUserStoreHook().SET_NICKNAME(display.name);
       }
       resolve(router);
     });

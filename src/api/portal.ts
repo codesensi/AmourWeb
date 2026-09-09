@@ -131,9 +131,9 @@ export const getPortalSaying = () => {
   return http.request<ApiResult<SayingData>>("get", "/portal/saying");
 };
 
-/** QQ 信息(GET /qq-info 免登录;后端已降级,头像恒非空,仅后端 avatar-api 未配置时为空) */
+/** QQ 信息(GET /qq-info 免登录;后端已降级,头像恒非空,仅后端 qq-avatar 未配置时为空) */
 export interface QqInfoData {
-  /** QQ 头像地址(qq-api 解析的真实图片地址,强制 https;降级时为 avatar-api 按 QQ 号拼接地址) */
+  /** QQ 头像地址(qq-api 解析的真实图片地址,强制 https;降级时为 qq-avatar 按 QQ 号拼接地址) */
   avatarUrl: string;
   /** QQ 昵称(仅 qq-api 解析成功时返回,降级时为空) */
   nickname: string;

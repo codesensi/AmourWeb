@@ -2,7 +2,7 @@ import { storeToRefs } from "pinia";
 import { getConfig, siteTitle } from "@/config";
 import { useRouter } from "vue-router";
 import { emitter } from "@/utils/mitt";
-import { fallbackAvatar } from "@/utils/avatar";
+import { fallbackAvatar, notifyFallbackAvatar } from "@/utils/avatar";
 import { getTopMenu } from "@/router/utils";
 import { useFullscreen } from "@vueuse/core";
 import type { routeMetaType } from "../types";
@@ -47,6 +47,7 @@ export function useNav() {
   /** 头像加载失败:改用本地兜底图 */
   function onUserAvatarError() {
     useUserStoreHook().SET_AVATAR(fallbackAvatar);
+    notifyFallbackAvatar();
   }
 
   /** 昵称（如果昵称为空则显示用户名） */

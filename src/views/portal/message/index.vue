@@ -2,7 +2,7 @@
 import { computed, onMounted, reactive, ref } from "vue";
 import { getMessage, sendMessage, type MessageItem } from "@/api/portal";
 import { message } from "@/utils/message";
-import { fallbackAvatar } from "@/utils/avatar";
+import { fallbackAvatar, notifyFallbackAvatar } from "@/utils/avatar";
 import { fetchQqInfo } from "@/utils/qqInfo";
 
 defineOptions({ name: "PortalMessage" });
@@ -30,7 +30,10 @@ async function loadMore() {
       items.value.push(...data.records);
       totalRow.value = data.totalRow;
       pageNumber.value = data.pageNumber;
-      resolveListAvatars(data.records);
+      // 本页存在快照头像为空的留言 → 提示已使用默认头像
+      if (data.records.some(record => !record.avatar)) {
+        notifyFallbackAvatar();
+      }
     }
   } finally {
     loading.value = false;
@@ -56,42 +59,18 @@ const DEMO_QQ = "1234567";
 /** 表单区头像 QQ(初始为演示号,QQ 失焦后切换,对齐原站) */
 const previewQq = ref(DEMO_QQ);
 
-/** 留言列表头像地址表(按 QQ 号;地址经 /qq-info 获取,后端已降级,同号恒定) */
-const listAvatars = reactive<Record<string, string>>({});
-
-/** 列表头像加载失败标记(按 QQ 号记录,失败后固定本地兜底图) */
-const listAvatarErrors = reactive<Record<string, boolean>>({});
-
-/** 列表头像地址:已解析用解析地址,解析中/失败用本地兜底图 */
-function listAvatarSrc(qq: string): string {
-  return listAvatars[qq] || fallbackAvatar;
+/** 列表头像地址:留言快照 avatar 非空用之,否则本地兜底图 */
+function listAvatarSrc(m: MessageItem): string {
+  return m.avatar || fallbackAvatar;
 }
 
-/**
- * 批量解析留言头像:逐条调用 /qq-info(后端 qq-api 优先、失败降级 avatar-api,带 15 分钟缓存)。
- * 同号去重,已解析/已失败的跳过;失败静默,保持本地兜底图展示。
- */
-function resolveListAvatars(records: MessageItem[]) {
-  const qqs = new Set(
-    records
-      .map(m => m.qq)
-      .filter(qq => qq && !listAvatars[qq] && !listAvatarErrors[qq])
-  );
-  qqs.forEach(qq => {
-    void fetchQqInfo(qq).then(({ avatarUrl }) => {
-      if (avatarUrl) {
-        listAvatars[qq] = avatarUrl;
-      }
-    });
-  });
+/** 列表头像加载失败:置空快照地址,回退本地兜底图 */
+function onListAvatarError(m: MessageItem) {
+  m.avatar = "";
+  notifyFallbackAvatar();
 }
 
-/** 列表头像加载失败:改用本地兜底图 */
-function onListAvatarError(qq: string) {
-  listAvatarErrors[qq] = true;
-}
-
-/** qq-info 返回的头像地址(后端已降级,恒非空;后端 avatar-api 未配置时为空) */
+/** qq-info 返回的头像地址(后端已降级,恒非空;后端 qq-avatar 未配置时为空) */
 const previewQqAvatar = ref("");
 
 /** 表单预览头像地址:空态/工具头像失败时展示本地兜底图,工具链接可展示则直接展示 */
@@ -234,15 +213,15 @@ onMounted(() => loadMore());
                 </div>
                 <div class="user-info">
                   <img
-                    :src="listAvatarSrc(m.qq)"
+                    :src="listAvatarSrc(m)"
                     alt=""
-                    @error="onListAvatarError(m.qq)"
+                    @error="onListAvatarError(m)"
                   />
                   <div class="head-content">
                     <div class="level">
                       访客 <b>#{{ i + 1 }}</b>
                     </div>
-                    <span class="name">{{ m.nickname }}</span>
+                    <span v-if="m.nickname" class="name">{{ m.nickname }}</span>
                   </div>
                 </div>
                 <div class="text">{{ m.content }}</div>
