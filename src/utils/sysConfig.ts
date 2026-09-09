@@ -8,8 +8,6 @@ export const SYS_CONFIG_KEYS = {
   icp: { key: "icp", boolean: false },
   /** 版权年份 */
   copyrightYear: { key: "copyright-year", boolean: false },
-  /** 门户站点标语 */
-  siteSlogan: { key: "site.slogan", boolean: false },
   /** 门户恋爱计时起点 */
   siteLoveStartDate: { key: "site.love-start-date", boolean: false },
   /** 验证码显隐开关(布尔型) */

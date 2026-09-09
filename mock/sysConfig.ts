@@ -43,16 +43,6 @@ const configs = [
     updateTime: "2026-01-01 00:00:00"
   },
   {
-    id: "2001",
-    configKey: "site.slogan",
-    configValue:
-      "爱晨雾漫过青瓦，爱暮色染透篱笆，更爱与君并肩立，看遍这人间烟火里的朝暮与年华。",
-    valueType: "STRING",
-    configGroup: "site",
-    remark: "门户标语文案",
-    updateTime: "2026-01-01 00:00:00"
-  },
-  {
     id: "2002",
     configKey: "site.love-start-date",
     configValue: "2018-07-15 00:00:00",

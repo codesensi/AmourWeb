@@ -116,6 +116,21 @@ export const getHeroes = () => {
   return http.request<ApiResult<HeroData>>("get", "/portal/hero");
 };
 
+/** 一言(GET /portal/saying 免登录;后端已降级,content 可能为空) */
+export interface SayingData {
+  /** 一言文案(随机一言正文,降级时为 uapi-saying 文案;两级上游均不可用时为空) */
+  content: string;
+  /** 出处(仅随机一言解析成功时返回,降级时为空) */
+  source: string;
+  /** 作者(仅随机一言解析成功时返回,降级时为空) */
+  author: string;
+}
+
+/** 查询一言(GET /portal/saying,免登录;content 为空时由前端不展示) */
+export const getPortalSaying = () => {
+  return http.request<ApiResult<SayingData>>("get", "/portal/saying");
+};
+
 /** QQ 信息(GET /qq-info 免登录;后端已降级,头像恒非空,仅后端 avatar-api 未配置时为空) */
 export interface QqInfoData {
   /** QQ 头像地址(qq-api 解析的真实图片地址,强制 https;降级时为 avatar-api 按 QQ 号拼接地址) */

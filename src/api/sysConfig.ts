@@ -4,11 +4,11 @@ import type { ApiResult, PageQuery, PageResult } from "@/api/types";
 
 /** 系统公共配置条目(后端 sys_config 键值原样下发) */
 export interface SysConfigItem {
-  /** 配置键(如 name、copyright-year、site.slogan、captcha.enabled) */
+  /** 配置键(如 name、copyright-year、site.love-start-date、captcha.enabled) */
   configKey: string;
   /** 配置值(统一字符串存储) */
   configValue: string;
-  /** 值类型:STRING,INTEGER,LONG,BOOLEAN */
+  /** 值类型:STRING,INTEGER,LONG,BOOLEAN,DATETIME */
   valueType: string;
   /** 分组(base/site/captcha) */
   configGroup: string;
@@ -32,11 +32,11 @@ export const getSysConfig = (keys: Array<string>) => {
 export type SysConfigPageItem = {
   /** 主键ID(后端序列化为字符串,避免 JS 精度丢失) */
   id: string;
-  /** 配置键(如 name、copyright-year、site.slogan、captcha.enabled) */
+  /** 配置键(如 name、copyright-year、site.love-start-date、captcha.enabled) */
   configKey: string;
   /** 配置值(统一字符串存储) */
   configValue: string;
-  /** 值类型:STRING,INTEGER,LONG,BOOLEAN */
+  /** 值类型:STRING,INTEGER,LONG,BOOLEAN,DATETIME */
   valueType: string;
   /** 分组(base/site/captcha) */
   configGroup: string;

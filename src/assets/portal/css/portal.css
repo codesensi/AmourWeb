@@ -213,6 +213,7 @@ body::before {
 }
 
 .header-wrap .header .word {
+  max-width: 22rem; /* 正文最多显示 20 个汉字(20 × 1.1rem),超出进入滚动 */
   font-family:
     "Noto Serif SC", "Source Han Serif SC", "STZhongsong", "SimSun", serif;
   font-weight: 400;
@@ -225,8 +226,48 @@ body::before {
 }
 
 .wenan {
+  display: block;
+  overflow: hidden;
+  text-align: left; /* 溢出方向标准化到右侧:右对齐时左侧溢出不计入 scrollWidth,检测会失效 */
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: rgb(97 97 97);
   transition: all 0.2s linear;
+}
+
+/* 一言出处·作者:第二行弱化小字居中展示,超长省略 */
+.wenan-from {
+  display: block;
+  margin-top: 0.125rem;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.85em;
+  font-style: normal;
+  font-weight: 400;
+  color: rgb(150 150 150);
+}
+
+/* 一言文本过长时的滑动展示:循环滚动,悬停暂停(配合 tooltip 查看全文);
+   盒宽取文本全宽(max-content,不受 10 字上限压缩),translateX(-100%) 恰好滚完整段内容;
+   overflow 交给 .word 统一裁剪出滚动窗口 */
+.wenan-marquee {
+  display: block;
+  width: max-content;
+  overflow: visible;
+  text-overflow: clip;
+  animation: saying-marquee 12s linear infinite;
+}
+
+.wenan-marquee:hover {
+  animation-play-state: paused;
+}
+
+@keyframes saying-marquee {
+  to {
+    transform: translateX(calc(-100% - 1em));
+  }
 }
 
 .alogo {

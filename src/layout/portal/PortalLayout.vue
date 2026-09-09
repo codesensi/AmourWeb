@@ -21,7 +21,6 @@ onMounted(async () => {
       "name",
       "icp",
       "copyrightYear",
-      "siteSlogan",
       "siteLoveStartDate"
     )
   );
