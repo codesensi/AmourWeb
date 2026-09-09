@@ -10,11 +10,11 @@ export interface MomentsItem {
   date: string;
 }
 
-/** 点点滴滴-文章分页(GET /love/moments,每页 6 条) */
+/** 点点滴滴-文章分页(GET /portal/moments,每页 6 条) */
 export const getMoments = (params?: PageQuery) => {
   return http.request<ApiResult<PageResult<MomentsItem>>>(
     "get",
-    "/love/moments",
+    "/portal/moments",
     {
       params: omitEmpty({ pageNumber: 1, pageSize: 6, ...params })
     }
@@ -31,11 +31,11 @@ export interface LovePhotoItem {
   date: string;
 }
 
-/** 恋爱相册分页(GET /love/photo,每页 6 张) */
+/** 恋爱相册分页(GET /portal/love-photo,每页 6 张) */
 export const getLovePhoto = (params?: PageQuery) => {
   return http.request<ApiResult<PageResult<LovePhotoItem>>>(
     "get",
-    "/love/photo",
+    "/portal/love-photo",
     {
       params: omitEmpty({ pageNumber: 1, pageSize: 6, ...params })
     }
@@ -52,11 +52,11 @@ export interface LoveListItem {
   img?: string;
 }
 
-/** 恋爱清单分页(GET /love/list,每页 6 条) */
+/** 恋爱清单分页(GET /portal/love-list,每页 6 条) */
 export const getLoveList = (params?: PageQuery) => {
   return http.request<ApiResult<PageResult<LoveListItem>>>(
     "get",
-    "/love/list",
+    "/portal/love-list",
     {
       params: omitEmpty({ pageNumber: 1, pageSize: 6, ...params })
     }
@@ -73,22 +73,22 @@ export interface MessageItem {
   location: string;
 }
 
-/** 留言分页(GET /love/message) */
+/** 留言分页(GET /portal/message) */
 export const getMessage = (params?: PageQuery) => {
   return http.request<ApiResult<PageResult<MessageItem>>>(
     "get",
-    "/love/message",
+    "/portal/message",
     { params: omitEmpty({ pageNumber: 1, pageSize: 6, ...params }) }
   );
 };
 
-/** 提交留言(POST /love/message,字段 {qq, name, text}) */
+/** 提交留言(POST /portal/message,字段 {qq, name, text}) */
 export const sendMessage = (data: {
   qq: string;
   name: string;
   text: string;
 }) => {
-  return http.request<ApiResult<null>>("post", "/love/message", { data });
+  return http.request<ApiResult<null>>("post", "/portal/message", { data });
 };
 
 /** 门户主角-单个主角信息(对齐后端 PortalHeroUserResponse) */
@@ -164,7 +164,7 @@ export interface ChatScriptNode {
   options?: ChatScriptOption[];
 }
 
-/** 关于页对话剧本(GET /love/chat,后台可配) */
+/** 关于页对话剧本(GET /portal/chat,后台可配) */
 export const getChatScript = () => {
-  return http.request<ApiResult<ChatScriptNode[]>>("get", "/love/chat");
+  return http.request<ApiResult<ChatScriptNode[]>>("get", "/portal/chat");
 };

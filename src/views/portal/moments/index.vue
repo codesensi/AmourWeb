@@ -1,37 +1,14 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { onMounted } from "vue";
 import { getMoments, type MomentsItem } from "@/api/portal";
+import { usePagedList } from "@/hooks/usePagedList";
 
 defineOptions({ name: "PortalMoments" });
 
-/** 门户列表每页条数(与原站 PAGE_SIZE 一致) */
-const PAGE_SIZE = 6;
-
-const items = ref<MomentsItem[]>([]);
-const totalRow = ref(0);
-const pageNumber = ref(0);
-const loading = ref(false);
-
-/** 是否还有更多数据(到底后隐藏「加载更多」) */
-const hasMore = computed(() => items.value.length < totalRow.value);
-
-async function loadMore() {
-  if (loading.value) return;
-  loading.value = true;
-  try {
-    const { success, data } = await getMoments({
-      pageNumber: pageNumber.value + 1,
-      pageSize: PAGE_SIZE
-    });
-    if (success) {
-      items.value.push(...data.records);
-      totalRow.value = data.totalRow;
-      pageNumber.value = data.pageNumber;
-    }
-  } finally {
-    loading.value = false;
-  }
-}
+/** 门户「加载更多」分页加载(每页 6 条,与原站 PAGE_SIZE 一致) */
+const { items, loading, hasMore, loadMore } = usePagedList<MomentsItem>(
+  getMoments
+);
 
 onMounted(() => loadMore());
 </script>

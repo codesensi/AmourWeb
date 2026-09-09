@@ -1,4 +1,4 @@
-// 留言板 mock(GET /love/message 分页 + POST /love/message 提交)
+// 留言板 mock(GET /portal/message 分页 + POST /portal/message 提交)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
 const messages = [
@@ -69,9 +69,9 @@ const messages = [
 ];
 
 export default defineFakeRoute([
-  // 留言分页(GET /love/message)
+  // 留言分页(GET /portal/message)
   {
-    url: "/love/message",
+    url: "/portal/message",
     method: "get",
     response: ({ query }) => {
       const pageNumber = Number(query?.pageNumber ?? 1);
@@ -95,9 +95,9 @@ export default defineFakeRoute([
       };
     }
   },
-  // 提交留言(POST /love/message)
+  // 提交留言(POST /portal/message)
   {
-    url: "/love/message",
+    url: "/portal/message",
     method: "post",
     response: () => ({
       success: true,

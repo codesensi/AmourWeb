@@ -1,4 +1,4 @@
-// 恋爱清单 mock(GET /love/list 分页;7 条清单,移植原站 PORTAL_MOCK.loveList)
+// 恋爱清单 mock(GET /portal/love-list 分页;7 条清单,移植原站 PORTAL_MOCK.loveList)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 import { mockPhoto } from "./mockPhoto";
 
@@ -13,9 +13,9 @@ const loveList = [
 ];
 
 export default defineFakeRoute([
-  // 恋爱清单分页(GET /love/list)
+  // 恋爱清单分页(GET /portal/love-list)
   {
-    url: "/love/list",
+    url: "/portal/love-list",
     method: "get",
     response: ({ query }) => {
       const pageNumber = Number(query?.pageNumber ?? 1);

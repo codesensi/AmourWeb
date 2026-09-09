@@ -1,10 +1,10 @@
-// 关于页对话剧本 mock(GET /love/chat;后台可配置,未实现时前端降级内置默认剧本)
+// 关于页对话剧本 mock(GET /portal/chat;后台可配置,未实现时前端降级内置默认剧本)
 // 数据移植原站 PORTAL_MOCK.aboutChat;与 about 页组件的 DEFAULT_CHAT_SCRIPT 保持同步
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
 export default defineFakeRoute([
   {
-    url: "/love/chat",
+    url: "/portal/chat",
     method: "get",
     response: () => ({
       success: true,

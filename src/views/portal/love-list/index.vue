@@ -1,37 +1,14 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { onMounted } from "vue";
 import { getLoveList, type LoveListItem } from "@/api/portal";
+import { usePagedList } from "@/hooks/usePagedList";
 
 defineOptions({ name: "PortalLoveList" });
 
-/** 门户列表每页条数(与原站 PAGE_SIZE 一致) */
-const PAGE_SIZE = 6;
-
-const items = ref<LoveListItem[]>([]);
-const totalRow = ref(0);
-const pageNumber = ref(0);
-const loading = ref(false);
-
-/** 是否还有更多数据(到底后隐藏「加载更多」) */
-const hasMore = computed(() => items.value.length < totalRow.value);
-
-async function loadMore() {
-  if (loading.value) return;
-  loading.value = true;
-  try {
-    const { success, data } = await getLoveList({
-      pageNumber: pageNumber.value + 1,
-      pageSize: PAGE_SIZE
-    });
-    if (success) {
-      items.value.push(...data.records);
-      totalRow.value = data.totalRow;
-      pageNumber.value = data.pageNumber;
-    }
-  } finally {
-    loading.value = false;
-  }
-}
+/** 门户「加载更多」分页加载(每页 6 条,与原站 PAGE_SIZE 一致) */
+const { items, loading, hasMore, loadMore } = usePagedList<LoveListItem>(
+  getLoveList
+);
 
 onMounted(() => loadMore());
 </script>

@@ -3,61 +3,30 @@ import { computed, onMounted, reactive, ref } from "vue";
 import { getMessage, sendMessage, type MessageItem } from "@/api/portal";
 import { message } from "@/utils/message";
 import { fallbackAvatar, notifyFallbackAvatar } from "@/utils/avatar";
-import { fetchQqInfo } from "@/utils/qqInfo";
+import { fetchQqInfo, QQ_PATTERN } from "@/utils/qqInfo";
+import { usePagedList } from "@/hooks/usePagedList";
 
 defineOptions({ name: "PortalMessage" });
 
-/** 门户列表每页条数(与原站 PAGE_SIZE 一致) */
-const PAGE_SIZE = 6;
-
-const items = ref<MessageItem[]>([]);
-const totalRow = ref(0);
-const pageNumber = ref(0);
-const loading = ref(false);
-
-/** 是否还有更多数据(到底后隐藏「加载更多」) */
-const hasMore = computed(() => items.value.length < totalRow.value);
-
-async function loadMore() {
-  if (loading.value) return;
-  loading.value = true;
-  try {
-    const { success, data } = await getMessage({
-      pageNumber: pageNumber.value + 1,
-      pageSize: PAGE_SIZE
-    });
-    if (success) {
-      items.value.push(...data.records);
-      totalRow.value = data.totalRow;
-      pageNumber.value = data.pageNumber;
-      // 本页存在快照头像为空的留言 → 提示已使用默认头像
-      if (data.records.some(record => !record.avatar)) {
+/** 门户「加载更多」分页加载(每页 6 条,与原站 PAGE_SIZE 一致);快照头像缺失时提示使用默认头像 */
+const { items, totalRow, loading, hasMore, loadMore, reset } =
+  usePagedList<MessageItem>(getMessage, {
+    onLoaded: records => {
+      if (records.some(record => !record.avatar)) {
         notifyFallbackAvatar();
       }
     }
-  } finally {
-    loading.value = false;
-  }
-}
+  });
 
 /** 提交留言后重载列表:清空旧内容并重建流加载 */
 function reloadMessages() {
-  items.value = [];
-  totalRow.value = 0;
-  pageNumber.value = 0;
-  loadMore();
+  reset();
 }
 
 /** 留言表单:校验文案逐字保留原站 */
 const form = reactive({ qq: "", name: "", text: "" });
 const submitting = ref(false);
 const submitText = ref("提交留言");
-
-/** 演示 QQ 号:输入为空时回填展示 */
-const DEMO_QQ = "1234567";
-
-/** 表单区头像 QQ(初始为演示号,QQ 失焦后切换,对齐原站) */
-const previewQq = ref(DEMO_QQ);
 
 /** 列表头像地址:留言快照 avatar 非空用之,否则本地兜底图 */
 function listAvatarSrc(m: MessageItem): string {
@@ -107,16 +76,14 @@ function onQqInput() {
   form.qq = form.qq.replace(/\D/g, "").slice(0, 12);
 }
 
-/** QQ 失焦:非空拉取 QQ 信息(头像 + 昵称回填);为空则清空回填昵称并回到演示号固定头像 */
+/** QQ 失焦:非空拉取 QQ 信息(头像 + 昵称回填);为空则清空回填昵称 */
 function onQqBlur() {
   const qq = form.qq.trim();
   if (!qq) {
-    previewQq.value = DEMO_QQ;
     previewQqAvatar.value = "";
     form.name = "";
     return;
   }
-  previewQq.value = qq;
   previewQqAvatar.value = "";
   applyQqInfo(qq);
 }
@@ -127,7 +94,7 @@ async function submit() {
     message("请填写QQ号码！", { type: "warning" });
     return;
   }
-  if (!/^[0-9]{6,12}$/.test(form.qq)) {
+  if (!QQ_PATTERN.test(form.qq)) {
     message("您的QQ号码格式错误 请输入由6-12位的数字组成的QQ号码！", {
       type: "warning"
     });
@@ -205,7 +172,7 @@ onMounted(() => loadMore());
             >
               <div class="textinfo">
                 <div class="message-top-info">
-                  <i class="time" :data-tip="m.date" data-tip-position="top">
+                  <i class="time">
                     {{ m.date }}<b v-if="m.location" class="dot" />{{
                       m.location
                     }}
@@ -235,7 +202,7 @@ onMounted(() => loadMore());
           <div v-if="hasMore" class="message-load-more" @click="loadMore">
             {{ loading ? "加载中..." : "加载更多" }}
           </div>
-          <!-- 提交表单(POST /love/message {qq, name, text};校验文案逐字保留原站) -->
+          <!-- 提交表单(POST /portal/message {qq, name, text};校验文案逐字保留原站) -->
           <form class="message-form" @submit.prevent="submit">
             <div id="messageArea" class="input-box">
               <img

@@ -23,7 +23,7 @@ export default defineFakeRoute([
       };
     }
   },
-  // 退出系统(POST /logout,第 3 期后端作废当前 token,mock 恒返回成功)
+  // 退出系统(POST /logout;mock 恒返回成功,真实环境由后端 sa-token 作废当前 token)
   {
     url: "/logout",
     method: "post",

@@ -9,7 +9,7 @@ import goodbyeImg from "@/assets/portal/img/goodbye.webp";
 
 defineOptions({ name: "PortalAbout" });
 
-/** 内置默认剧本(移植原站 PORTAL_MOCK.aboutChat;后台 /love/chat 未配置时降级使用,与 mock/portal/chat.ts 保持同步) */
+/** 内置默认剧本(移植原站 PORTAL_MOCK.aboutChat;后台 /portal/chat 未配置时降级使用,与 mock/portal/chat.ts 保持同步) */
 const DEFAULT_CHAT_SCRIPT: ChatScriptNode[] = [
   { type: "bot", delay: 200, content: "Hi, 欢迎你的来访" },
   { type: "bot", delay: 1000, content: "愿得一人心 白首不相离" },
@@ -218,7 +218,7 @@ async function play(nodes: ChatScriptNode[]) {
   }
 }
 
-/** 剧本获取:后台可配(GET /love/chat),未配置时降级内置默认剧本 */
+/** 剧本获取:后台可配(GET /portal/chat),未配置时降级内置默认剧本 */
 async function startChat() {
   let script: ChatScriptNode[] = [];
   try {

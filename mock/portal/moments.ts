@@ -1,4 +1,4 @@
-// 点点滴滴 mock(GET /love/moments,对齐后端蓝图 love 分组)
+// 点点滴滴 mock(GET /portal/moments,门户蓝图接口)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
 const moments = [
@@ -14,9 +14,9 @@ const moments = [
 ];
 
 export default defineFakeRoute([
-  // 文章分页(GET /love/moments)
+  // 文章分页(GET /portal/moments)
   {
-    url: "/love/moments",
+    url: "/portal/moments",
     method: "get",
     response: ({ query }) => {
       const pageNumber = Number(query?.pageNumber ?? 1);

@@ -1,8 +1,8 @@
 import { getQqInfo } from "@/api/portal";
 import { fallbackAvatar, notifyFallbackAvatar } from "@/utils/avatar";
 
-/** QQ 号格式校验(与后端 QqInfoRequest 的 @Pattern 对齐:6~12 位数字) */
-const QQ_PATTERN = /^[0-9]{6,12}$/;
+/** QQ 号格式校验正则(与后端 QqInfoRequest 的 @Pattern 对齐:6~12 位数字) */
+export const QQ_PATTERN = /^[0-9]{6,12}$/;
 
 /** QQ 信息获取结果:头像地址与昵称 */
 export interface QqInfoResult {

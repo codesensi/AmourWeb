@@ -1,49 +1,37 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted } from "vue";
 import { getLovePhoto, type LovePhotoItem } from "@/api/portal";
+import type { ApiResult, PageResult } from "@/api/types";
+import { usePagedList } from "@/hooks/usePagedList";
 
 defineOptions({ name: "PortalLovePhoto" });
 
-/** 门户列表每页条数(与原站 PAGE_SIZE 一致) */
-const PAGE_SIZE = 6;
-
-const items = ref<(LovePhotoItem & { show: boolean })[]>([]);
-const totalRow = ref(0);
-const pageNumber = ref(0);
-const loading = ref(false);
-
-/** 是否还有更多数据(到底后隐藏「加载更多」) */
-const hasMore = computed(() => items.value.length < totalRow.value);
-
-/** 灯箱预览地址:当前已加载的全部图片(el-image 内建预览,点击任意张按其索引打开) */
-const previewUrls = computed(() => items.value.map(p => p.img));
-
-async function loadMore() {
-  if (loading.value) return;
-  loading.value = true;
-  try {
-    const { success, data } = await getLovePhoto({
-      pageNumber: pageNumber.value + 1,
-      pageSize: PAGE_SIZE
-    });
-    if (success) {
-      const batch = data.records.map(p => ({ ...p, show: false }));
-      const base = items.value.length;
-      items.value.push(...batch);
-      totalRow.value = data.totalRow;
-      pageNumber.value = data.pageNumber;
+/** 门户「加载更多」分页加载(每页 6 条,与原站 PAGE_SIZE 一致);适配器为每张记录补 show 字段驱动浮现动画 */
+const { items, loading, hasMore, loadMore } = usePagedList<
+  LovePhotoItem & { show: boolean }
+>(
+  async params => {
+    const res = await getLovePhoto(params);
+    if (res.success) {
+      res.data.records = res.data.records.map(p => ({ ...p, show: false }));
+    }
+    return res as ApiResult<PageResult<LovePhotoItem & { show: boolean }>>;
+  },
+  {
+    onLoaded: (batch, startIndex) => {
       // 逐张浮现动画(300ms 间隔,仅本次追加的卡片);经响应式代理赋值触发更新
       batch.forEach((_, idx) => {
         setTimeout(() => {
-          const it = items.value[base + idx];
+          const it = items.value[startIndex + idx];
           if (it) it.show = true;
         }, idx * 300);
       });
     }
-  } finally {
-    loading.value = false;
   }
-}
+);
+
+/** 灯箱预览地址:当前已加载的全部图片(el-image 内建预览,点击任意张按其索引打开) */
+const previewUrls = computed(() => items.value.map(p => p.img));
 
 onMounted(() => loadMore());
 </script>
@@ -69,7 +57,7 @@ onMounted(() => loadMore());
             preview-teleported
             hide-on-click-modal
           />
-          <div class="words" :data-tip="photo.text" data-tip-position="top">
+          <div class="words">
             <i>{{ photo.date }}</i
             ><span>{{ photo.text }}</span>
           </div>

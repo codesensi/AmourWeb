@@ -63,7 +63,7 @@ export type CurrentUserResult = ApiResult<{
   idCard?: string;
   email?: string;
   phone?: string;
-  /** 用户QQ号码(/qq-info 头像解析使用) */
+  /** 用户QQ号码 */
   qq?: string;
   gender?: string;
   remark?: string;

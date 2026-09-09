@@ -360,7 +360,7 @@ export default defineFakeRoute([
         data: {
           username: "admin",
           nickname: "超级管理员",
-          avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=admin",
+          avatar: "https://q.qlogo.cn/headimg_dl?dst_uin=12345678&spec=640&img_type=jpg",
           idCard: "",
           email: "",
           phone: "",
