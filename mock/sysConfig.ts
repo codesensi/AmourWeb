@@ -35,11 +35,11 @@ const configs = [
   },
   {
     id: "1004",
-    configKey: "qq-api-key",
+    configKey: "uapi-key",
     configValue: "",
     valueType: "STRING",
     configGroup: "base",
-    remark: "QQ信息接口密钥(qq-api 请求头 X-API-KEY,空=不携带)",
+    remark: "UApiPro接口密钥(https://uapis.cn)",
     updateTime: "2026-01-01 00:00:00"
   },
   {
