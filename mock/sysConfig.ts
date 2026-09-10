@@ -154,11 +154,5 @@ export default defineFakeRoute([
       target.updateTime = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
       return ok(null);
     }
-  },
-  // 刷新配置缓存(POST /sys/config/refresh-cache,清空全部 config 缓存)
-  {
-    url: "/sys/config/refresh-cache",
-    method: "post",
-    response: () => ok(null)
   }
 ]);
