@@ -33,7 +33,9 @@ export const DICT_CODES = {
   /** 图形验证码类型 */
   imageType: "image-type",
   /** 配置分组(与 sys_config.config_group 对齐) */
-  configGroup: "config-group"
+  configGroup: "config-group",
+  /** 存储类型(与 StorageTypeEnum 对齐) */
+  fileStorageType: "file-storage-type"
 } as const;
 
 /** 字典批量查询(GET /sys/dict/list-by-codes,免登录;codes 逗号分隔) */

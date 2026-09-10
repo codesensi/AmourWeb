@@ -39,15 +39,5 @@ export default [
       }
       return ok(null, "密码修改成功");
     }
-  },
-  {
-    url: "/file/upload/avatar",
-    method: "post",
-    response: ({ body }) => {
-      // mock 不落盘:直接回传裁剪产物的 base64,页面即时可见
-      const url = body?.file?.base64;
-      if (!url) return fail("上传内容为空");
-      return ok({ url });
-    }
   }
 ];

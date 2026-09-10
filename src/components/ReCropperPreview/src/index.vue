@@ -8,7 +8,9 @@ defineOptions({
 });
 
 defineProps({
-  imgSrc: String
+  imgSrc: String,
+  /** 裁剪输出的图片类型(对齐源文件类型,如 image/jpeg) */
+  outputType: { type: String, default: "image/png" }
 });
 
 const emit = defineEmits(["cropper"]);
@@ -45,6 +47,7 @@ defineExpose({ hidePopover });
           <ReCropper
             ref="refCropper"
             :src="imgSrc"
+            :output-type="outputType"
             circled
             @cropper="onCropper"
             @readied="showPopover = true"

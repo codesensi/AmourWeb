@@ -3,6 +3,7 @@ import { ref, computed } from "vue";
 import type { FormItemProps, FormProps } from "./utils/types";
 import { DictTag } from "@/components/DictTag";
 import { DictSelect } from "@/components/DictSelect";
+import { DICT_CODES } from "@/api/dict";
 import { usePublicHooks } from "../hooks";
 
 const props = withDefaults(defineProps<FormProps>(), {
@@ -60,7 +61,8 @@ const datetimeProxy = computed<string>({
 
 /** 配置键 → 字典编码(取值可枚举的配置项用字典下拉替代自由文本,与 init_dml.sql 字典种子对齐) */
 const DICT_CODE_BY_CONFIG_KEY: Record<string, string> = {
-  "captcha.image-type": "image-type"
+  "captcha.image-type": DICT_CODES.imageType,
+  "file.storage": DICT_CODES.fileStorageType
 };
 /** 当前配置绑定的字典编码;未绑定字典的配置返回 undefined,按值类型走默认控件 */
 const configDictCode = computed(

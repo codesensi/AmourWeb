@@ -67,6 +67,8 @@ const props = {
   src: { type: String, required: true },
   alt: { type: String },
   circled: { type: Boolean, default: false },
+  /** 裁剪输出的图片类型(对齐源文件类型;默认 image/png 向后兼容) */
+  outputType: { type: String, default: "image/png" },
   /** 是否可以通过点击裁剪区域关闭右键弹出的功能菜单，默认 `true` */
   isClose: { type: Boolean, default: true },
   realTimePreview: { type: Boolean, default: true },
@@ -174,6 +176,7 @@ export default defineComponent({
       const canvas = inCircled.value
         ? getRoundedCanvas()
         : cropper.value.getCroppedCanvas();
+      // 按源类型编码,保留源文件格式(gif 等无法编码的类型由浏览器回退 PNG)
       // https://developer.mozilla.org/zh-CN/docs/Web/API/HTMLCanvasElement/toBlob
       canvas.toBlob(blob => {
         if (!blob) return;
@@ -191,7 +194,7 @@ export default defineComponent({
         fileReader.onerror = () => {
           emit("error");
         };
-      });
+      }, props.outputType);
     }
 
     function getRoundedCanvas() {
@@ -202,6 +205,11 @@ export default defineComponent({
       const height = sourceCanvas.height;
       canvas.width = width;
       canvas.height = height;
+      // JPEG 无透明通道:圆形遮罩前先铺白底,避免透明圆角编码为黑底
+      if (props.outputType === "image/jpeg") {
+        context.fillStyle = "#fff";
+        context.fillRect(0, 0, width, height);
+      }
       context.imageSmoothingEnabled = true;
       context.drawImage(sourceCanvas, 0, 0, width, height);
       context.globalCompositeOperation = "destination-in";
