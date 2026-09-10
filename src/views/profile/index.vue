@@ -268,10 +268,17 @@ loadProfile();
   <div class="profile-page">
     <!-- 个人信息 / 账号安全 双栏并排(窄屏堆叠);卡片撑满视口余高,底部保留与表格页一致的 36px 灰色区域 -->
     <el-card shadow="never" class="min-w-0 flex-1 flex flex-col">
+      <!-- 页头带:页面级标题与双栏工作区分层 -->
+      <div class="page-head">
+        <span class="page-title">个人中心</span>
+        <span class="page-sub">管理你的个人资料与账号安全</span>
+      </div>
       <div class="cols">
         <div class="col">
           <div class="col-title">
-            <IconifyIconOffline :icon="userIcon" class="col-icon" />
+            <span class="col-icon">
+              <IconifyIconOffline :icon="userIcon" />
+            </span>
             <span class="t">个人信息</span>
           </div>
           <el-skeleton v-if="loading" :rows="8" animated />
@@ -330,9 +337,7 @@ loadProfile();
               </el-form-item>
             </el-form>
             <!-- 内联保存操作:常驻展示,有未保存更改时才可操作 -->
-            <div
-              class="mt-2 flex items-center gap-2 border-t border-(--el-border-color-lighter) pt-3"
-            >
+            <div class="flex items-center justify-end -mt-4 gap-2">
               <span v-if="isDirty" class="dirty-hint">
                 <IconifyIconOffline :icon="warningFilledIcon" />
                 个人信息有未保存的更改
@@ -353,7 +358,9 @@ loadProfile();
         </div>
         <div class="col">
           <div class="col-title">
-            <IconifyIconOffline :icon="lockIcon" class="col-icon" />
+            <span class="col-icon">
+              <IconifyIconOffline :icon="lockIcon" />
+            </span>
             <span class="t">账号安全</span>
           </div>
           <div class="sec">
@@ -490,7 +497,7 @@ loadProfile();
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 18px;
+  gap: 20px;
   min-width: 0;
 }
 
@@ -498,18 +505,47 @@ loadProfile();
   display: flex;
   gap: 10px;
   align-items: center;
-  margin-bottom: 4px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
 }
 
 .col-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
   font-size: 18px;
   color: var(--el-color-primary);
+  background: var(--el-color-primary-light-9);
+  border-radius: 8px;
 }
 
 .col-title .t {
-  font-size: 16px;
-  font-weight: 500;
+  font-size: 17px;
+  font-weight: 600;
   color: var(--el-text-color-primary);
+}
+
+/* 页头带:页面级标题与双栏工作区分层 */
+.page-head {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+}
+
+.page-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+
+.page-sub {
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
 }
 
 /* 宽屏双栏并排,窄屏堆叠;分隔线仅在并排时出现 */
@@ -538,11 +574,17 @@ loadProfile();
   border-radius: 4px;
 }
 
+/* 分区之间加分隔线,与页头分隔线同源 */
+.sec + .sec {
+  padding-top: 20px;
+  border-top: 1px solid var(--el-border-color-lighter);
+}
+
 .sec-head {
   display: flex;
   gap: 10px;
   align-items: center;
-  margin-bottom: 6px;
+  margin-bottom: 12px;
 }
 
 .sec-bar {
@@ -574,12 +616,33 @@ loadProfile();
 
 /* el-alert 自带 margin:0(未分层样式),须用 scoped 规则显式覆盖间距 */
 .sec-alert {
+  /* 弱化为辅助说明:中性底色,不与表单抢视觉 */
+  --el-alert-bg-color: var(--el-border-color-lighter);
+
   margin-bottom: 16px;
+}
+
+.sec-alert :deep(.el-alert__description) {
+  color: var(--el-text-color-secondary);
 }
 
 .strength-txt {
   margin-top: 6px;
   font-size: 12px;
-  color: var(--el-text-secondary);
+  color: var(--el-text-color-secondary);
+}
+
+/* 表单主次:小号次级色标签 + 聚焦主色光环 */
+:deep(.el-form-item__label) {
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
+}
+
+:deep(.el-input__wrapper.is-focus),
+:deep(.el-textarea__inner:focus) {
+  box-shadow:
+    0 0 0 1px var(--el-color-primary) inset,
+    0 0 0 3px var(--el-color-primary-light-8);
 }
 </style>
