@@ -149,6 +149,20 @@ export function useCacheMonitor() {
     };
   });
 
+  /** 运行环境前缀(取首个缓存名去掉末段短名,如 amour_dev) */
+  const envPrefix = computed(() =>
+    (caches.value[0]?.cacheName ?? "").replace(/_[^_]+$/, "")
+  );
+
+  /** 健康摘要:命中率 ≥90% 的缓存占比(健康摘要带展示) */
+  const healthSummary = computed(() => {
+    const total = caches.value.length;
+    const healthyCount = caches.value.filter(
+      item => (item.stats?.hitRate ?? 0) >= 0.9
+    ).length;
+    return { total, healthyCount };
+  });
+
   /** 拉取全量缓存;原选中项失效时回退到第一项 */
   async function loadAll() {
     loading.value = true;
@@ -261,12 +275,12 @@ export function useCacheMonitor() {
             show: true,
             overlap: false,
             roundCap: true,
-            width: 14,
+            width: 12,
             itemStyle: { color: gaugeColor(rate) }
           },
           axisLine: {
             lineStyle: {
-              width: 14,
+              width: 12,
               color: [
                 [
                   1,
@@ -277,12 +291,14 @@ export function useCacheMonitor() {
               ]
             }
           },
-          data: [{ value: Number((value * 100).toFixed(1)), name: "命中率" }],
+          data: [
+            { value: Number((value * 100).toFixed(1)), name: "当前命中率" }
+          ],
           detail: {
             valueAnimation: true,
             offsetCenter: [0, "-8%"],
             formatter: "{value}%",
-            fontSize: 18,
+            fontSize: 20,
             fontWeight: 600,
             color: gaugeColor(rate)
           },
@@ -415,6 +431,11 @@ export function useCacheMonitor() {
             <span style={{ fontSize: "12px", whiteSpace: "nowrap" }}>
               {formatDuration(row.remainExpire)}
             </span>
+            {expirePercent(row) < 20 && (
+              <el-tag type="warning" size="small" effect="light">
+                即将过期
+              </el-tag>
+            )}
           </div>
         )
     },
@@ -449,6 +470,8 @@ export function useCacheMonitor() {
     loadAll,
     refreshTime,
     globalStats,
+    envPrefix,
+    healthSummary,
     ringRef,
     iconMeta,
     formatDuration,
