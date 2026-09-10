@@ -421,11 +421,11 @@ const policyTiles = computed(() => [
               </div>
             </div>
 
-            <!-- 条目表格(自适应高度,分页固定视口底部,与用户/角色页一致);offsetBottom 需覆盖表格下方固定开销:分页器 64 + PureTableBar 槽位 pb-2 8 + 右栏卡片 p-4 底部 16 = 88,取 92 留余量(main-content 底部 margin 已按表格页惯例归零) -->
+            <!-- 条目表格(自适应高度,分页固定视口底部,与用户/角色页一致);offsetBottom 需覆盖表格下方固定开销:分页器 64 + PureTableBar 槽位 pb-2 8 + 右栏卡片 p-4 底部 16 = 88,再加底部留白 24 与余量 12(对齐 user 页 108 = 72 + 24 + 12 的构成),取 124(main-content 底部 margin 已按表格页惯例归零) -->
             <pure-table
               row-key="key"
               adaptive
-              :adaptiveConfig="{ offsetBottom: 116 }"
+              :adaptiveConfig="{ offsetBottom: 124 }"
               align-whole="center"
               showOverflowTooltip
               table-layout="auto"

@@ -266,8 +266,8 @@ loadProfile();
 
 <template>
   <div class="profile-page">
-    <!-- 个人信息 / 账号安全 双栏并排(窄屏堆叠);卡片撑满视口余高,底部保留与用户管理页一致的 100px 灰色区域 -->
-    <el-card shadow="never" class="min-w-0 flex-1">
+    <!-- 个人信息 / 账号安全 双栏并排(窄屏堆叠);卡片撑满视口余高,底部保留与表格页一致的 36px 灰色区域 -->
+    <el-card shadow="never" class="min-w-0 flex-1 flex flex-col">
       <div class="cols">
         <div class="col">
           <div class="col-title">
@@ -281,7 +281,6 @@ loadProfile();
               label-position="top"
               :model="form"
               :rules="profileRules"
-              class="max-w-150"
             >
               <el-form-item label="头像">
                 <ReAvatarUpload v-model="form.avatar" />
@@ -374,7 +373,6 @@ loadProfile();
               label-position="top"
               :model="nameForm"
               :rules="nameRules"
-              class="max-w-150"
             >
               <el-form-item label="用户名" prop="username">
                 <el-input
@@ -412,7 +410,6 @@ loadProfile();
               label-position="top"
               :model="pwdForm"
               :rules="pwdRules"
-              class="max-w-150"
             >
               <el-form-item label="原密码" prop="oldPwd">
                 <el-input
@@ -472,8 +469,21 @@ loadProfile();
 <style scoped>
 .cols {
   display: flex;
+  flex: 1;
   flex-direction: column;
-  gap: 18px;
+
+  /* 仅作用于堆叠方向;不用 gap,避免宽屏并排时在分割线左侧叠加横向间隔 */
+  row-gap: 18px;
+
+  /* 基础水平间距:叠加卡片 20px 内边距后,内容距卡片边缘 36px */
+  padding-inline: 16px;
+}
+
+/* 卡片 body 纵向撑满,使双栏与分割线贯穿到内容区底部 */
+:deep(.el-card__body) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
 }
 
 .col {
@@ -554,12 +564,12 @@ loadProfile();
 }
 
 /* 页面容器:卡片撑满视口余高(最小高度扣除顶部 24px margin,避免溢出滚动),
-   底部保留 100px 灰色区域,与用户管理页一致 */
+   底部保留 36px 灰色区域,与表格页(自适应 offsetBottom 补偿后的 36px 视觉留白)一致 */
 .profile-page {
   display: flex;
   flex-direction: column;
   min-height: calc(100% - 24px);
-  padding-bottom: 100px;
+  padding-bottom: 36px;
 }
 
 /* el-alert 自带 margin:0(未分层样式),须用 scoped 规则显式覆盖间距 */
