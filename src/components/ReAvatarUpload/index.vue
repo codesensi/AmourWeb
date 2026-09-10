@@ -42,9 +42,10 @@ function isExternalUrl(value: string) {
 
 /** 外链地址校验:非空时需以 http(s):// 开头 */
 function validateUrl() {
-  urlError.value = props.modelValue && !isExternalUrl(props.modelValue)
-    ? "请输入正确的图片地址"
-    : "";
+  urlError.value =
+    props.modelValue && !isExternalUrl(props.modelValue)
+      ? "请输入正确的图片地址"
+      : "";
 }
 
 /** 按当前头像形态反推页签选中:外链选中"外部链接",站内路径选中"裁剪上传";

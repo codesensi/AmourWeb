@@ -26,46 +26,50 @@ export function backendFallback(target: string): Plugin {
     apply: "serve",
     configureServer(server) {
       // 最前置：在任何内部中间件改写 req.url 之前记录原始路径
-      server.middlewares.use((req: IncomingMessage, _res: ServerResponse, next) => {
-        originalPaths.set(req, req.url ?? "/");
-        next();
-      });
+      server.middlewares.use(
+        (req: IncomingMessage, _res: ServerResponse, next) => {
+          originalPaths.set(req, req.url ?? "/");
+          next();
+        }
+      );
 
       return () => {
-        server.middlewares.use((req: IncomingMessage, res: ServerResponse, next) => {
-          const path = originalPaths.get(req) ?? req.url ?? "/";
-          // 页面入口与浏览器页面导航交给 Vite（hash 路由下浏览器只访问 / 与 /index.html）
-          if (
-            path === "/" ||
-            path === "/index.html" ||
-            req.headers.accept?.includes("text/html")
-          ) {
-            next();
-            return;
-          }
-          // 其余请求（后端接口）转发到后端
-          const proxyReq = http.request(
-            {
-              host: backend.hostname,
-              port: backend.port,
-              method: req.method,
-              path,
-              headers: { ...req.headers, host: backend.host }
-            },
-            proxyRes => {
-              const headers = { ...proxyRes.headers };
-              delete headers["transfer-encoding"];
-              delete headers.connection;
-              res.writeHead(proxyRes.statusCode ?? 502, headers);
-              proxyRes.pipe(res);
+        server.middlewares.use(
+          (req: IncomingMessage, res: ServerResponse, next) => {
+            const path = originalPaths.get(req) ?? req.url ?? "/";
+            // 页面入口与浏览器页面导航交给 Vite（hash 路由下浏览器只访问 / 与 /index.html）
+            if (
+              path === "/" ||
+              path === "/index.html" ||
+              req.headers.accept?.includes("text/html")
+            ) {
+              next();
+              return;
             }
-          );
-          proxyReq.on("error", () => {
-            res.statusCode = 502;
-            res.end();
-          });
-          req.pipe(proxyReq);
-        });
+            // 其余请求（后端接口）转发到后端
+            const proxyReq = http.request(
+              {
+                host: backend.hostname,
+                port: backend.port,
+                method: req.method,
+                path,
+                headers: { ...req.headers, host: backend.host }
+              },
+              proxyRes => {
+                const headers = { ...proxyRes.headers };
+                delete headers["transfer-encoding"];
+                delete headers.connection;
+                res.writeHead(proxyRes.statusCode ?? 502, headers);
+                proxyRes.pipe(res);
+              }
+            );
+            proxyReq.on("error", () => {
+              res.statusCode = 502;
+              res.end();
+            });
+            req.pipe(proxyReq);
+          }
+        );
       };
     }
   };

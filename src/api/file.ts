@@ -17,7 +17,11 @@ export type UploadFileResult = ApiResult<{
  * bizType 路由业务类型(avatar-头像, photo-相册, markdown-点滴配图),
  * 扩展名与大小限制由后端 FileBizTypeEnum 按类型校验。
  */
-export const uploadFile = (bizType: string, blob: Blob, originalName?: string) => {
+export const uploadFile = (
+  bizType: string,
+  blob: Blob,
+  originalName?: string
+) => {
   const formData = new FormData();
   // 文件名需携带扩展名,后端按扩展名白名单校验
   formData.append("file", blob, originalName);

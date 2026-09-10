@@ -33,7 +33,7 @@ const optionsBasis: Array<OptionsType> = [
         v-for="(item, index) in chartData"
         :key="index"
         v-motion
-        class="mb-4.5"
+        class="card-gap"
         :value="6"
         :md="12"
         :sm="12"
@@ -92,7 +92,7 @@ const optionsBasis: Array<OptionsType> = [
 
       <re-col
         v-motion
-        class="mb-4.5"
+        class="card-gap"
         :value="18"
         :xs="24"
         :initial="{
@@ -123,7 +123,7 @@ const optionsBasis: Array<OptionsType> = [
 
       <re-col
         v-motion
-        class="mb-4.5"
+        class="card-gap"
         :value="6"
         :xs="24"
         :initial="{
@@ -170,7 +170,7 @@ const optionsBasis: Array<OptionsType> = [
 
       <re-col
         v-motion
-        class="mb-4.5"
+        class="card-gap"
         :value="18"
         :xs="24"
         :initial="{
@@ -197,7 +197,7 @@ const optionsBasis: Array<OptionsType> = [
 
       <re-col
         v-motion
-        class="mb-4.5"
+        class="card-gap"
         :value="6"
         :xs="24"
         :initial="{
@@ -278,6 +278,11 @@ const optionsBasis: Array<OptionsType> = [
 }
 
 .main-content {
-  margin: 20px 20px 0 !important;
+  margin: 24px 24px 0 !important;
+}
+
+/* 卡片行距:mb-4.5 为小数间距类,当前 Tailwind 版本不生成,改用 scoped 规则实现 18px */
+.card-gap {
+  margin-bottom: 18px;
 }
 </style>
