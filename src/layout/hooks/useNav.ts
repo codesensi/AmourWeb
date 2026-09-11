@@ -13,6 +13,7 @@ import { useUserStoreHook } from "@/store/modules/user";
 import { useGlobal, isAllEmpty } from "@pureadmin/utils";
 import { useEpThemeStoreHook } from "@/store/modules/epTheme";
 import { usePermissionStoreHook } from "@/store/modules/permission";
+import { ElMessageBox } from "element-plus";
 import ExitFullscreen from "~icons/ri/fullscreen-exit-fill";
 import Fullscreen from "~icons/ri/fullscreen-fill";
 
@@ -99,8 +100,18 @@ export function useNav() {
   }
 
   /** 退出登录 */
-  function logout() {
-    useUserStoreHook().logOutWithServer();
+  async function logout() {
+    const confirmed = await ElMessageBox.confirm("确定要退出登录吗?", "系统提示", {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning",
+      draggable: true
+    })
+      .then(() => true)
+      .catch(() => false);
+    if (confirmed) {
+      useUserStoreHook().logOutWithServer();
+    }
   }
 
   function backTopMenu() {
