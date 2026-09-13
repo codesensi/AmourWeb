@@ -1,5 +1,5 @@
 import { http } from "@/utils/http";
-import type { ApiResult } from "@/api/types";
+import type { ApiResult, PageQuery, PageResult } from "@/api/types";
 
 /** 文件上传响应 */
 export type UploadFileResult = ApiResult<{
@@ -37,4 +37,65 @@ export const uploadFile = (
 /** 上传头像(内容为裁剪产物或 gif 原图;文件名传用户原始文件名,缺失时由调用方生成时间戳兜底名) */
 export const uploadAvatar = (blob: Blob, originalName?: string) => {
   return uploadFile("avatar", blob, originalName);
+};
+
+/** 文件行数据(后端 sys_file 下发,仅展示字段) */
+export type FileItem = {
+  /** 文件ID(后端序列化为字符串,避免 JS 精度丢失) */
+  id: string;
+  /** 原始文件名 */
+  originalName: string;
+  /** 文件大小(字节) */
+  size: number;
+  /** 文件扩展名(全小写) */
+  extension: string;
+  /** 文件类型(Content-Type) */
+  contentType: string;
+  /** 存储类型: local-本地, oss-对象存储 */
+  storageType: string;
+  /** 存储路径(相对 key) */
+  path: string;
+  /** 业务来源: avatar-用户头像, photo-相册照片, markdown-点滴配图 */
+  bizType: string;
+  /** 业务关联ID(文件被业务采纳时回填,后端序列化为字符串) */
+  bizId: string;
+  /** 上传人ID(后端序列化为字符串) */
+  creator: string;
+  /** 上传人用户名 */
+  creatorName: string;
+  /** 上传时间(yyyy-MM-dd HH:mm:ss) */
+  createTime: string;
+};
+
+/** 文件分页查询参数 */
+export type FileQuery = PageQuery & {
+  /** 原始文件名(模糊匹配) */
+  originalName?: string;
+  /** 业务类型编码 */
+  bizType?: string;
+  /** 存储类型 */
+  storageType?: string;
+  /** 上传人用户名(模糊匹配) */
+  creatorName?: string;
+  /** 上传时间范围-起(yyyy-MM-dd,含当日) */
+  beginTime?: string;
+  /** 上传时间范围-止(yyyy-MM-dd,含当日) */
+  endTime?: string;
+};
+
+/** 文件分页查询(GET /file/page;登录态,file:page 权限) */
+export const getFilePage = (params?: FileQuery) => {
+  return http.request<ApiResult<PageResult<FileItem>>>("get", "/file/page", {
+    params
+  });
+};
+
+/**
+ * 删除文件(DELETE /file/{id};登录态,file:delete 权限)。
+ * 已被业务采纳(bizId 非空)的文件须 force=true 强制删除。
+ */
+export const deleteFile = (id: string, force = false) => {
+  return http.request<ApiResult<null>>("delete", `/file/${id}`, {
+    params: force ? { force: true } : {}
+  });
 };

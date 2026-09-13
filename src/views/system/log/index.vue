@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, reactive, ref } from "vue";
 import { hasPerms } from "@/utils/auth";
 import { useLogPage, useLogDetail, LOG_TYPE_OPTIONS } from "./hook";
 import { PureTableBar } from "@/components/RePureTableBar";
@@ -23,8 +23,9 @@ const activeTab = ref(tabDefs[0]?.name ?? "");
 const loginFormRef = ref();
 const operateFormRef = ref();
 
-const loginTab = useLogPage("login");
-const operateTab = useLogPage("operate");
+// reactive 包装:模板经 loginTab.xxx 属性访问,ref 自动拆箱保持响应式
+const loginTab = reactive(useLogPage("login"));
+const operateTab = reactive(useLogPage("operate"));
 
 /** 日志详情弹窗(两 Tab 共用) */
 const { detail, detailVisible, copiedBlock, openDetail, copyBlock, prettyJson } =
@@ -99,7 +100,6 @@ onMounted(() => {
           <template v-slot="{ size, dynamicColumns }">
             <pure-table
               align-whole="center"
-              table-layout="auto"
               :loading="loginTab.loading"
               :size="size"
               adaptive
@@ -198,7 +198,6 @@ onMounted(() => {
           <template v-slot="{ size, dynamicColumns }">
             <pure-table
               align-whole="center"
-              table-layout="auto"
               :loading="operateTab.loading"
               :size="size"
               adaptive
@@ -366,3 +365,5 @@ onMounted(() => {
   white-space: pre-wrap;
 }
 </style>
+
+

@@ -242,12 +242,14 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
       .catch(() => {});
   }
 
-  /** pure-table 已回写 pagination.currentPage/pageSize,此处重新拉取分页数据 */
-  function handleSizeChange() {
+  /** pure-table 的分页事件只携带新值(写在其内部分页副本上),需在此写回分页状态后再查询 */
+  function handleSizeChange(val: number) {
+    pagination.pageSize = val;
     onSearch();
   }
 
-  function handleCurrentChange() {
+  function handleCurrentChange(val: number) {
+    pagination.currentPage = val;
     onSearch();
   }
 
@@ -267,21 +269,21 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
 
   async function onSearch() {
     loading.value = true;
-    const { success, data } = await getRolePage({
-      ...toRaw(form),
-      pageNumber: pagination.currentPage,
-      pageSize: pagination.pageSize
-    });
-    if (success) {
-      dataList.value = data.records;
-      pagination.total = data.totalRow;
-      pagination.pageSize = data.pageSize;
-      pagination.currentPage = data.pageNumber;
-    }
-
-    setTimeout(() => {
+    try {
+      const { success, data } = await getRolePage({
+        ...toRaw(form),
+        pageNumber: pagination.currentPage,
+        pageSize: pagination.pageSize
+      });
+      if (success) {
+        dataList.value = data.records;
+        pagination.total = data.totalRow;
+        pagination.pageSize = data.pageSize;
+        pagination.currentPage = data.pageNumber;
+      }
+    } finally {
       loading.value = false;
-    }, 500);
+    }
   }
 
   const resetForm = formEl => {
@@ -440,3 +442,5 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
     handleSelectionChange
   };
 }
+
+

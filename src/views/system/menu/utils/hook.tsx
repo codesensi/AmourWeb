@@ -239,21 +239,21 @@ export function useMenu() {
 
   async function onSearch() {
     loading.value = true;
-    // 后端返回全量菜单的一维扁平数组（id + pid），前端按此键组树并做条件过滤
-    const { success, data } = await getMenuList();
-    if (success) {
-      // 全量菜单树:弹窗"上级菜单"选项的数据源(深拷贝,避免 handleTree 改写 children 后互相污染)
-      fullTree.value = handleTree(cloneDeep(data), "id", "pid");
-      dataList.value = handleTree(filterMenus(data), "id", "pid");
-      // 刷新后按当前展开态回填展开键,保持"展开/折叠全部"状态一致
-      expandRowKeys.value = isExpandAll.value
-        ? collectAllIds(dataList.value)
-        : [];
-    }
-
-    setTimeout(() => {
+    try {
+      // 后端返回全量菜单的一维扁平数组（id + pid），前端按此键组树并做条件过滤
+      const { success, data } = await getMenuList();
+      if (success) {
+        // 全量菜单树:弹窗"上级菜单"选项的数据源(深拷贝,避免 handleTree 改写 children 后互相污染)
+        fullTree.value = handleTree(cloneDeep(data), "id", "pid");
+        dataList.value = handleTree(filterMenus(data), "id", "pid");
+        // 刷新后按当前展开态回填展开键,保持"展开/折叠全部"状态一致
+        expandRowKeys.value = isExpandAll.value
+          ? collectAllIds(dataList.value)
+          : [];
+      }
+    } finally {
       loading.value = false;
-    }, 500);
+    }
   }
 
   /** 收集树形数据的全部节点 id(展开全部时回填 expand-row-keys) */
@@ -404,3 +404,4 @@ export function useMenu() {
     handleDelete
   };
 }
+

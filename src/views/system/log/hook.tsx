@@ -26,51 +26,6 @@ export const LOG_TYPE_OPTIONS = (Object.keys(LOG_TYPE_LABELS) as unknown[])
   .filter(code => code >= 3)
   .map(code => ({ value: code, label: LOG_TYPE_LABELS[code] }));
 
-/** 列表内代码类文本截断展示(与缓存监控一致,超长省略) */
-function summarize(text: string) {
-  return text.length > 40 ? `${text.slice(0, 40)}…` : text;
-}
-
-/** 代码类文本列渲染:无内容显示空白,否则等宽字体截断展示 */
-function codeCell(text: string) {
-  if (text == null || text === "") return "";
-  return (
-    <span
-      style={{
-        background: "var(--el-fill-color)",
-        borderRadius: "4px",
-        padding: "2px 6px",
-        fontFamily: "Consolas, Monaco, monospace",
-        fontSize: "12px"
-      }}
-    >
-      {summarize(text)}
-    </span>
-  );
-}
-
-/** 请求参数/响应结果列(两 Tab 共用,列表内截断展示,完整内容在详情弹窗查看) */
-function paramResultColumns(): TableColumnList {
-  return [
-    {
-      label: "请求参数",
-      prop: "param",
-      minWidth: 180,
-      align: "left",
-      headerAlign: "center",
-      cellRenderer: ({ row }) => codeCell(row.param)
-    },
-    {
-      label: "响应结果",
-      prop: "result",
-      minWidth: 180,
-      align: "left",
-      headerAlign: "center",
-      cellRenderer: ({ row }) => codeCell(row.result)
-    }
-  ];
-}
-
 /** 操作列(两 Tab 共用,固定右侧,详情弹窗由页面层注入) */
 function operateSlotColumn(): TableColumnList[number] {
   return {
@@ -107,7 +62,7 @@ export function useLogPage(tab: LogTab) {
     background: true
   });
 
-  /** 登录日志列:用户名/IP/归属地/状态/描述/参数/结果/时间/操作 */
+  /** 登录日志列:用户名/IP/归属地/状态/描述/时间/操作 */
   const loginColumns: TableColumnList = [
     {
       label: "用户名",
@@ -138,11 +93,8 @@ export function useLogPage(tab: LogTab) {
       label: "描述",
       prop: "msg",
       minWidth: 160,
-      align: "left",
-      headerAlign: "center",
       showOverflowTooltip: true
     },
-    ...paramResultColumns(),
     {
       label: "登录时间",
       prop: "createTime",
@@ -151,7 +103,7 @@ export function useLogPage(tab: LogTab) {
     operateSlotColumn()
   ];
 
-  /** 操作日志列:用户名/模块/操作/类型/IP/归属地/耗时/状态/参数/结果/时间/操作 */
+  /** 操作日志列:用户名/模块/操作/类型/IP/归属地/耗时/状态/时间/操作 */
   const operateColumns: TableColumnList = [
     {
       label: "用户名",
@@ -201,7 +153,6 @@ export function useLogPage(tab: LogTab) {
         </el-tag>
       )
     },
-    ...paramResultColumns(),
     {
       label: "操作时间",
       prop: "createTime",
@@ -212,29 +163,34 @@ export function useLogPage(tab: LogTab) {
 
   const columns = tab === "login" ? loginColumns : operateColumns;
 
-  /** pure-table 已回写 pagination.currentPage/pageSize,此处重新拉取分页数据 */
-  function handleSizeChange() {
+  /** pure-table 的分页事件只携带新值(写在其内部分页副本上),需在此写回分页状态后再查询 */
+  function handleSizeChange(val: number) {
+    pagination.pageSize = val;
     onSearch();
   }
 
-  function handleCurrentChange() {
+  function handleCurrentChange(val: number) {
+    pagination.currentPage = val;
     onSearch();
   }
 
   async function onSearch() {
     loading.value = true;
-    const { success, data } = await getLogPage(tab, {
-      ...toRaw(form),
-      pageNumber: pagination.currentPage,
-      pageSize: pagination.pageSize
-    });
-    if (success) {
-      dataList.value = data.records;
-      pagination.total = data.totalRow;
-      pagination.pageSize = data.pageSize;
-      pagination.currentPage = data.pageNumber;
+    try {
+      const { success, data } = await getLogPage(tab, {
+        ...toRaw(form),
+        pageNumber: pagination.currentPage,
+        pageSize: pagination.pageSize
+      });
+      if (success) {
+        dataList.value = data.records;
+        pagination.total = data.totalRow;
+        pagination.pageSize = data.pageSize;
+        pagination.currentPage = data.pageNumber;
+      }
+    } finally {
+      loading.value = false;
     }
-    loading.value = false;
   }
 
   const resetForm = formEl => {
@@ -243,7 +199,9 @@ export function useLogPage(tab: LogTab) {
     onSearch();
   };
 
-  return reactive({
+  // 返回普通对象:解构使用时 ref 保持响应式;
+  // 若包一层 reactive,解构出的 ref 会被拆箱成当时的值快照,模板将永远不更新
+  return {
     form,
     loading,
     columns,
@@ -253,7 +211,7 @@ export function useLogPage(tab: LogTab) {
     resetForm,
     handleSizeChange,
     handleCurrentChange
-  });
+  };
 }
 
 /**
@@ -312,3 +270,6 @@ export function useLogDetail() {
     prettyJson
   };
 }
+
+
+
