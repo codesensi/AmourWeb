@@ -81,6 +81,8 @@ export type FileQuery = PageQuery & {
   beginTime?: string;
   /** 上传时间范围-止(yyyy-MM-dd,含当日) */
   endTime?: string;
+  /** 删除标识: 0-文件列表(缺省), 1-回收站 */
+  delFlag?: number;
 };
 
 /** 文件分页查询(GET /file/page;登录态,file:page 权限) */
@@ -92,10 +94,18 @@ export const getFilePage = (params?: FileQuery) => {
 
 /**
  * 删除文件(DELETE /file/{id};登录态,file:delete 权限)。
- * 已被业务采纳(bizId 非空)的文件须 force=true 强制删除。
+ * 仅逻辑删除,物理文件保留,可在回收站恢复或彻底删除。
  */
-export const deleteFile = (id: string, force = false) => {
-  return http.request<ApiResult<null>>("delete", `/file/${id}`, {
-    params: force ? { force: true } : {}
-  });
+export const deleteFile = (id: string) => {
+  return http.request<ApiResult<null>>("delete", `/file/${id}`);
+};
+
+/** 恢复回收站文件(PUT /file/{id}/restore;登录态,file:delete 权限) */
+export const restoreFile = (id: string) => {
+  return http.request<ApiResult<null>>("put", `/file/${id}/restore`);
+};
+
+/** 彻底删除回收站文件(DELETE /file/{id}/physical;登录态,file:delete 权限) */
+export const physicalDeleteFile = (id: string) => {
+  return http.request<ApiResult<null>>("delete", `/file/${id}/physical`);
 };

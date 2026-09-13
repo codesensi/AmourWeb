@@ -1,10 +1,19 @@
-import { onMounted, reactive, ref, toRaw } from "vue";
+import { reactive, ref, toRaw } from "vue";
 import { ElMessageBox } from "element-plus";
 import { useClipboard } from "@vueuse/core";
 import type { PaginationProps } from "@pureadmin/table";
-import { deleteFile, getFilePage, type FileItem } from "@/api/file";
+import {
+  deleteFile,
+  getFilePage,
+  physicalDeleteFile,
+  restoreFile,
+  type FileItem
+} from "@/api/file";
 import { http } from "@/utils/http";
 import { message } from "@/utils/message";
+
+/** 页签模式: active-文件列表(未删除), recycle-回收站(已逻辑删除) */
+export type FilePageMode = "active" | "recycle";
 
 /** 业务类型标签映射(与后端 FileBizTypeEnum 对齐) */
 export const BIZ_TYPE_LABELS: Record<string, string> = {
@@ -30,9 +39,10 @@ export function formatSize(size: number) {
 
 /**
  * 文件分页 hook —— 搜索、分页、列表数据与删除确认。
- * 页面骨架对齐日志管理页(搜索表单 + PureTableBar + 自适应表格)。
+ * 页面骨架对齐日志管理页(搜索表单 + PureTableBar + 自适应表格);
+ * mode 区分文件列表(active, delFlag=0)与回收站(recycle, delFlag=1)两个数据域。
  */
-export function useFilePage() {
+export function useFilePage(mode: FilePageMode = "active") {
   const form = reactive<{
     originalName: string;
     bizType: string;
@@ -133,6 +143,7 @@ export function useFilePage() {
       const { timeRange, ...rest } = toRaw(form);
       const { success, data } = await getFilePage({
         ...rest,
+        delFlag: mode === "recycle" ? 1 : 0,
         beginTime: timeRange?.[0],
         endTime: timeRange?.[1],
         pageNumber: pagination.currentPage,
@@ -156,31 +167,68 @@ export function useFilePage() {
     onSearch();
   };
 
-  /**
-   * 删除文件:已被业务采纳(bizId 非空)时升级为强警示确认,
-   * 确认后携带 force=true 强制删除;普通文件常规确认即可。
-   */
+  /** 删除文件到回收站:仅逻辑删除,物理文件保留,可在回收站恢复或彻底删除 */
   async function handleDelete(row: FileItem) {
-    const referenced = row.bizId != null && row.bizId !== "";
-    const tip = referenced
-      ? `该文件已被业务「${BIZ_TYPE_LABELS[row.bizType] ?? row.bizType}」引用(关联ID ${row.bizId}),删除后相关业务将无法展示,是否继续?`
-      : `确认删除文件「${row.originalName}」吗?删除后不可恢复。`;
-    const confirmed = await ElMessageBox.confirm(tip, "系统提示", {
-      confirmButtonText: referenced ? "强制删除" : "确定",
-      cancelButtonText: "取消",
-      type: "warning",
-      draggable: true
-    })
+    const confirmed = await ElMessageBox.confirm(
+      `确认删除文件「${row.originalName}」吗?删除后可在回收站恢复。`,
+      "系统提示",
+      {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+        draggable: true
+      }
+    )
       .then(() => true)
       .catch(() => false);
     if (!confirmed) return;
-    const { success } = await deleteFile(row.id, referenced);
+    const { success } = await deleteFile(row.id);
     if (success) {
       message("删除成功", { type: "success" });
       onSearch();
     }
   }
 
+  /** 恢复回收站文件:仅恢复文件记录本身,不自动回滚业务引用(如头像仍指向现文件) */
+  async function handleRestore(row: FileItem) {
+    const { success } = await restoreFile(row.id);
+    if (success) {
+      message("已恢复至文件列表", { type: "success" });
+      if (row.bizId != null && row.bizId !== "") {
+        message(
+          `该文件曾作为「${BIZ_TYPE_LABELS[row.bizType] ?? row.bizType}」使用,恢复后不会自动重新生效`,
+          { type: "info" }
+        );
+      }
+      onSearch();
+    }
+  }
+
+  /** 彻底删除回收站文件:物理删除记录并兜底清理残留物理文件,不可恢复 */
+  async function handlePhysicalDelete(row: FileItem) {
+    const confirmed = await ElMessageBox.confirm(
+      `确认彻底删除文件「${row.originalName}」吗?删除后不可恢复。`,
+      "系统提示",
+      {
+        confirmButtonText: "彻底删除",
+        cancelButtonText: "取消",
+        type: "warning",
+        draggable: true
+      }
+    )
+      .then(() => true)
+      .catch(() => false);
+    if (!confirmed) return;
+    const { success } = await physicalDeleteFile(row.id);
+    if (success) {
+      message("已彻底删除", { type: "success" });
+      // 本页仅剩该条且非首页时回退一页,避免停留在空页
+      if (dataList.value.length === 1 && pagination.currentPage > 1) {
+        pagination.currentPage -= 1;
+      }
+      onSearch();
+    }
+  }
   /** 下载文件:二进制流原样透传,按原始文件名触发另存为 */
   async function handleDownload(row: FileItem) {
     const res = await http.request<Blob>(
@@ -203,9 +251,6 @@ export function useFilePage() {
     URL.revokeObjectURL(url);
   }
 
-  /** 进入页面即加载第一页数据(对齐用户管理页 hook 内自动加载) */
-  onMounted(() => onSearch());
-
   // 返回普通对象:解构使用时 ref 保持响应式;
   // 若包一层 reactive,解构出的 ref 会被拆箱成当时的值快照,模板将永远不更新
   return {
@@ -219,7 +264,9 @@ export function useFilePage() {
     handleSizeChange,
     handleCurrentChange,
     handleDelete,
-    handleDownload
+    handleDownload,
+    handleRestore,
+    handlePhysicalDelete
   };
 }
 
@@ -275,4 +322,3 @@ export function useFileDetail() {
     copyUrl
   };
 }
-

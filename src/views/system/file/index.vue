@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, reactive, ref } from "vue";
 import {
   BIZ_TYPE_LABELS,
   formatSize,
@@ -19,157 +19,305 @@ defineOptions({
   name: "SystemFile"
 });
 
-const formRef = ref();
-const {
-  form,
-  loading,
-  columns,
-  dataList,
-  pagination,
-  onSearch,
-  resetForm,
-  handleSizeChange,
-  handleCurrentChange,
-  handleDelete,
-  handleDownload
-} = useFilePage();
+// reactive 包装:模板经 activeTab.xxx 属性访问,ref 自动拆箱保持响应式
+const activeTabState = reactive(useFilePage("active"));
+const recycleTab = reactive(useFilePage("recycle"));
+const activeTab = ref("active");
+const activeFormRef = ref();
+const recycleFormRef = ref();
 
-/** 文件详情弹窗(元数据 + 图片预览 + 访问地址复制) */
+/** 文件详情弹窗(两页签共用:元数据 + 图片预览 + 访问地址复制) */
 const { detail, detailVisible, copied, isImage, viewUrl, openDetail, copyUrl } =
   useFileDetail();
+
+/** 页签懒加载:首次激活时才请求对应列表 */
+const loaded: Record<string, boolean> = {};
+
+function handleTabChange(name: string) {
+  if (!name || loaded[name]) return;
+  loaded[name] = true;
+  (name === "recycle" ? recycleTab : activeTabState).onSearch();
+}
+
+/** 进入页面即加载默认激活页签 */
+onMounted(() => handleTabChange(activeTab.value));
 </script>
 
 <template>
   <div class="main">
-    <el-form
-      ref="formRef"
-      :inline="true"
-      :model="form"
-      class="search-form bg-bg_color w-full pl-8 pt-3 overflow-auto"
+    <el-tabs
+      v-model="activeTab"
+      class="bg-bg_color px-3! pt-1!"
+      @tab-change="handleTabChange"
     >
-      <el-form-item label="文件名" prop="originalName">
-        <el-input
-          v-model="form.originalName"
-          placeholder="请输入文件名"
-          clearable
-          class="w-45!"
-        />
-      </el-form-item>
-      <el-form-item label="业务类型" prop="bizType">
-        <el-select
-          v-model="form.bizType"
-          placeholder="请选择"
-          clearable
-          class="w-37.5!"
+      <el-tab-pane label="文件列表" name="active">
+        <el-form
+          ref="activeFormRef"
+          :inline="true"
+          :model="activeTabState.form"
+          class="search-form bg-bg_color w-full pl-8 pt-3 overflow-auto"
         >
-          <el-option
-            v-for="(label, value) in BIZ_TYPE_LABELS"
-            :key="value"
-            :label="label"
-            :value="value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="存储类型" prop="storageType">
-        <el-select
-          v-model="form.storageType"
-          placeholder="请选择"
-          clearable
-          class="w-37.5!"
-        >
-          <el-option
-            v-for="(label, value) in STORAGE_TYPE_LABELS"
-            :key="value"
-            :label="label"
-            :value="value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="上传人" prop="creatorName">
-        <el-input
-          v-model="form.creatorName"
-          placeholder="请输入上传人"
-          clearable
-          class="w-37.5!"
-        />
-      </el-form-item>
-      <el-form-item label="上传时间" prop="timeRange">
-        <el-date-picker
-          v-model="form.timeRange"
-          type="daterange"
-          value-format="YYYY-MM-DD"
-          range-separator="至"
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
-          class="w-62.5!"
-        />
-      </el-form-item>
-      <el-form-item>
-        <el-button
-          type="primary"
-          :icon="useRenderIcon('ri:search-line')"
-          :loading="loading"
-          @click="onSearch"
-        >
-          搜索
-        </el-button>
-        <el-button :icon="useRenderIcon(Refresh)" @click="resetForm(formRef)">
-          重置
-        </el-button>
-      </el-form-item>
-    </el-form>
-    <PureTableBar title="文件管理" :columns="columns" @refresh="onSearch">
-      <template v-slot="{ size, dynamicColumns }">
-        <pure-table
-          row-key="id"
-          align-whole="center"
-          table-layout="auto"
-          :loading="loading"
-          :size="size"
-          adaptive
-          :adaptiveConfig="{ offsetBottom: 108 }"
-          :data="dataList"
-          :columns="dynamicColumns"
-          :pagination="{ ...pagination, size }"
-          :header-cell-style="{
-            background: 'var(--el-fill-color-light)',
-            color: 'var(--el-text-color-primary)'
-          }"
-          @page-size-change="handleSizeChange"
-          @page-current-change="handleCurrentChange"
-        >
-          <template #operation="{ row, size }">
+          <el-form-item label="文件名" prop="originalName">
+            <el-input
+              v-model="activeTabState.form.originalName"
+              placeholder="请输入文件名"
+              clearable
+              class="w-45!"
+            />
+          </el-form-item>
+          <el-form-item label="业务类型" prop="bizType">
+            <el-select
+              v-model="activeTabState.form.bizType"
+              placeholder="请选择"
+              clearable
+              class="w-37.5!"
+            >
+              <el-option
+                v-for="(label, value) in BIZ_TYPE_LABELS"
+                :key="value"
+                :label="label"
+                :value="value"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="存储类型" prop="storageType">
+            <el-select
+              v-model="activeTabState.form.storageType"
+              placeholder="请选择"
+              clearable
+              class="w-37.5!"
+            >
+              <el-option
+                v-for="(label, value) in STORAGE_TYPE_LABELS"
+                :key="value"
+                :label="label"
+                :value="value"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="上传人" prop="creatorName">
+            <el-input
+              v-model="activeTabState.form.creatorName"
+              placeholder="请输入上传人"
+              clearable
+              class="w-37.5!"
+            />
+          </el-form-item>
+          <el-form-item label="上传时间" prop="timeRange">
+            <el-date-picker
+              v-model="activeTabState.form.timeRange"
+              type="daterange"
+              value-format="YYYY-MM-DD"
+              range-separator="至"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+              class="w-62.5!"
+            />
+          </el-form-item>
+          <el-form-item>
             <el-button
-              class="reset-margin"
-              link
               type="primary"
-              :size="size"
-              @click="openDetail(row)"
+              :icon="useRenderIcon('ri:search-line')"
+              :loading="activeTabState.loading"
+              @click="activeTabState.onSearch"
             >
-              详情
+              搜索
             </el-button>
             <el-button
-              class="reset-margin"
-              link
-              type="primary"
-              :size="size"
-              @click="handleDownload(row as FileItem)"
+              :icon="useRenderIcon(Refresh)"
+              @click="activeTabState.resetForm(activeFormRef)"
             >
-              下载
+              重置
             </el-button>
-            <el-button
-              class="reset-margin"
-              link
-              type="danger"
+          </el-form-item>
+        </el-form>
+        <PureTableBar
+          title="文件管理"
+          :columns="activeTabState.columns"
+          @refresh="activeTabState.onSearch"
+        >
+          <template v-slot="{ size, dynamicColumns }">
+            <pure-table
+              row-key="id"
+              align-whole="center"
+              table-layout="auto"
+              :loading="activeTabState.loading"
               :size="size"
-              @click="handleDelete(row as FileItem)"
+              adaptive
+              :adaptiveConfig="{ offsetBottom: 108 }"
+              :data="activeTabState.dataList"
+              :columns="dynamicColumns"
+              :pagination="{ ...activeTabState.pagination, size }"
+              :header-cell-style="{
+                background: 'var(--el-fill-color-light)',
+                color: 'var(--el-text-color-primary)'
+              }"
+              @page-size-change="activeTabState.handleSizeChange"
+              @page-current-change="activeTabState.handleCurrentChange"
             >
-              删除
-            </el-button>
+              <template #operation="{ row, size }">
+                <el-button
+                  class="reset-margin"
+                  link
+                  type="primary"
+                  :size="size"
+                  @click="openDetail(row)"
+                >
+                  详情
+                </el-button>
+                <el-button
+                  class="reset-margin"
+                  link
+                  type="primary"
+                  :size="size"
+                  @click="activeTabState.handleDownload(row as FileItem)"
+                >
+                  下载
+                </el-button>
+                <el-button
+                  class="reset-margin"
+                  link
+                  type="danger"
+                  :size="size"
+                  @click="activeTabState.handleDelete(row as FileItem)"
+                >
+                  删除
+                </el-button>
+              </template>
+            </pure-table>
           </template>
-        </pure-table>
-      </template>
-    </PureTableBar>
+        </PureTableBar>
+      </el-tab-pane>
+      <el-tab-pane label="回收站" name="recycle" lazy>
+        <el-form
+          ref="recycleFormRef"
+          :inline="true"
+          :model="recycleTab.form"
+          class="search-form bg-bg_color w-full pl-8 pt-3 overflow-auto"
+        >
+          <el-form-item label="文件名" prop="originalName">
+            <el-input
+              v-model="recycleTab.form.originalName"
+              placeholder="请输入文件名"
+              clearable
+              class="w-45!"
+            />
+          </el-form-item>
+          <el-form-item label="业务类型" prop="bizType">
+            <el-select
+              v-model="recycleTab.form.bizType"
+              placeholder="请选择"
+              clearable
+              class="w-37.5!"
+            >
+              <el-option
+                v-for="(label, value) in BIZ_TYPE_LABELS"
+                :key="value"
+                :label="label"
+                :value="value"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="存储类型" prop="storageType">
+            <el-select
+              v-model="recycleTab.form.storageType"
+              placeholder="请选择"
+              clearable
+              class="w-37.5!"
+            >
+              <el-option
+                v-for="(label, value) in STORAGE_TYPE_LABELS"
+                :key="value"
+                :label="label"
+                :value="value"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="上传人" prop="creatorName">
+            <el-input
+              v-model="recycleTab.form.creatorName"
+              placeholder="请输入上传人"
+              clearable
+              class="w-37.5!"
+            />
+          </el-form-item>
+          <el-form-item label="上传时间" prop="timeRange">
+            <el-date-picker
+              v-model="recycleTab.form.timeRange"
+              type="daterange"
+              value-format="YYYY-MM-DD"
+              range-separator="至"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+              class="w-62.5!"
+            />
+          </el-form-item>
+          <el-form-item>
+            <el-button
+              type="primary"
+              :icon="useRenderIcon('ri:search-line')"
+              :loading="recycleTab.loading"
+              @click="recycleTab.onSearch"
+            >
+              搜索
+            </el-button>
+            <el-button
+              :icon="useRenderIcon(Refresh)"
+              @click="recycleTab.resetForm(recycleFormRef)"
+            >
+              重置
+            </el-button>
+          </el-form-item>
+        </el-form>
+        <PureTableBar
+          title="回收站"
+          :columns="recycleTab.columns"
+          @refresh="recycleTab.onSearch"
+        >
+          <template v-slot="{ size, dynamicColumns }">
+            <pure-table
+              row-key="id"
+              align-whole="center"
+              table-layout="auto"
+              :loading="recycleTab.loading"
+              :size="size"
+              adaptive
+              :adaptiveConfig="{ offsetBottom: 108 }"
+              :data="recycleTab.dataList"
+              :columns="dynamicColumns"
+              :pagination="{ ...recycleTab.pagination, size }"
+              :header-cell-style="{
+                background: 'var(--el-fill-color-light)',
+                color: 'var(--el-text-color-primary)'
+              }"
+              @page-size-change="recycleTab.handleSizeChange"
+              @page-current-change="recycleTab.handleCurrentChange"
+            >
+              <template #operation="{ row, size }">
+                <el-button
+                  class="reset-margin"
+                  link
+                  type="primary"
+                  :size="size"
+                  @click="recycleTab.handleRestore(row as FileItem)"
+                >
+                  恢复
+                </el-button>
+                <el-button
+                  class="reset-margin"
+                  link
+                  type="danger"
+                  :size="size"
+                  @click="recycleTab.handlePhysicalDelete(row as FileItem)"
+                >
+                  彻底删除
+                </el-button>
+              </template>
+            </pure-table>
+          </template>
+        </PureTableBar>
+      </el-tab-pane>
+    </el-tabs>
 
     <!-- 文件详情弹窗:图片类内联预览 + 元数据 + 访问地址复制 -->
     <el-dialog
