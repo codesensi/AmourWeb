@@ -31,7 +31,7 @@ defineOptions({
 
 const captchaKey = ref("");
 const captchaImg = ref("");
-/** 验证码显隐开关:由 /sys/config/list-by-keys 下发决定,缺省关闭 */
+/** 验证码显隐开关:由 /portal/config/list-by-keys 下发决定,缺省关闭 */
 const captchaEnabled = ref(false);
 const router = useRouter();
 const loading = ref(false);

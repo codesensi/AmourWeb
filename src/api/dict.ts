@@ -38,11 +38,11 @@ export const DICT_CODES = {
   fileStorageType: "file-storage-type"
 } as const;
 
-/** 字典批量查询(GET /sys/dict/list-by-codes,免登录;codes 逗号分隔) */
+/** 字典批量查询(GET /portal/dict/list-by-codes,免登录;codes 逗号分隔) */
 export const getDictByCodes = (codes: Array<string>) => {
   return http.request<ApiResult<Array<SysDictGroup>>>(
     "get",
-    "/sys/dict/list-by-codes",
+    "/portal/dict/list-by-codes",
     { params: { codes: codes.join(",") } }
   );
 };

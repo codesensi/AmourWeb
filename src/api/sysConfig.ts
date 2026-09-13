@@ -14,7 +14,7 @@ export interface SysConfigItem {
   configGroup: string;
 }
 
-/** 系统公共配置响应(GET /sys/config/list-by-keys;免登录,键值数组由 utils/sysConfig 归一化后供组件消费) */
+/** 系统公共配置响应(GET /portal/config/list-by-keys;免登录,键值数组由 utils/sysConfig 归一化后供组件消费) */
 export type SysConfigResult = ApiResult<Array<SysConfigItem>>;
 
 /** 获取系统公共配置
@@ -22,7 +22,7 @@ export type SysConfigResult = ApiResult<Array<SysConfigItem>>;
  * @param keys 需要下发的配置键集合(必传;不传后端返回空列表)
  */
 export const getSysConfig = (keys: Array<string>) => {
-  return http.request<SysConfigResult>("get", "/sys/config/list-by-keys", {
+  return http.request<SysConfigResult>("get", "/portal/config/list-by-keys", {
     // 逗号分隔传输(?keys=name,icp),Spring 默认按逗号拆分为 List<String>
     params: { keys: keys.join(",") }
   });

@@ -56,7 +56,7 @@ app.use(VueTippy);
 
 getPlatformConfig(app).then(async config => {
   setupStore(app);
-  // 站点标题:出厂值取 platform-config 的 Title,再由后端系统配置覆盖(GET /sys/config/list-by-keys 免登录,失败时保持出厂值)
+  // 站点标题:出厂值取 platform-config 的 Title,再由后端系统配置覆盖(GET /portal/config/list-by-keys 免登录,失败时保持出厂值)
   siteTitle.value = getConfig().Title ?? siteTitle.value;
   const { name } = await fetchSysConfig("name");
   if (name) siteTitle.value = name;
