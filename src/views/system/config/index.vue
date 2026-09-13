@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { nextTick, ref, watch } from "vue";
 import { useConfigPage } from "./utils/hook";
 import { PureTableBar } from "@/components/RePureTableBar";
-import { DictSelect } from "@/components/DictSelect";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { hasPerms } from "@/utils/auth";
 
@@ -18,11 +17,14 @@ const tableRef = ref();
 
 const {
   form,
+  activeTab,
+  groupOptions,
   loading,
   columns,
   dataList,
   pagination,
   onSearch,
+  handleTabChange,
   resetForm,
   openEdit,
   handleSizeChange,
@@ -33,6 +35,12 @@ function onFullscreen() {
   // 重置表格高度
   tableRef.value.setAdaptive();
 }
+
+// 分组页签由字典异步渲染:表格挂载计算自适应高度时页签尚未撑开,页签出现后表格顶部
+// 位置下移而高度未变,底部留白随之变少;页签渲染完成后重算一次,与其它自适应表格页面对齐
+watch(groupOptions, () => {
+  nextTick(() => tableRef.value?.setAdaptive());
+});
 </script>
 
 <template>
@@ -48,15 +56,6 @@ function onFullscreen() {
         <el-input
           v-model="form.configKey"
           placeholder="请输入配置键"
-          clearable
-          class="w-45!"
-        />
-      </el-form-item>
-      <el-form-item label="分组：" prop="configGroup">
-        <DictSelect
-          v-model="form.configGroup"
-          dict-code="config-group"
-          placeholder="请选择"
           clearable
           class="w-45!"
         />
@@ -83,6 +82,19 @@ function onFullscreen() {
       @fullscreen="onFullscreen"
     >
       <template v-slot="{ size, dynamicColumns }">
+        <!-- 分组页签:仅作分组筛选条,内容区由下方表格承载(页签来自 config-group 字典) -->
+        <el-tabs
+          v-model="activeTab"
+          class="config-tabs"
+          @tab-change="handleTabChange"
+        >
+          <el-tab-pane
+            v-for="group in groupOptions"
+            :key="group.dictValue"
+            :label="group.dictLabel"
+            :name="group.dictValue"
+          />
+        </el-tabs>
         <pure-table
           ref="tableRef"
           adaptive
@@ -136,6 +148,18 @@ function onFullscreen() {
   :deep(.el-input),
   :deep(.el-select) {
     width: 180px;
+  }
+}
+
+/* 分组页签条:压缩 EP 默认间距,使页签下划线贴近表格 */
+.config-tabs {
+  :deep(.el-tabs__header) {
+    margin-bottom: 8px;
+  }
+
+  /* 页签仅作分组筛选,无内容区,隐藏空内容占位 */
+  :deep(.el-tabs__content) {
+    display: none;
   }
 }
 </style>

@@ -7,17 +7,23 @@ import type { FormItemProps } from "./types";
 import { getConfigPage, updateConfig } from "@/api/sysConfig";
 import type { SysConfigPageItem } from "@/api/sysConfig";
 import { DICT_CODES } from "@/api/dict";
+import { useDict } from "@/hooks/useDict";
 import { deviceDetection } from "@pureadmin/utils";
-import { h, ref, toRaw, reactive, onMounted } from "vue";
+import { h, ref, toRaw, reactive, watch } from "vue";
 
 export function useConfigPage() {
   const form = reactive({
-    configKey: "",
-    configGroup: ""
+    configKey: ""
   });
+  /** 当前激活的分组页签(config-group 字典值;字典就绪后默认选中第一个分组) */
+  const activeTab = ref("");
   const formRef = ref();
   const dataList = ref<Array<SysConfigPageItem>>([]);
   const loading = ref(true);
+
+  /** 分组页签数据源(响应式;字典到达后页签自动渲染,新增分组免改前端) */
+  const { options: groupOptions } = useDict(DICT_CODES.configGroup);
+
   // 分页查询公共骨架:分页状态 + 分页事件写回 + 查询结果回填 + 搜索表单重置
   const {
     pagination,
@@ -46,19 +52,6 @@ export function useConfigPage() {
         <DictTag
           dictCode={DICT_CODES.configValueType}
           value={row.valueType}
-          size={props.size}
-          effect="light"
-        />
-      )
-    },
-    {
-      label: "分组",
-      prop: "configGroup",
-      minWidth: 90,
-      cellRenderer: ({ row, props }) => (
-        <DictTag
-          dictCode="config-group"
-          value={row.configGroup}
           size={props.size}
           effect="light"
         />
@@ -98,10 +91,13 @@ export function useConfigPage() {
   ];
 
   async function onSearch() {
+    // 页签未就绪(分组字典尚未加载)时不查询,避免回落为跨组平铺列表
+    if (!activeTab.value) return;
     loading.value = true;
     try {
       const { success, data } = await getConfigPage({
         ...toRaw(form),
+        configGroup: activeTab.value,
         pageNumber: pagination.currentPage,
         pageSize: pagination.pageSize
       });
@@ -111,6 +107,13 @@ export function useConfigPage() {
     } finally {
       loading.value = false;
     }
+  }
+
+  /** 页签切换:复位到第 1 页后按新分组重查(激活页签已由 v-model 写回 activeTab) */
+  function handleTabChange(name: string | number) {
+    if (!name) return;
+    pagination.currentPage = 1;
+    onSearch();
   }
 
   /** 修改配置弹窗(仅配置值可改;保存后后端失效 config 缓存,新值即时生效) */
@@ -165,17 +168,28 @@ export function useConfigPage() {
     });
   }
 
-  onMounted(() => {
-    onSearch();
-  });
+  // 字典就绪后默认选中第一个分组页签并发起首查(仅一次;后续切换由页签事件驱动)
+  watch(
+    groupOptions,
+    options => {
+      if (!activeTab.value && options.length) {
+        activeTab.value = options[0].dictValue;
+        onSearch();
+      }
+    },
+    { immediate: true }
+  );
 
   return {
     form,
+    activeTab,
+    groupOptions,
     loading,
     columns,
     dataList,
     pagination,
     onSearch,
+    handleTabChange,
     resetForm,
     openEdit,
     handleSizeChange,
