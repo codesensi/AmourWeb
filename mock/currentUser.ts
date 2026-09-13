@@ -382,6 +382,7 @@ export default defineFakeRoute([
         msg: "操作成功",
         timestamp: Date.now(),
         data: {
+          id: "1",
           username: "admin",
           nickname: "超级管理员",
           avatar:

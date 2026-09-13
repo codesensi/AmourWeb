@@ -1,10 +1,11 @@
 // 系统配置 mock(对齐后端 /sys/config 接口)
-// list-by-keys 契约对齐 ConfigResponse:configKey/configValue/valueType/configGroup,keys 为空时返回空列表
-// page 契约对齐 ConfigPageResponse:id/configKey/configValue/valueType/configGroup/remark/updateTime
+// list-by-keys 契约对齐 ConfigResponse:configKey/configValue/valueType/configGroup(keys 为空时返回空列表;
+// sensitive=1 的敏感配置不下发,对齐后端 PortalConfigController 行为)
+// page 契约对齐 ConfigPageResponse:id/configKey/configValue/valueType/configGroup/sensitive/remark/updateTime
 // update 契约对齐 ConfigUpdateRequest:id/configValue(仅配置值可改;键、类型、分组与状态由代码侧约定)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
-// 与后端 sys_config 表同源的公共配置键值(值统一字符串存储;id/remark 与 init_dml.sql 对齐)
+// 与后端 sys_config 表种子同源(init_dml.sql;值统一字符串存储;id/sensitive/remark 与其对齐)
 const configs = [
   {
     id: "1001",
@@ -12,6 +13,7 @@ const configs = [
     configValue: "爱慕情侣小站",
     valueType: "STRING",
     configGroup: "base",
+    sensitive: 0,
     remark: "项目/站点名称",
     updateTime: "2026-01-01 00:00:00"
   },
@@ -21,6 +23,7 @@ const configs = [
     configValue: "京ICP备2026010001号",
     valueType: "STRING",
     configGroup: "base",
+    sensitive: 0,
     remark: "ICP备案文案",
     updateTime: "2026-01-01 00:00:00"
   },
@@ -30,6 +33,7 @@ const configs = [
     configValue: "2026",
     valueType: "STRING",
     configGroup: "base",
+    sensitive: 0,
     remark: "版权年份",
     updateTime: "2026-01-01 00:00:00"
   },
@@ -39,15 +43,17 @@ const configs = [
     configValue: "",
     valueType: "STRING",
     configGroup: "base",
+    sensitive: 1,
     remark: "UApiPro接口密钥(https://uapis.cn)",
     updateTime: "2026-01-01 00:00:00"
   },
   {
-    id: "2002",
+    id: "2001",
     configKey: "site.love-start-date",
     configValue: "2018-07-15 00:00:00",
     valueType: "DATETIME",
     configGroup: "site",
+    sensitive: 0,
     remark: "门户恋爱计时起点",
     updateTime: "2026-01-01 00:00:00"
   },
@@ -57,6 +63,7 @@ const configs = [
     configValue: "true",
     valueType: "BOOLEAN",
     configGroup: "captcha",
+    sensitive: 0,
     remark: "验证码开关",
     updateTime: "2026-01-01 00:00:00"
   },
@@ -66,7 +73,18 @@ const configs = [
     configValue: "arithmetic",
     valueType: "STRING",
     configGroup: "captcha",
+    sensitive: 0,
     remark: "图形验证码类型",
+    updateTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "4001",
+    configKey: "file.storage",
+    configValue: "local",
+    valueType: "STRING",
+    configGroup: "file",
+    sensitive: 0,
+    remark: "文件存储方式: local-本地, oss-对象存储",
     updateTime: "2026-01-01 00:00:00"
   }
 ];
@@ -83,7 +101,8 @@ function ok(data: unknown) {
 }
 
 export default defineFakeRoute([
-  // 公共配置批量查询(GET /portal/config/list-by-keys?keys=逗号分隔键;对齐 api/sysConfig.ts getSysConfig)
+  // 公共配置批量查询(GET /portal/config/list-by-keys?keys=逗号分隔键;对齐 api/sysConfig.ts getSysConfig;
+  // sensitive=1 的敏感配置不下发,对齐后端行为)
   {
     url: "/portal/config/list-by-keys",
     method: "get",
@@ -95,7 +114,7 @@ export default defineFakeRoute([
         .filter(Boolean);
       return ok(
         configs
-          .filter(item => keys.includes(item.configKey))
+          .filter(item => !item.sensitive && keys.includes(item.configKey))
           .map(({ configKey, configValue, valueType, configGroup }) => ({
             configKey,
             configValue,

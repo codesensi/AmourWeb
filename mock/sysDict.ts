@@ -3,7 +3,7 @@
 // 组数据契约对齐 DictGroupResponse:dictCode/items(dictValue/dictLabel/sort)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
-// 与后端 sys_dict 内置种子同源(9 组 26 条;组内顺序即 sort 升序)
+// 与后端 sys_dict 内置种子同源(10 组 30 条;组内顺序即 sort 升序)
 const dicts = [
   {
     id: "10001",
@@ -270,6 +270,18 @@ const dicts = [
     createTime: "2026-01-01 00:00:00"
   },
   {
+    id: "10704",
+    dictCode: "config-group",
+    dictName: "配置分组",
+    dictValue: "file",
+    dictLabel: "文件配置",
+    sort: 4,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
     id: "10801",
     dictCode: "config-value-type",
     dictName: "配置值类型",
@@ -312,6 +324,42 @@ const dicts = [
     dictValue: "BOOLEAN",
     dictLabel: "布尔",
     sort: 4,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "10805",
+    dictCode: "config-value-type",
+    dictName: "配置值类型",
+    dictValue: "DATETIME",
+    dictLabel: "日期时间",
+    sort: 5,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "10901",
+    dictCode: "file-storage-type",
+    dictName: "存储类型",
+    dictValue: "local",
+    dictLabel: "本地存储",
+    sort: 1,
+    status: 0,
+    builtin: 1,
+    remark: "与 StorageTypeEnum(local/oss) 对齐",
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "10902",
+    dictCode: "file-storage-type",
+    dictName: "存储类型",
+    dictValue: "oss",
+    dictLabel: "对象存储",
+    sort: 2,
     status: 0,
     builtin: 1,
     remark: null,

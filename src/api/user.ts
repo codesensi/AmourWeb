@@ -57,6 +57,8 @@ export interface MenuItem {
 
 /** 当前登录用户信息(含菜单) */
 export type CurrentUserResult = ApiResult<{
+  /** 用户ID(后端序列化为字符串,避免 JS 精度丢失) */
+  id: string;
   username: string;
   nickname: string;
   avatar: string;
