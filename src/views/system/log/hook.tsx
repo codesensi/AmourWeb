@@ -82,7 +82,7 @@ function operateSlotColumn(): TableColumnList[number] {
 }
 /**
  * 日志分页 hook —— 登录日志/操作日志两个 Tab 共用同一骨架,
- * 按 tab 参数区分列定义与请求端点(/log/login/page、/log/operate/page)。
+ * 按 tab 参数区分列定义与请求端点(/sys/log/login/page、/sys/log/operate/page)。
  *
  * @param tab 日志类型:login-登录日志,operate-操作日志
  */

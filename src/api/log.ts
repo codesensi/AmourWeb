@@ -43,12 +43,12 @@ export type LogQuery = PageQuery & {
   logTypes?: number[];
 };
 
-/** 日志分页查询(GET /log/login/page、/log/operate/page;登录态;logTypes 多选时逗号分隔下发,对齐 dict codes 惯例) */
+/** 日志分页查询(GET /sys/log/login/page、/sys/log/operate/page;登录态;logTypes 多选时逗号分隔下发,对齐 dict codes 惯例) */
 export const getLogPage = (type: "login" | "operate", params?: LogQuery) => {
   const { logTypes, ...rest } = params ?? {};
   return http.request<ApiResult<PageResult<SysLogItem>>>(
     "get",
-    `/log/${type}/page`,
+    `/sys/log/${type}/page`,
     {
       params: {
         ...rest,
