@@ -122,6 +122,7 @@ async function doUpload(blob: Blob, name: string) {
     // 以 multipart 上传,后端返回 /file/view/{id} 形态的真实文件 URL
     const res = await uploadAvatar(blob, name);
     if (res.success) {
+      message("头像上传成功", { type: "success" });
       emit("update:modelValue", res.data.url);
       emit("uploaded", res.data.url);
       handleClose();

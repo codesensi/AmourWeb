@@ -233,7 +233,7 @@ onMounted(() => {
                 删除
               </el-button>
               <el-button
-                v-if="row.builtin === 0"
+                v-if="hasPerms('system:role:update') && row.builtin === 0"
                 class="reset-margin"
                 link
                 type="primary"

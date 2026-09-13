@@ -1,11 +1,11 @@
 import { message } from "@/utils/message";
 import { addDialog } from "@/components/ReDialog";
 import { DictTag } from "@/components/DictTag";
+import { usePageQuery } from "../../hooks";
 import editForm from "../form.vue";
 import type { FormItemProps } from "./types";
 import { getConfigPage, updateConfig } from "@/api/sysConfig";
 import type { SysConfigPageItem } from "@/api/sysConfig";
-import type { PaginationProps } from "@pureadmin/table";
 import { deviceDetection } from "@pureadmin/utils";
 import { h, ref, toRaw, reactive, onMounted } from "vue";
 
@@ -17,12 +17,14 @@ export function useConfigPage() {
   const formRef = ref();
   const dataList = ref<Array<SysConfigPageItem>>([]);
   const loading = ref(true);
-  const pagination = reactive<PaginationProps>({
-    total: 0,
-    pageSize: 20,
-    currentPage: 1,
-    background: true
-  });
+  // 分页查询公共骨架:分页状态 + 分页事件写回 + 查询结果回填 + 搜索表单重置
+  const {
+    pagination,
+    applyPageResult,
+    handleSizeChange,
+    handleCurrentChange,
+    resetForm
+  } = usePageQuery(onSearch);
 
   const columns: TableColumnList = [
     {
@@ -103,21 +105,12 @@ export function useConfigPage() {
         pageSize: pagination.pageSize
       });
       if (success) {
-        dataList.value = data.records;
-        pagination.total = data.totalRow;
-        pagination.pageSize = data.pageSize;
-        pagination.currentPage = data.pageNumber;
+        dataList.value = applyPageResult(data);
       }
     } finally {
       loading.value = false;
     }
   }
-
-  const resetForm = formEl => {
-    if (!formEl) return;
-    formEl.resetFields();
-    onSearch();
-  };
 
   /** 修改配置弹窗(仅配置值可改;保存后后端失效 config 缓存,新值即时生效) */
   function openEdit(row: SysConfigPageItem) {
@@ -137,13 +130,21 @@ export function useConfigPage() {
       width: "46%",
       draggable: true,
       fullscreen: deviceDetection(),
+      fullscreenIcon: true,
       closeOnClickModal: false,
+      // 开启确定按钮提交加载态,防止异步提交期间连点重复提交
+      sureBtnLoading: true,
       contentRenderer: () => h(editForm, { ref: formRef, formInline: null }),
-      beforeSure: (done, { options }) => {
+      beforeSure: (done, { options, closeLoading }) => {
         const FormRef = formRef.value.getRef();
         const curData = options.props.formInline as FormItemProps;
         FormRef.validate(async valid => {
-          if (valid) {
+          if (!valid) {
+            // 校验未通过:复位确定按钮加载态
+            closeLoading();
+            return;
+          }
+          try {
             await updateConfig({
               id: curData.id,
               configValue: curData.configValue
@@ -152,22 +153,15 @@ export function useConfigPage() {
               type: "success"
             });
             onSearch();
+            closeLoading(); // 复位确定按钮加载态(弹窗即将关闭)
             done(); // 关闭弹框
+          } catch {
+            // 提交失败(失败提示由拦截器统一弹出):复位加载态,弹窗保持打开
+            closeLoading();
           }
         });
       }
     });
-  }
-
-  /** pure-table 的分页事件只携带新值(写在其内部分页副本上),需在此写回分页状态后再查询 */
-  function handleSizeChange(val: number) {
-    pagination.pageSize = val;
-    onSearch();
-  }
-
-  function handleCurrentChange(val: number) {
-    pagination.currentPage = val;
-    onSearch();
   }
 
   onMounted(() => {
@@ -187,5 +181,3 @@ export function useConfigPage() {
     handleCurrentChange
   };
 }
-
-

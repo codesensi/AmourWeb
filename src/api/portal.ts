@@ -3,12 +3,12 @@ import { http } from "@/utils/http";
 import { omitEmpty } from "@/utils/params";
 
 /** 点点滴滴-文章项 */
-export interface MomentsItem {
+export type MomentsItem = {
   id: number;
   title: string;
   author: string;
   date: string;
-}
+};
 
 /** 点点滴滴-文章分页(GET /portal/moments,每页 6 条) */
 export const getMoments = (params?: PageQuery) => {
@@ -22,14 +22,14 @@ export const getMoments = (params?: PageQuery) => {
 };
 
 /** 恋爱相册-照片项 */
-export interface LovePhotoItem {
+export type LovePhotoItem = {
   /** 照片地址(后端为上传文件 URL;mock 为内联 SVG 占位图) */
   img: string;
   /** 照片文案 */
   text: string;
   /** 拍摄/记录日期 */
   date: string;
-}
+};
 
 /** 恋爱相册分页(GET /portal/love-photo,每页 6 张) */
 export const getLovePhoto = (params?: PageQuery) => {
@@ -43,14 +43,14 @@ export const getLovePhoto = (params?: PageQuery) => {
 };
 
 /** 恋爱清单-清单项 */
-export interface LoveListItem {
+export type LoveListItem = {
   /** 清单文案 */
   text: string;
   /** 是否已完成 */
   done: boolean;
   /** 可选照片(已完成项可带纪念照) */
   img?: string;
-}
+};
 
 /** 恋爱清单分页(GET /portal/love-list,每页 6 条) */
 export const getLoveList = (params?: PageQuery) => {
@@ -64,14 +64,14 @@ export const getLoveList = (params?: PageQuery) => {
 };
 
 /** 留言-留言项 */
-export interface MessageItem {
+export type MessageItem = {
   qq: string;
   nickname: string;
   avatar: string;
   content: string;
   date: string;
   location: string;
-}
+};
 
 /** 留言分页(GET /portal/message) */
 export const getMessage = (params?: PageQuery) => {
@@ -92,7 +92,7 @@ export const sendMessage = (data: {
 };
 
 /** 门户主角-单个主角信息(对齐后端 PortalHeroUserResponse) */
-export interface HeroInfoData {
+export type HeroInfoData = {
   /** 用户昵称 */
   nickname: string;
   /** 用户名称(昵称为空时的展示兜底) */
@@ -101,15 +101,15 @@ export interface HeroInfoData {
   avatar: string;
   /** 用户QQ号码(未维护时为空) */
   qq: string;
-}
+};
 
 /** 门户主角(GET /portal/hero 免登录;对齐后端 HeroResponse) */
-export interface HeroData {
+export type HeroData = {
   /** 男主信息(暂无启用的男性主角用户时为 null) */
   male: HeroInfoData | null;
   /** 女主信息(暂无启用的女性主角用户时为 null) */
   female: HeroInfoData | null;
-}
+};
 
 /** 查询门户男女主(GET /portal/hero,免登录;字段可能为空,由前端兜底) */
 export const getHeroes = () => {
@@ -117,14 +117,14 @@ export const getHeroes = () => {
 };
 
 /** 一言(GET /portal/saying 免登录;后端已降级,content 可能为空) */
-export interface SayingData {
+export type SayingData = {
   /** 一言文案(随机一言正文,降级时为 uapi-saying 文案;两级上游均不可用时为空) */
   content: string;
   /** 出处(仅随机一言解析成功时返回,降级时为空) */
   source: string;
   /** 作者(仅随机一言解析成功时返回,降级时为空) */
   author: string;
-}
+};
 
 /** 查询一言(GET /portal/saying,免登录;content 为空时由前端不展示) */
 export const getPortalSaying = () => {
@@ -132,12 +132,12 @@ export const getPortalSaying = () => {
 };
 
 /** QQ 信息(GET /qq-info 免登录;后端已降级,头像恒非空,仅后端 qq-avatar 未配置时为空) */
-export interface QqInfoData {
+export type QqInfoData = {
   /** QQ 头像地址(qq-api 解析的真实图片地址,强制 https;降级时为 qq-avatar 按 QQ 号拼接地址) */
   avatarUrl: string;
   /** QQ 昵称(仅 qq-api 解析成功时返回,降级时为空) */
   nickname: string;
-}
+};
 
 /** 查询 QQ 信息(GET /qq-info,免登录;昵称可能为空,由前端提示手动填写) */
 export const getQqInfo = (qq: string) => {
@@ -147,14 +147,14 @@ export const getQqInfo = (qq: string) => {
 };
 
 /** 关于页对话-剧本分支选项(点选后递归播放 next 分支) */
-export interface ChatScriptOption {
+export type ChatScriptOption = {
   text: string;
   value: string;
   next?: ChatScriptNode[];
-}
+};
 
 /** 关于页对话-剧本节点(两种:type=bot 消息气泡 / type=buttons 分支按钮) */
-export interface ChatScriptNode {
+export type ChatScriptNode = {
   type: "bot" | "buttons";
   /** 播放前的延时(毫秒) */
   delay?: number;
@@ -162,7 +162,7 @@ export interface ChatScriptNode {
   content?: string;
   /** 分支按钮组(type=buttons 时有效) */
   options?: ChatScriptOption[];
-}
+};
 
 /** 关于页对话剧本(GET /portal/chat,后台可配) */
 export const getChatScript = () => {

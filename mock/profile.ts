@@ -1,7 +1,7 @@
 /**
  * 个人中心 mock(VITE_USE_MOCK=true 时由 vite-plugin-fake-server 按路由粒度拦截)。
  * 响应结构与后端 Result<T> 对齐(见 src/api/types.ts 的 ApiResult);
- * 后端对应端点落地后,关闭 VITE_USE_MOCK 即可无缝切换真接口。
+ * 接口路径与 src/api/profile.ts 一一对应(后端端点已落地,默认 VITE_USE_MOCK=false 走真接口)。
  * 资料回显不走 mock:页面直接复用 /sys/user/current-user 现有接口。
  */
 
@@ -25,12 +25,17 @@ const fail = (msg: string) => ({
 
 export default [
   {
-    url: "/sys/user/profile",
+    url: "/sys/user/update-profile",
     method: "put",
     response: () => ok(null, "资料更新成功")
   },
   {
-    url: "/sys/user/password",
+    url: "/sys/user/rename",
+    method: "put",
+    response: () => ok(null, "用户名修改成功")
+  },
+  {
+    url: "/sys/user/update-password",
     method: "put",
     response: ({ body }) => {
       if (!body?.oldPassword) return fail("原密码错误");

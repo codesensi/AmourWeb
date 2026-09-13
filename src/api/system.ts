@@ -44,7 +44,7 @@ export type SysUserQuery = PageQuery & {
 };
 
 /** 用户管理-分页查询(GET /sys/user/page) */
-export const getUserList = (params?: SysUserQuery) => {
+export const getUserPage = (params?: SysUserQuery) => {
   return http.request<ApiResult<PageResult<SysUserItem>>>(
     "get",
     "/sys/user/page",
@@ -63,12 +63,12 @@ export const updateUser = (data?: object) => {
 };
 
 /** 用户管理-删除(DELETE /sys/user/delete/{ids},id 支持英文逗号分隔批量删除) */
-export const deleteUser = (id: number | string) => {
+export const deleteUser = (id: string) => {
   return http.request<ApiResult<null>>("delete", `/sys/user/delete/${id}`);
 };
 
 /** 用户管理-重置密码为系统默认密码(PUT /sys/user/reset-password/{id}) */
-export const resetUserPwd = (id: number | string) => {
+export const resetUserPwd = (id: string) => {
   return http.request<ApiResult<null>>("put", `/sys/user/reset-password/${id}`);
 };
 
@@ -87,7 +87,7 @@ export const assignRoles = (data?: object) => {
 };
 
 /** 用户管理-获取用户已有角色 id(GET /sys/user/role-ids/{id}) */
-export const getUserRoleIds = (id: number | string) => {
+export const getUserRoleIds = (id: string) => {
   return http.request<ApiResult<Array<string>>>(
     "get",
     `/sys/user/role-ids/${id}`
@@ -227,7 +227,6 @@ export const changeMenuStatus = (data: { id: string; status: number }) => {
 };
 
 /** 菜单管理-删除(DELETE /sys/menu/delete/{id},级联删除其全部下级菜单) */
-export const deleteMenu = (id: number | string) => {
+export const deleteMenu = (id: string) => {
   return http.request<ApiResult<null>>("delete", `/sys/menu/delete/${id}`);
 };
-

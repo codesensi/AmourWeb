@@ -90,7 +90,7 @@ const {
         :model="form"
         class="search-form bg-bg_color w-full pl-8 pt-3 overflow-auto"
       >
-        <el-form-item label="字典值：">
+        <el-form-item label="字典值：" prop="dictValue">
           <el-input
             v-model="form.dictValue"
             placeholder="请输入字典值"
@@ -98,7 +98,7 @@ const {
             class="w-45!"
           />
         </el-form-item>
-        <el-form-item label="状态：">
+        <el-form-item label="状态：" prop="status">
           <DictSelect
             v-model="form.status"
             dict-code="enable"

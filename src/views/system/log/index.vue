@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from "vue";
+import { reactive, ref } from "vue";
 import { hasPerms } from "@/utils/auth";
-import { useLogPage, useLogDetail, LOG_TYPE_OPTIONS } from "./hook";
+import { useLazyTabs } from "@/views/system/hooks";
+import { useLogPage, useLogDetail, LOG_TYPE_OPTIONS } from "./utils/hook";
+import { ReCodeBlock } from "@/components/ReCodeBlock";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 
 import Refresh from "~icons/ep/refresh";
-import CopyDocument from "~icons/ep/copy-document";
-import Check from "~icons/ep/check";
 
 defineOptions({
   name: "SystemLog"
@@ -28,27 +28,22 @@ const loginTab = reactive(useLogPage("login"));
 const operateTab = reactive(useLogPage("operate"));
 
 /** 日志详情弹窗(两 Tab 共用) */
-const { detail, detailVisible, copiedBlock, openDetail, copyBlock, prettyJson } =
-  useLogDetail();
+const { detail, detailVisible, openDetail, prettyJson } = useLogDetail();
 
-/** Tab 懒加载:首次激活时才请求对应日志,避免不可见页签的无谓请求 */
-const loaded: Record<string, boolean> = {};
-
-function handleTabChange(name: string) {
-  if (!name || loaded[name]) return;
-  loaded[name] = true;
-  (name === "login" ? loginTab : operateTab).onSearch();
-}
-
-/** 进入页面即加载默认激活 Tab(登录日志);其余 Tab 保持懒加载 */
-onMounted(() => {
-  handleTabChange(activeTab.value);
-});
+/** Tab 懒加载:首次激活时才请求对应日志,避免不可见页签的无谓请求;挂载时自动加载初始 Tab */
+const handleTabChange = useLazyTabs(
+  { login: loginTab, operate: operateTab },
+  activeTab.value
+);
 </script>
 
 <template>
   <div class="main">
-    <el-tabs v-model="activeTab" class="bg-bg_color px-3! pt-1!" @tab-change="handleTabChange">
+    <el-tabs
+      v-model="activeTab"
+      class="bg-bg_color px-3! pt-1!"
+      @tab-change="handleTabChange"
+    >
       <el-tab-pane
         v-if="hasPerms('log:login:page')"
         label="登录日志"
@@ -75,8 +70,8 @@ onMounted(() => {
               clearable
               class="w-37.5!"
             >
-              <el-option label="成功" :value="1" />
-              <el-option label="失败" :value="0" />
+              <el-option label="成功" value="1" />
+              <el-option label="失败" value="0" />
             </el-select>
           </el-form-item>
           <el-form-item>
@@ -96,7 +91,11 @@ onMounted(() => {
             </el-button>
           </el-form-item>
         </el-form>
-        <PureTableBar title="登录日志" :columns="loginTab.columns" @refresh="loginTab.onSearch">
+        <PureTableBar
+          title="登录日志"
+          :columns="loginTab.columns"
+          @refresh="loginTab.onSearch"
+        >
           <template v-slot="{ size, dynamicColumns }">
             <pure-table
               align-whole="center"
@@ -129,10 +128,12 @@ onMounted(() => {
           </template>
         </PureTableBar>
       </el-tab-pane>
+      <!-- lazy:首次激活时才渲染,保证表格在可见状态下计算自适应高度(隐藏态 top=0 会撑大页面) -->
       <el-tab-pane
         v-if="hasPerms('log:operate:page')"
         label="操作日志"
         name="operate"
+        lazy
       >
         <el-form
           ref="operateFormRef"
@@ -155,8 +156,8 @@ onMounted(() => {
               clearable
               class="w-37.5!"
             >
-              <el-option label="成功" :value="1" />
-              <el-option label="失败" :value="0" />
+              <el-option label="成功" value="1" />
+              <el-option label="失败" value="0" />
             </el-select>
           </el-form-item>
           <el-form-item label="操作类型" prop="logTypes">
@@ -194,7 +195,11 @@ onMounted(() => {
             </el-button>
           </el-form-item>
         </el-form>
-        <PureTableBar title="操作日志" :columns="operateTab.columns" @refresh="operateTab.onSearch">
+        <PureTableBar
+          title="操作日志"
+          :columns="operateTab.columns"
+          @refresh="operateTab.onSearch"
+        >
           <template v-slot="{ size, dynamicColumns }">
             <pure-table
               align-whole="center"
@@ -243,30 +248,12 @@ onMounted(() => {
         >
           <el-tag type="info" effect="light">无请求参数记录</el-tag>
         </div>
-        <div v-else class="code-block">
-          <div class="code-header">
-            <span class="code-dot" />
-            <span class="text-xs text-[rgba(220,220,242,0.6)]">JSON</span>
-            <el-button
-              text
-              size="small"
-              class="ml-auto!"
-              :style="{
-                color:
-                  copiedBlock === 'param'
-                    ? 'var(--el-color-success)'
-                    : 'rgba(220,220,242,0.8)'
-              }"
-              @click="copyBlock('param')"
-            >
-              <el-icon class="mr-1">
-                <component :is="copiedBlock === 'param' ? Check : CopyDocument" />
-              </el-icon>
-              {{ copiedBlock === "param" ? "已复制" : "复制" }}
-            </el-button>
-          </div>
-          <pre class="code-body">{{ prettyJson(detail?.param) }}</pre>
-        </div>
+        <ReCodeBlock
+          v-else
+          :code="prettyJson(detail?.param)"
+          label="JSON"
+          :max-height="320"
+        />
       </div>
       <div class="detail-section">
         <p class="detail-label">响应结果</p>
@@ -276,30 +263,12 @@ onMounted(() => {
         >
           <el-tag type="info" effect="light">无响应结果记录</el-tag>
         </div>
-        <div v-else class="code-block">
-          <div class="code-header">
-            <span class="code-dot" />
-            <span class="text-xs text-[rgba(220,220,242,0.6)]">JSON</span>
-            <el-button
-              text
-              size="small"
-              class="ml-auto!"
-              :style="{
-                color:
-                  copiedBlock === 'result'
-                    ? 'var(--el-color-success)'
-                    : 'rgba(220,220,242,0.8)'
-              }"
-              @click="copyBlock('result')"
-            >
-              <el-icon class="mr-1">
-                <component :is="copiedBlock === 'result' ? Check : CopyDocument" />
-              </el-icon>
-              {{ copiedBlock === "result" ? "已复制" : "复制" }}
-            </el-button>
-          </div>
-          <pre class="code-body">{{ prettyJson(detail?.result) }}</pre>
-        </div>
+        <ReCodeBlock
+          v-else
+          :code="prettyJson(detail?.result)"
+          label="JSON"
+          :max-height="320"
+        />
       </div>
     </el-dialog>
   </div>
@@ -330,40 +299,4 @@ onMounted(() => {
   font-weight: 500;
   color: var(--el-text-color-regular);
 }
-
-.code-block {
-  overflow: hidden;
-  background: #1e1e1e;
-  border-radius: 8px;
-}
-
-.code-header {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  padding: 8px 12px;
-  border-bottom: 1px solid rgb(255 255 255 / 8%);
-}
-
-.code-dot {
-  width: 8px;
-  height: 8px;
-  background: var(--el-color-success);
-  border-radius: 50%;
-}
-
-.code-body {
-  max-height: 320px;
-  padding: 12px 16px;
-  margin: 0;
-  overflow: auto;
-  font-family: Consolas, Monaco, monospace;
-  font-size: 13px;
-  line-height: 1.6;
-  color: #d4d4d4;
-  word-break: break-all;
-  white-space: pre-wrap;
-}
 </style>
-
-

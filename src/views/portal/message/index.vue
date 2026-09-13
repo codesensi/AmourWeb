@@ -5,6 +5,7 @@ import { message } from "@/utils/message";
 import { fallbackAvatar, notifyFallbackAvatar } from "@/utils/avatar";
 import { fetchQqInfo, QQ_PATTERN } from "@/utils/qqInfo";
 import { usePagedList } from "@/hooks/usePagedList";
+import PortalLoadMore from "@/components/PortalLoadMore/index.vue";
 
 defineOptions({ name: "PortalMessage" });
 
@@ -198,10 +199,12 @@ onMounted(() => loadMore());
               还没有留言,来写下第一条吧~
             </div>
           </div>
-          <!-- 「加载更多」:补齐分页加载入口(与门户其他列表页一致) -->
-          <div v-if="hasMore" class="message-load-more" @click="loadMore">
-            {{ loading ? "加载中..." : "加载更多" }}
-          </div>
+          <!-- 「加载更多」:补齐分页加载入口(门户列表页共用组件) -->
+          <PortalLoadMore
+            :loading="loading"
+            :has-more="hasMore"
+            @load="loadMore"
+          />
           <!-- 提交表单(POST /portal/message {qq, name, text};校验文案逐字保留原站) -->
           <form class="message-form" @submit.prevent="submit">
             <div id="messageArea" class="input-box">
@@ -268,25 +271,5 @@ onMounted(() => loadMore());
 .central {
   width: 100%;
   max-width: 1000px;
-}
-
-/* 「加载更多」按钮:与门户其他列表页保持一致的分页交互 */
-.message-load-more {
-  width: fit-content;
-  padding: 0.5rem 2rem;
-  margin: 2rem auto 0;
-  font-size: 1.2rem;
-  color: #959595;
-  text-align: center;
-  letter-spacing: 0.3rem;
-  cursor: pointer;
-  border: 1px solid #e4e4e4;
-  border-radius: 2rem;
-  transition: all 0.2s;
-}
-
-.message-load-more:hover {
-  color: #ff69b4;
-  border-color: #ff69b4;
 }
 </style>

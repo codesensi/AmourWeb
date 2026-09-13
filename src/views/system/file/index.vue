@@ -1,19 +1,20 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from "vue";
+import { reactive, ref } from "vue";
 import {
   BIZ_TYPE_LABELS,
   formatSize,
   STORAGE_TYPE_LABELS,
   useFileDetail,
   useFilePage
-} from "./hook";
+} from "./utils/hook";
+import { useLazyTabs } from "@/views/system/hooks";
+import { ReCodeBlock } from "@/components/ReCodeBlock";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import { hasPerms } from "@/utils/auth";
 import type { FileItem } from "@/api/file";
 
 import Refresh from "~icons/ep/refresh";
-import CopyDocument from "~icons/ep/copy-document";
-import Check from "~icons/ep/check";
 
 defineOptions({
   name: "SystemFile"
@@ -26,21 +27,14 @@ const activeTab = ref("active");
 const activeFormRef = ref();
 const recycleFormRef = ref();
 
-/** 文件详情弹窗(两页签共用:元数据 + 图片预览 + 访问地址复制) */
-const { detail, detailVisible, copied, isImage, viewUrl, openDetail, copyUrl } =
-  useFileDetail();
+/** 文件详情弹窗(两页签共用:元数据 + 图片预览 + 访问地址展示复制) */
+const { detail, detailVisible, isImage, viewUrl, openDetail } = useFileDetail();
 
-/** 页签懒加载:首次激活时才请求对应列表 */
-const loaded: Record<string, boolean> = {};
-
-function handleTabChange(name: string) {
-  if (!name || loaded[name]) return;
-  loaded[name] = true;
-  (name === "recycle" ? recycleTab : activeTabState).onSearch();
-}
-
-/** 进入页面即加载默认激活页签 */
-onMounted(() => handleTabChange(activeTab.value));
+/** 页签懒加载:首次激活时才请求对应列表;挂载时自动加载初始页签 */
+const handleTabChange = useLazyTabs(
+  { active: activeTabState, recycle: recycleTab },
+  activeTab.value
+);
 </script>
 
 <template>
@@ -175,6 +169,7 @@ onMounted(() => handleTabChange(activeTab.value));
                   下载
                 </el-button>
                 <el-button
+                  v-if="hasPerms('system:file:delete')"
                   class="reset-margin"
                   link
                   type="danger"
@@ -295,6 +290,7 @@ onMounted(() => handleTabChange(activeTab.value));
             >
               <template #operation="{ row, size }">
                 <el-button
+                  v-if="hasPerms('system:file:delete')"
                   class="reset-margin"
                   link
                   type="primary"
@@ -304,6 +300,7 @@ onMounted(() => handleTabChange(activeTab.value));
                   恢复
                 </el-button>
                 <el-button
+                  v-if="hasPerms('system:file:delete')"
                   class="reset-margin"
                   link
                   type="danger"
@@ -344,10 +341,12 @@ onMounted(() => handleTabChange(activeTab.value));
           {{ detail?.extension?.toUpperCase() }}
         </el-descriptions-item>
         <el-descriptions-item label="业务来源">
-          {{ detail ? (BIZ_TYPE_LABELS[detail.bizType] ?? detail.bizType) : "" }}
+          {{
+            detail ? (BIZ_TYPE_LABELS[detail.bizType] ?? detail.bizType) : ""
+          }}
         </el-descriptions-item>
         <el-descriptions-item label="关联业务ID">
-          {{ detail?.bizId ?? "—" }}
+          {{ detail?.bizId }}
         </el-descriptions-item>
         <el-descriptions-item label="存储类型">
           {{
@@ -371,29 +370,7 @@ onMounted(() => handleTabChange(activeTab.value));
       </el-descriptions>
       <div class="detail-section">
         <p class="detail-label">访问地址</p>
-        <div class="code-block">
-          <div class="code-header">
-            <span class="code-dot" />
-            <span class="text-xs text-[rgba(220,220,242,0.6)]">URL</span>
-            <el-button
-              text
-              size="small"
-              class="ml-auto!"
-              :style="{
-                color: copied
-                  ? 'var(--el-color-success)'
-                  : 'rgba(220,220,242,0.8)'
-              }"
-              @click="copyUrl"
-            >
-              <el-icon class="mr-1">
-                <component :is="copied ? Check : CopyDocument" />
-              </el-icon>
-              {{ copied ? "已复制" : "复制" }}
-            </el-button>
-          </div>
-          <pre class="code-body">{{ detail ? viewUrl(detail) : "" }}</pre>
-        </div>
+        <ReCodeBlock :code="detail ? viewUrl(detail) : ''" label="URL" />
       </div>
     </el-dialog>
   </div>
@@ -423,37 +400,5 @@ onMounted(() => handleTabChange(activeTab.value));
   font-size: 13px;
   font-weight: 500;
   color: var(--el-text-color-regular);
-}
-
-.code-block {
-  overflow: hidden;
-  background: #1e1e1e;
-  border-radius: 8px;
-}
-
-.code-header {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  padding: 8px 12px;
-  border-bottom: 1px solid rgb(255 255 255 / 8%);
-}
-
-.code-dot {
-  width: 8px;
-  height: 8px;
-  background: var(--el-color-success);
-  border-radius: 50%;
-}
-
-.code-body {
-  padding: 12px 16px;
-  margin: 0;
-  font-family: Consolas, Monaco, monospace;
-  font-size: 13px;
-  line-height: 1.6;
-  color: #d4d4d4;
-  word-break: break-all;
-  white-space: pre-wrap;
 }
 </style>

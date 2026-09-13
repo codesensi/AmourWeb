@@ -83,9 +83,9 @@ function ok(data: unknown) {
 }
 
 export default defineFakeRoute([
-  // 公共配置批量查询(GET /sys/config/list-by-keys?keys=逗号分隔键)
+  // 公共配置批量查询(GET /portal/config/list-by-keys?keys=逗号分隔键;对齐 api/sysConfig.ts getSysConfig)
   {
-    url: "/sys/config/list-by-keys",
+    url: "/portal/config/list-by-keys",
     method: "get",
     response: ({ query }) => {
       // keys 为逗号分隔(对齐后端 @RequestParam List<String>),为空时返回空列表

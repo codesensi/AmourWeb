@@ -1,4 +1,5 @@
 import { http } from "@/utils/http";
+import { omitEmpty } from "@/utils/params";
 import type { ApiResult, PageQuery, PageResult } from "@/api/types";
 
 /** 日志行数据(后端 sys_log 下发,仅展示字段;登录/操作日志共用) */
@@ -38,7 +39,7 @@ export type LogQuery = PageQuery & {
   /** 用户名称(模糊匹配) */
   username?: string;
   /** 操作状态:0-失败,1-成功 */
-  status?: number | "";
+  status?: string;
   /** 日志类型集合(多选过滤,空则不过滤) */
   logTypes?: number[];
 };
@@ -50,10 +51,10 @@ export const getLogPage = (type: "login" | "operate", params?: LogQuery) => {
     "get",
     `/sys/log/${type}/page`,
     {
-      params: {
+      params: omitEmpty({
         ...rest,
         ...(logTypes?.length ? { logTypes: logTypes.join(",") } : {})
-      }
+      })
     }
   );
 };

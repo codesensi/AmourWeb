@@ -92,9 +92,9 @@ const onLogin = async (formEl: FormInstance | undefined) => {
             message("登录成功", { type: "success" });
           });
         })
-        .catch(_err => {
-          message("登录失败", { type: "error" });
-          // 登录失败后自动刷新验证码(开关开启时)
+        .catch(() => {
+          // 登录失败提示由 http 拦截器统一弹出后端 res.msg,此处不再重复弹窗;
+          // 失败后自动刷新验证码(开关开启时)并清空已输入的验证码
           if (captchaEnabled.value) getCaptcha();
           ruleForm.captchaValue = "";
         })

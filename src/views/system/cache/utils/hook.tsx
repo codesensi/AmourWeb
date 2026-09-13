@@ -1,7 +1,5 @@
 import { ref, reactive, computed, watch, onMounted } from "vue";
-import { ElMessageBox } from "element-plus";
 import { useDark, useECharts } from "@pureadmin/utils";
-import { useClipboard } from "@vueuse/core";
 import type { PaginationProps } from "@pureadmin/table";
 import type { EChartsOption } from "echarts";
 import { getCacheList, type CacheInfo } from "@/api/cache";
@@ -340,29 +338,11 @@ export function useCacheMonitor() {
 
   const detail = ref<{ key: string; value: unknown } | null>(null);
   const detailVisible = ref(false);
-  const copied = ref(false);
-  /** legacy 模式:非安全上下文(http)自动降级 execCommand 复制 */
-  const { copy: copyText } = useClipboard({ legacy: true });
 
-  /** 值详情弹窗(pre 文本插值展示,不渲染 HTML 防注入) */
+  /** 值详情弹窗(pre 文本插值展示,不渲染 HTML 防注入);代码块展示与复制由 ReCodeBlock 承载 */
   function openDetail(row: { key: string; value: unknown }) {
     detail.value = row;
     detailVisible.value = true;
-    copied.value = false;
-  }
-
-  /** 复制详情 JSON 到剪贴板,1.5s 后还原按钮态(legacy 模式在非安全上下文自动降级 execCommand) */
-  async function copyDetail() {
-    if (!detail.value) return;
-    try {
-      await copyText(prettyJson(detail.value.value) || "");
-      copied.value = true;
-      setTimeout(() => {
-        copied.value = false;
-      }, 1500);
-    } catch {
-      ElMessageBox.alert("复制失败,请手动选择文本复制", "系统提示");
-    }
   }
 
   /** 条目表格列(JSX 渲染器依赖本 hook 的工具函数,故在此定义) */
@@ -482,8 +462,6 @@ export function useCacheMonitor() {
     expirePercent,
     detail,
     detailVisible,
-    copied,
-    openDetail,
-    copyDetail
+    openDetail
   };
 }

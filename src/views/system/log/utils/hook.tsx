@@ -1,9 +1,6 @@
 import { getLogPage, type SysLogItem } from "@/api/log";
-import { usePublicHooks } from "@/views/system/hooks";
-import type { PaginationProps } from "@pureadmin/table";
+import { usePageQuery, usePublicHooks } from "@/views/system/hooks";
 import { reactive, ref, toRaw } from "vue";
-import { ElMessageBox } from "element-plus";
-import { useClipboard } from "@vueuse/core";
 
 export type LogTab = "login" | "operate";
 
@@ -44,7 +41,7 @@ function operateSlotColumn(): TableColumnList[number] {
 export function useLogPage(tab: LogTab) {
   const form = reactive<{
     username: string;
-    status: number | "";
+    status: string;
     logTypes: number[];
   }>({
     username: "",
@@ -55,12 +52,14 @@ export function useLogPage(tab: LogTab) {
   const loading = ref(false);
   const { tagStyle } = usePublicHooks();
 
-  const pagination = reactive<PaginationProps>({
-    total: 0,
-    pageSize: 20,
-    currentPage: 1,
-    background: true
-  });
+  // 分页查询公共骨架:分页状态 + 分页事件写回 + 查询结果回填 + 搜索表单重置
+  const {
+    pagination,
+    applyPageResult,
+    handleSizeChange,
+    handleCurrentChange,
+    resetForm
+  } = usePageQuery(onSearch);
 
   /** 登录日志列:用户名/IP/归属地/状态/描述/时间/操作 */
   const loginColumns: TableColumnList = [
@@ -163,17 +162,6 @@ export function useLogPage(tab: LogTab) {
 
   const columns = tab === "login" ? loginColumns : operateColumns;
 
-  /** pure-table 的分页事件只携带新值(写在其内部分页副本上),需在此写回分页状态后再查询 */
-  function handleSizeChange(val: number) {
-    pagination.pageSize = val;
-    onSearch();
-  }
-
-  function handleCurrentChange(val: number) {
-    pagination.currentPage = val;
-    onSearch();
-  }
-
   async function onSearch() {
     loading.value = true;
     try {
@@ -183,21 +171,12 @@ export function useLogPage(tab: LogTab) {
         pageSize: pagination.pageSize
       });
       if (success) {
-        dataList.value = data.records;
-        pagination.total = data.totalRow;
-        pagination.pageSize = data.pageSize;
-        pagination.currentPage = data.pageNumber;
+        dataList.value = applyPageResult(data);
       }
     } finally {
       loading.value = false;
     }
   }
-
-  const resetForm = formEl => {
-    if (!formEl) return;
-    formEl.resetFields();
-    onSearch();
-  };
 
   // 返回普通对象:解构使用时 ref 保持响应式;
   // 若包一层 reactive,解构出的 ref 会被拆箱成当时的值快照,模板将永远不更新
@@ -216,15 +195,12 @@ export function useLogPage(tab: LogTab) {
 
 /**
  * 日志详情 hook —— 与缓存监控一致的"行内详情按钮 + 弹窗深色代码块"模式;
- * 登录/操作两个 Tab 共用一个实例,弹窗由操作列"详情"按钮打开。
+ * 登录/操作两个 Tab 共用一个实例,弹窗由操作列"详情"按钮打开;
+ * 代码块的展示与一键复制由 ReCodeBlock 组件承载。
  */
 export function useLogDetail() {
   const detail = ref<SysLogItem | null>(null);
   const detailVisible = ref(false);
-  /** 当前已复制的代码块:param-请求参数,result-响应结果,1.5s 后还原按钮态 */
-  const copiedBlock = ref<"param" | "result" | "">("");
-  /** legacy 模式:非安全上下文(http)自动降级 execCommand 复制 */
-  const { copy: copyText } = useClipboard({ legacy: true });
 
   /** 详情展示:JSON 可解析时格式化缩进;截断等不完整内容解析失败,原样展示 */
   function prettyJson(text: unknown) {
@@ -242,34 +218,12 @@ export function useLogDetail() {
   function openDetail(row: SysLogItem) {
     detail.value = row;
     detailVisible.value = true;
-    copiedBlock.value = "";
-  }
-
-  /** 复制指定代码块到剪贴板,1.5s 后还原按钮态 */
-  async function copyBlock(block: "param" | "result") {
-    const raw = detail.value?.[block];
-    const text = raw == null ? "" : prettyJson(raw);
-    if (!text) return;
-    try {
-      await copyText(text);
-      copiedBlock.value = block;
-      setTimeout(() => {
-        copiedBlock.value = "";
-      }, 1500);
-    } catch {
-      ElMessageBox.alert("复制失败,请手动选择文本复制", "系统提示");
-    }
   }
 
   return {
     detail,
     detailVisible,
-    copiedBlock,
     openDetail,
-    copyBlock,
     prettyJson
   };
 }
-
-
-

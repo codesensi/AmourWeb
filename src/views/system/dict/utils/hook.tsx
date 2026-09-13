@@ -1,7 +1,12 @@
-import { message } from "@/utils/message";
+import { confirmAction, message } from "@/utils/message";
 import { hasPerms } from "@/utils/auth";
 import { addDialog } from "@/components/ReDialog";
-import { usePublicHooks } from "../../hooks";
+import {
+  useBuiltinTag,
+  usePageQuery,
+  usePublicHooks,
+  useStatusSwitch
+} from "../../hooks";
 import editForm from "../form.vue";
 import type { FormItemProps } from "./types";
 import {
@@ -15,8 +20,6 @@ import {
 import { useDictStoreHook } from "@/store/modules/dict";
 import { useDict } from "@/hooks/useDict";
 import { DICT_CODES } from "@/api/dict";
-import { ElMessageBox } from "element-plus";
-import type { PaginationProps } from "@pureadmin/table";
 import { deviceDetection, getKeyList } from "@pureadmin/utils";
 import { h, ref, toRaw, reactive, computed, onMounted } from "vue";
 import type { SysDictTypeItem } from "@/api/dict";
@@ -76,18 +79,35 @@ export function useDictPage() {
   const formRef = ref();
   const dataList = ref([]);
   const loading = ref(true);
-  const switchLoadMap = ref({});
   const tableRef = ref();
   const selectedNum = ref(0);
   const { switchStyle } = usePublicHooks();
-  // 是否字典:是否内置列文案由 sys_dict(yes) 驱动
-  const { labelOf: yesLabelOf } = useDict(DICT_CODES.yes);
-  const pagination = reactive<PaginationProps>({
-    total: 0,
-    pageSize: 20,
-    currentPage: 1,
-    background: true
+  // 启停状态字典:开关文案与确认弹窗统一由 sys_dict(enable) 驱动
+  const { labelOf: enableLabelOf } = useDict(DICT_CODES.enable);
+  // 分页查询公共骨架:分页状态 + 分页事件写回 + 查询结果回填 + 搜索表单重置
+  const {
+    pagination,
+    applyPageResult,
+    handleSizeChange,
+    handleCurrentChange,
+    resetForm
+  } = usePageQuery(onSearch);
+  // 状态开关公共骨架:确认 + 提交加载态 + 成功提示 + 取消/失败回滚
+  const { switchLoadMap, onChange } = useStatusSwitch({
+    submit: row => changeDictStatus({ id: row.id, status: row.status }),
+    confirmText: row =>
+      `确认要<strong>${
+        row.status === 0 ? enableLabelOf(0) : enableLabelOf(1)
+      }</strong>字典标签为<strong style='color:var(--el-color-primary)'>${
+        row.dictLabel
+      }</strong>的条目吗?`,
+    successText: row =>
+      `已${enableLabelOf(row.status)}<strong style='color:var(--el-color-primary)'>${row.dictLabel}</strong>字典条目`,
+    // 状态影响消费端的 list-by-codes 结果,提交成功后同步刷新字典缓存
+    afterSubmit: row => useDictStoreHook().refresh(row.dictCode)
   });
+  // 「是否内置」列统一渲染(字典 yes 驱动)
+  const builtinTagCell = useBuiltinTag();
 
   const columns: TableColumnList = [
     {
@@ -120,17 +140,17 @@ export function useDictPage() {
       cellRenderer: scope => (
         <el-switch
           size={scope.props.size === "small" ? "small" : "default"}
-          loading={switchLoadMap.value[scope.index]?.loading}
+          loading={switchLoadMap.value[scope.row.id]?.loading}
           v-model={scope.row.status}
           active-value={0}
           inactive-value={1}
-          active-text="启用"
-          inactive-text="禁用"
+          active-text={enableLabelOf(0)}
+          inactive-text={enableLabelOf(1)}
           /** 内置条目不允许更改状态;无修改权限时同样禁用,与操作列门控对齐 */
           disabled={scope.row.builtin === 1 || !hasPerms("system:dict:update")}
           inline-prompt
           style={switchStyle.value}
-          onChange={() => onChange(scope as any)}
+          onChange={() => onChange(scope.row)}
         />
       )
     },
@@ -138,11 +158,7 @@ export function useDictPage() {
       label: "是否内置",
       prop: "builtin",
       minWidth: 90,
-      cellRenderer: ({ row }) => (
-        <el-tag size="small" type={row.builtin === 1 ? "warning" : "info"}>
-          {yesLabelOf(row.builtin)}
-        </el-tag>
-      )
+      cellRenderer: builtinTagCell
     },
     {
       label: "备注",
@@ -162,77 +178,22 @@ export function useDictPage() {
     }
   ];
 
-  /** 状态开关确认 */
-  function onChange({ row, index }) {
-    ElMessageBox.confirm(
-      `确认要<strong>${
-        row.status === 0 ? "启用" : "禁用"
-      }</strong>字典标签为<strong style='color:var(--el-color-primary)'>${
-        row.dictLabel
-      }</strong>的条目吗?`,
-      "系统提示",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning",
-        dangerouslyUseHTMLString: true,
-        draggable: true
-      }
-    )
-      .then(async () => {
-        switchLoadMap.value[index] = Object.assign(
-          {},
-          switchLoadMap.value[index],
-          { loading: true }
-        );
-        try {
-          await changeDictStatus({ id: row.id, status: row.status });
-          // 状态影响消费端的 list-by-codes 结果,同步刷新字典缓存
-          await useDictStoreHook().refresh(row.dictCode);
-          message(
-            `已${row.status === 0 ? "启用" : "禁用"}<strong style='color:var(--el-color-primary)'>${row.dictLabel}</strong>字典条目`,
-            { type: "success", dangerouslyUseHTMLString: true }
-          );
-        } catch {
-          // 接口失败回滚开关,与取消回滚共用同一处理
-          row.status = row.status === 0 ? 1 : 0;
-        } finally {
-          switchLoadMap.value[index] = Object.assign(
-            {},
-            switchLoadMap.value[index],
-            { loading: false }
-          );
-        }
-      })
-      .catch(() => {
-        row.status === 0 ? (row.status = 1) : (row.status = 0);
-      });
-  }
-
+  /** 当CheckBox选择项发生变化时会触发该事件 */
   async function handleDelete(row) {
     // 确认弹窗与状态开关/修改新增弹窗风格一致;字典标签样式加粗 + 主题主色
-    ElMessageBox.confirm(
+    const confirmed = await confirmAction(
       `确认要删除<strong style='color:var(--el-color-primary)'>${row.dictLabel}</strong>字典条目吗?`,
-      "系统提示",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning",
-        dangerouslyUseHTMLString: true,
-        draggable: true
-      }
-    )
-      .then(async () => {
-        await deleteDict(row.id);
-        message(
-          `成功删除<strong style='color:var(--el-color-primary)'>${row.dictLabel}</strong>字典条目`,
-          { type: "success", dangerouslyUseHTMLString: true }
-        );
-        await useDictStoreHook().refresh(row.dictCode);
-        await loadTypes();
-        onSearch();
-      })
-      .catch(() => {});
+      { html: true }
+    );
+    if (!confirmed) return;
+    await deleteDict(row.id);
+    message(
+      `成功删除<strong style='color:var(--el-color-primary)'>${row.dictLabel}</strong>字典条目`,
+      { type: "success", dangerouslyUseHTMLString: true }
+    );
+    await useDictStoreHook().refresh(row.dictCode);
+    await loadTypes();
+    onSearch();
   }
 
   /** 当CheckBox选择项发生变化时会触发该事件 */
@@ -248,7 +209,7 @@ export function useDictPage() {
   }
 
   /** 批量删除(复用删除接口,ID 逗号拼接,后端整批校验) */
-  function onbatchDel() {
+  async function onbatchDel() {
     // 返回当前选中的行(selectable 已禁用内置条目勾选,选中项不会包含内置条目)
     const curSelected = tableRef.value.getTableRef().getSelectionRows();
     const ids = getKeyList(curSelected, "id");
@@ -259,42 +220,22 @@ export function useDictPage() {
         ? `${names.slice(0, 3).join("、")} 等 ${names.length} 条`
         : names.join("、");
     // 确认弹窗与单条删除/状态开关风格一致;字典标签加粗 + 主题主色
-    ElMessageBox.confirm(
+    const confirmed = await confirmAction(
       `确认要删除<strong style='color:var(--el-color-primary)'>${displayNames}</strong>字典条目吗?`,
-      "系统提示",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning",
-        dangerouslyUseHTMLString: true,
-        draggable: true
-      }
-    )
-      .then(async () => {
-        await deleteDict(ids.join(","));
-        // 批量删除可能涉及多个编码,统一刷新消费端字典缓存
-        for (const code of new Set(getKeyList(curSelected, "dictCode"))) {
-          await useDictStoreHook().refresh(code);
-        }
-        message(
-          `成功删除<strong style='color:var(--el-color-primary)'>${displayNames}</strong>字典条目`,
-          { type: "success", dangerouslyUseHTMLString: true }
-        );
-        tableRef.value.getTableRef().clearSelection();
-        await loadTypes();
-        onSearch();
-      })
-      .catch(() => {});
-  }
-
-  /** pure-table 的分页事件只携带新值(写在其内部分页副本上),需在此写回分页状态后再查询 */
-  function handleSizeChange(val: number) {
-    pagination.pageSize = val;
-    onSearch();
-  }
-
-  function handleCurrentChange(val: number) {
-    pagination.currentPage = val;
+      { html: true }
+    );
+    if (!confirmed) return;
+    await deleteDict(ids.join(","));
+    // 批量删除可能涉及多个编码,统一刷新消费端字典缓存
+    for (const code of new Set(getKeyList(curSelected, "dictCode"))) {
+      await useDictStoreHook().refresh(code);
+    }
+    message(
+      `成功删除<strong style='color:var(--el-color-primary)'>${displayNames}</strong>字典条目`,
+      { type: "success", dangerouslyUseHTMLString: true }
+    );
+    tableRef.value.getTableRef().clearSelection();
+    await loadTypes();
     onSearch();
   }
 
@@ -314,21 +255,12 @@ export function useDictPage() {
         pageSize: pagination.pageSize
       });
       if (success) {
-        dataList.value = data.records;
-        pagination.total = data.totalRow;
-        pagination.pageSize = data.pageSize;
-        pagination.currentPage = data.pageNumber;
+        dataList.value = applyPageResult(data);
       }
     } finally {
       loading.value = false;
     }
   }
-
-  const resetForm = formEl => {
-    if (!formEl) return;
-    formEl.resetFields();
-    onSearch();
-  };
 
   /** 新增/修改弹窗(字典编码固定为当前选中类型) */
   function openDialog(title: string, row?: any) {
@@ -352,13 +284,21 @@ export function useDictPage() {
       width: "46%",
       draggable: true,
       fullscreen: deviceDetection(),
+      fullscreenIcon: true,
       closeOnClickModal: false,
+      // 开启确定按钮提交加载态,防止异步提交期间连点重复提交
+      sureBtnLoading: true,
       contentRenderer: () => h(editForm, { ref: formRef, formInline: null }),
-      beforeSure: (done, { options }) => {
+      beforeSure: (done, { options, closeLoading }) => {
         const FormRef = formRef.value.getRef();
         const curData = options.props.formInline as FormItemProps;
         FormRef.validate(async valid => {
-          if (valid) {
+          if (!valid) {
+            // 校验未通过:复位确定按钮加载态
+            closeLoading();
+            return;
+          }
+          try {
             // 表单规则校验通过
             if (title === "修改") {
               await updateDict(curData);
@@ -373,7 +313,11 @@ export function useDictPage() {
               `${title === "新增" ? "成功新增" : "成功修改"}<strong style='color:var(--el-color-primary)'>${curData.dictLabel}</strong>字典条目`,
               { type: "success", dangerouslyUseHTMLString: true }
             );
+            closeLoading(); // 复位确定按钮加载态(弹窗即将关闭)
             done(); // 关闭弹框
+          } catch {
+            // 提交失败(失败提示由拦截器统一弹出):复位加载态,弹窗保持打开
+            closeLoading();
           }
         });
       }
@@ -428,5 +372,3 @@ export function useDictPage() {
     handleCurrentChange
   };
 }
-
-

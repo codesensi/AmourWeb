@@ -33,7 +33,7 @@
     ]
   },
   "include": [
-    "mock/*.ts",
+    "mock/**/*.ts",
     "build/*.ts",
     "src/**/*.ts",
     "src/**/*.tsx",

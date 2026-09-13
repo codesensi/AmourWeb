@@ -392,9 +392,9 @@ export default defineFakeRoute([
       };
     }
   },
-  // 批量查询(GET /sys/dict/list-by-codes?codes=逗号分隔编码)
+  // 批量查询(GET /portal/dict/list-by-codes?codes=逗号分隔编码;对齐 api/dict.ts getDictByCodes)
   {
-    url: "/sys/dict/list-by-codes",
+    url: "/portal/dict/list-by-codes",
     method: "get",
     response: ({ query }) => {
       const codes = String(query.codes ?? "")

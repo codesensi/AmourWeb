@@ -1,4 +1,5 @@
 import { http } from "@/utils/http";
+import { omitEmpty } from "@/utils/params";
 import type { ApiResult, PageQuery, PageResult } from "@/api/types";
 
 /** 文件上传响应 */
@@ -85,27 +86,39 @@ export type FileQuery = PageQuery & {
   delFlag?: number;
 };
 
-/** 文件分页查询(GET /file/page;登录态,file:page 权限) */
+/** 文件分页查询(GET /file/page;登录态,system:file:page 权限) */
 export const getFilePage = (params?: FileQuery) => {
   return http.request<ApiResult<PageResult<FileItem>>>("get", "/file/page", {
-    params
+    params: omitEmpty(params)
   });
 };
 
 /**
- * 删除文件(DELETE /file/{id};登录态,file:delete 权限)。
+ * 删除文件(DELETE /file/{id};登录态,system:file:delete 权限)。
  * 仅逻辑删除,物理文件保留,可在回收站恢复或彻底删除。
  */
 export const deleteFile = (id: string) => {
   return http.request<ApiResult<null>>("delete", `/file/${id}`);
 };
 
-/** 恢复回收站文件(PUT /file/{id}/restore;登录态,file:delete 权限) */
+/** 恢复回收站文件(PUT /file/{id}/restore;登录态,system:file:delete 权限) */
 export const restoreFile = (id: string) => {
   return http.request<ApiResult<null>>("put", `/file/${id}/restore`);
 };
 
-/** 彻底删除回收站文件(DELETE /file/{id}/physical;登录态,file:delete 权限) */
+/** 彻底删除回收站文件(DELETE /file/{id}/physical;登录态,system:file:delete 权限) */
 export const physicalDeleteFile = (id: string) => {
   return http.request<ApiResult<null>>("delete", `/file/${id}/physical`);
+};
+
+/**
+ * 下载文件(GET /file/download/{id};登录态,后端以原始文件名触发另存为)。
+ * 二进制流原样透传;后端异常时以 JSON 响应(契约对齐 ApiResult),
+ * 由调用方按响应 Content-Type 识别降级。
+ */
+export const downloadFile = (id: string) => {
+  return http.request<Blob>("get", `/file/download/${id}`, {
+    responseType: "blob",
+    timeout: 0
+  });
 };

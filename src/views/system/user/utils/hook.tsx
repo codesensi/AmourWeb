@@ -2,12 +2,16 @@ import "./reset.css";
 import dayjs from "dayjs";
 import roleForm from "../form/role.vue";
 import editForm from "../form/index.vue";
-import { message } from "@/utils/message";
+import { confirmAction, message } from "@/utils/message";
 import { hasPerms } from "@/utils/auth";
 import { DictTag } from "@/components/DictTag";
-import { usePublicHooks } from "../../hooks";
+import {
+  useBuiltinTag,
+  usePageQuery,
+  usePublicHooks,
+  useStatusSwitch
+} from "../../hooks";
 import { addDialog } from "@/components/ReDialog";
-import type { PaginationProps } from "@pureadmin/table";
 import type { FormItemProps, RoleFormItemProps } from "../utils/types";
 import { getKeyList, deviceDetection } from "@pureadmin/utils";
 import type { SysRoleOption } from "@/api/system";
@@ -16,7 +20,7 @@ import { DICT_CODES } from "@/api/dict";
 import {
   deleteUser,
   getRoleList,
-  getUserList,
+  getUserPage,
   getUserRoleIds,
   insertUser,
   updateUser,
@@ -24,7 +28,6 @@ import {
   changeUserStatus,
   assignRoles
 } from "@/api/system";
-import { ElMessageBox } from "element-plus";
 import { type Ref, h, ref, toRaw, computed, reactive, onMounted } from "vue";
 
 export function useUser(tableRef: Ref) {
@@ -39,19 +42,32 @@ export function useUser(tableRef: Ref) {
   const formRef = ref();
   const dataList = ref([]);
   const loading = ref(true);
-  const switchLoadMap = ref({});
   const { switchStyle } = usePublicHooks();
   // 启停状态字典:开关文案与确认弹窗统一由 sys_dict(enable) 驱动
   const { labelOf: enableLabelOf } = useDict(DICT_CODES.enable);
-  // 是否字典:是否内置列文案由 sys_dict(yes) 驱动
-  const { labelOf: yesLabelOf } = useDict(DICT_CODES.yes);
   const selectedNum = ref(0);
-  const pagination = reactive<PaginationProps>({
-    total: 0,
-    pageSize: 20,
-    currentPage: 1,
-    background: true
+  // 分页查询公共骨架:分页状态 + 分页事件写回 + 查询结果回填 + 搜索表单重置
+  const {
+    pagination,
+    applyPageResult,
+    handleSizeChange,
+    handleCurrentChange,
+    resetForm
+  } = usePageQuery(onSearch);
+  // 状态开关公共骨架:确认 + 提交加载态 + 成功提示 + 取消/失败回滚
+  const { switchLoadMap, onChange } = useStatusSwitch({
+    submit: row => changeUserStatus({ id: row.id, status: row.status }),
+    confirmText: row =>
+      `确认要<strong>${
+        row.status === 0 ? enableLabelOf(0) : enableLabelOf(1)
+      }</strong><strong style='color:var(--el-color-primary)'>${
+        row.username
+      }</strong>用户吗?`,
+    successText: row =>
+      `已${enableLabelOf(row.status)}<strong style='color:var(--el-color-primary)'>${row.username}</strong>用户`
   });
+  // 「是否内置」列统一渲染(字典 yes 驱动)
+  const builtinTagCell = useBuiltinTag();
   const columns: TableColumnList = [
     {
       label: "勾选列", // 如果需要表格多选，此处label必须设置
@@ -124,7 +140,7 @@ export function useUser(tableRef: Ref) {
       cellRenderer: scope => (
         <el-switch
           size={scope.props.size === "small" ? "small" : "default"}
-          loading={switchLoadMap.value[scope.index]?.loading}
+          loading={switchLoadMap.value[scope.row.id]?.loading}
           v-model={scope.row.status}
           active-value={0}
           inactive-value={1}
@@ -134,7 +150,7 @@ export function useUser(tableRef: Ref) {
           disabled={scope.row.builtin === 1 || !hasPerms("system:user:update")}
           inline-prompt
           style={switchStyle.value}
-          onChange={() => onChange(scope as any)}
+          onChange={() => onChange(scope.row)}
         />
       )
     },
@@ -142,11 +158,7 @@ export function useUser(tableRef: Ref) {
       label: "是否内置",
       prop: "builtin",
       minWidth: 90,
-      cellRenderer: ({ row }) => (
-        <el-tag size="small" type={row.builtin === 1 ? "warning" : "info"}>
-          {yesLabelOf(row.builtin)}
-        </el-tag>
-      )
+      cellRenderer: builtinTagCell
     },
     {
       label: "创建时间",
@@ -173,89 +185,18 @@ export function useUser(tableRef: Ref) {
   });
   const roleOptions = ref<SysRoleOption[]>([]);
 
-  function onChange({ row, index }) {
-    ElMessageBox.confirm(
-      `确认要<strong>${
-        row.status === 0 ? enableLabelOf(0) : enableLabelOf(1)
-      }</strong><strong style='color:var(--el-color-primary)'>${
-        row.username
-      }</strong>用户吗?`,
-      "系统提示",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning",
-        dangerouslyUseHTMLString: true,
-        draggable: true
-      }
-    )
-      .then(async () => {
-        switchLoadMap.value[index] = Object.assign(
-          {},
-          switchLoadMap.value[index],
-          {
-            loading: true
-          }
-        );
-        try {
-          await changeUserStatus({ id: row.id, status: row.status });
-          message(
-            `已${enableLabelOf(row.status)}<strong style='color:var(--el-color-primary)'>${row.username}</strong>用户`,
-            {
-              type: "success",
-              dangerouslyUseHTMLString: true
-            }
-          );
-        } catch {
-          // 接口失败回滚开关,与取消回滚共用同一处理
-          row.status = row.status === 0 ? 1 : 0;
-        } finally {
-          switchLoadMap.value[index] = Object.assign(
-            {},
-            switchLoadMap.value[index],
-            {
-              loading: false
-            }
-          );
-        }
-      })
-      .catch(() => {
-        row.status === 0 ? (row.status = 1) : (row.status = 0);
-      });
-  }
-
   async function handleDelete(row) {
     // 确认弹窗与状态开关/修改新增弹窗风格一致;用户名样式加粗 + 主题主色
-    ElMessageBox.confirm(
+    const confirmed = await confirmAction(
       `确认要删除<strong style='color:var(--el-color-primary)'>${row.username}</strong>用户吗?`,
-      "系统提示",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning",
-        dangerouslyUseHTMLString: true,
-        draggable: true
-      }
-    )
-      .then(async () => {
-        await deleteUser(row.id);
-        message(
-          `成功删除<strong style='color:var(--el-color-primary)'>${row.username}</strong>用户`,
-          { type: "success", dangerouslyUseHTMLString: true }
-        );
-        onSearch();
-      })
-      .catch(() => {});
-  }
-
-  /** pure-table 的分页事件只携带新值(写在其内部分页副本上),需在此写回分页状态后再查询 */
-  function handleSizeChange(val: number) {
-    pagination.pageSize = val;
-    onSearch();
-  }
-
-  function handleCurrentChange(val: number) {
-    pagination.currentPage = val;
+      { html: true }
+    );
+    if (!confirmed) return;
+    await deleteUser(row.id);
+    message(
+      `成功删除<strong style='color:var(--el-color-primary)'>${row.username}</strong>用户`,
+      { type: "success", dangerouslyUseHTMLString: true }
+    );
     onSearch();
   }
 
@@ -274,7 +215,7 @@ export function useUser(tableRef: Ref) {
   }
 
   /** 批量删除(复用删除接口,ID 逗号拼接,后端整批校验) */
-  function onbatchDel() {
+  async function onbatchDel() {
     // 返回当前选中的行(selectable 已禁用内置用户勾选,选中项不会包含内置用户)
     const curSelected = tableRef.value.getTableRef().getSelectionRows();
     const ids = getKeyList(curSelected, "id");
@@ -285,54 +226,36 @@ export function useUser(tableRef: Ref) {
         ? `${names.slice(0, 3).join("、")} 等 ${names.length} 位`
         : names.join("、");
     // 确认弹窗与单条删除/状态开关风格一致;用户名加粗 + 主题主色
-    ElMessageBox.confirm(
+    const confirmed = await confirmAction(
       `确认要删除<strong style='color:var(--el-color-primary)'>${displayNames}</strong>用户吗?`,
-      "系统提示",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning",
-        dangerouslyUseHTMLString: true,
-        draggable: true
-      }
-    )
-      .then(async () => {
-        await deleteUser(ids.join(","));
-        message(
-          `成功删除<strong style='color:var(--el-color-primary)'>${displayNames}</strong>用户`,
-          { type: "success", dangerouslyUseHTMLString: true }
-        );
-        tableRef.value.getTableRef().clearSelection();
-        onSearch();
-      })
-      .catch(() => {});
+      { html: true }
+    );
+    if (!confirmed) return;
+    await deleteUser(ids.join(","));
+    message(
+      `成功删除<strong style='color:var(--el-color-primary)'>${displayNames}</strong>用户`,
+      { type: "success", dangerouslyUseHTMLString: true }
+    );
+    tableRef.value.getTableRef().clearSelection();
+    onSearch();
   }
 
   async function onSearch() {
     loading.value = true;
     try {
-      const { success, data } = await getUserList({
+      const { success, data } = await getUserPage({
         ...toRaw(form),
         pageNumber: pagination.currentPage,
         pageSize: pagination.pageSize
       });
       if (success) {
-        dataList.value = data.records;
-        pagination.total = data.totalRow;
-        pagination.pageSize = data.pageSize;
-        pagination.currentPage = data.pageNumber;
+        dataList.value = applyPageResult(data);
       }
     } finally {
       // 请求失败(业务失败被拦截器 reject)时也复位加载态,避免表格永久转圈
       loading.value = false;
     }
   }
-
-  const resetForm = formEl => {
-    if (!formEl) return;
-    formEl.resetFields();
-    onSearch();
-  };
 
   function openDialog(title = "新增", row?: FormItemProps) {
     addDialog({
@@ -356,8 +279,10 @@ export function useUser(tableRef: Ref) {
       fullscreen: deviceDetection(),
       fullscreenIcon: true,
       closeOnClickModal: false,
+      // 开启确定按钮提交加载态,防止异步提交期间连点重复提交
+      sureBtnLoading: true,
       contentRenderer: () => h(editForm, { ref: formRef, formInline: null }),
-      beforeSure: (done, { options }) => {
+      beforeSure: (done, { options, closeLoading }) => {
         const FormRef = formRef.value.getRef();
         const curData = options.props.formInline as FormItemProps;
         function chores() {
@@ -377,11 +302,17 @@ export function useUser(tableRef: Ref) {
               { type: "success", dangerouslyUseHTMLString: true }
             );
           }
+          closeLoading(); // 复位确定按钮加载态(弹窗即将关闭)
           done(); // 关闭弹框
           onSearch(); // 刷新表格数据
         }
         FormRef.validate(async valid => {
-          if (valid) {
+          if (!valid) {
+            // 校验未通过:复位确定按钮加载态
+            closeLoading();
+            return;
+          }
+          try {
             // 表单规则校验通过
             if (title === "新增") {
               await insertUser(curData);
@@ -398,6 +329,9 @@ export function useUser(tableRef: Ref) {
               });
             }
             chores();
+          } catch {
+            // 提交失败(失败提示由拦截器统一弹出):复位加载态,弹窗保持打开
+            closeLoading();
           }
         });
       }
@@ -405,25 +339,16 @@ export function useUser(tableRef: Ref) {
   }
 
   /** 重置密码(重置为系统默认密码) */
-  function handleReset(row) {
-    ElMessageBox.confirm(
+  async function handleReset(row) {
+    const confirmed = await confirmAction(
       `确认要将<strong style='color:var(--el-color-primary)'>${row.username}</strong>用户的密码重置为系统默认密码吗?`,
-      "系统提示",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning",
-        dangerouslyUseHTMLString: true,
-        draggable: true
-      }
-    )
-      .then(async () => {
-        await resetUserPwd(row.id);
-        message(`已成功重置 ${row.username} 用户的密码`, {
-          type: "success"
-        });
-      })
-      .catch(() => {});
+      { html: true }
+    );
+    if (!confirmed) return;
+    await resetUserPwd(row.id);
+    message(`已成功重置 ${row.username} 用户的密码`, {
+      type: "success"
+    });
   }
 
   /** 分配角色 */
@@ -445,13 +370,22 @@ export function useUser(tableRef: Ref) {
       fullscreen: deviceDetection(),
       fullscreenIcon: true,
       closeOnClickModal: false,
+      // 开启确定按钮提交加载态,防止异步提交期间连点重复提交
+      sureBtnLoading: true,
       contentRenderer: () => h(roleForm),
-      beforeSure: async (done, { options }) => {
+      beforeSure: async (done, { options, closeLoading }) => {
         const curData = options.props.formInline as RoleFormItemProps;
-        await assignRoles({ userId: row.id, roleIds: curData.ids });
+        try {
+          await assignRoles({ userId: row.id, roleIds: curData.ids });
+        } catch {
+          // 提交失败(失败提示由拦截器统一弹出):复位加载态,弹窗保持打开
+          closeLoading();
+          return;
+        }
         message(`角色名称为${row.username}的用户角色分配成功`, {
           type: "success"
         });
+        closeLoading(); // 复位确定按钮加载态(弹窗即将关闭)
         done(); // 关闭弹框
       }
     });
@@ -486,5 +420,3 @@ export function useUser(tableRef: Ref) {
     handleSelectionChange
   };
 }
-
-

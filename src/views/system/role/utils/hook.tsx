@@ -1,13 +1,16 @@
 import dayjs from "dayjs";
 import editForm from "../form.vue";
 import { handleTree } from "@/utils/tree";
-import { message } from "@/utils/message";
+import { confirmAction, message } from "@/utils/message";
 import { hasPerms } from "@/utils/auth";
-import { ElMessageBox } from "element-plus";
-import { usePublicHooks } from "../../hooks";
+import {
+  useBuiltinTag,
+  usePageQuery,
+  usePublicHooks,
+  useStatusSwitch
+} from "../../hooks";
 import { addDialog } from "@/components/ReDialog";
 import type { FormItemProps } from "../utils/types";
-import type { PaginationProps } from "@pureadmin/table";
 import { getKeyList, deviceDetection } from "@pureadmin/utils";
 import { useDict } from "@/hooks/useDict";
 import { DICT_CODES } from "@/api/dict";
@@ -39,25 +42,38 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
   const loading = ref(true);
   const isLinkage = ref(false);
   const treeSearchValue = ref();
-  const switchLoadMap = ref({});
   const isExpandAll = ref(false);
   const isSelectAll = ref(false);
   const { switchStyle } = usePublicHooks();
   // 启停状态字典:开关文案与确认弹窗统一由 sys_dict(enable) 驱动
   const { labelOf: enableLabelOf } = useDict(DICT_CODES.enable);
-  // 是否字典:是否内置列文案由 sys_dict(yes) 驱动
-  const { labelOf: yesLabelOf } = useDict(DICT_CODES.yes);
   const treeProps = {
     value: "id",
     label: "title",
     children: "children"
   };
-  const pagination = reactive<PaginationProps>({
-    total: 0,
-    pageSize: 20,
-    currentPage: 1,
-    background: true
+  // 分页查询公共骨架:分页状态 + 分页事件写回 + 查询结果回填 + 搜索表单重置
+  const {
+    pagination,
+    applyPageResult,
+    handleSizeChange,
+    handleCurrentChange,
+    resetForm
+  } = usePageQuery(onSearch);
+  // 状态开关公共骨架:确认 + 提交加载态 + 成功提示 + 取消/失败回滚
+  const { switchLoadMap, onChange } = useStatusSwitch({
+    submit: row => changeRoleStatus({ id: row.id, status: row.status }),
+    confirmText: row =>
+      `确认要<strong>${
+        row.status === 0 ? enableLabelOf(0) : enableLabelOf(1)
+      }</strong><strong style='color:var(--el-color-primary)'>${
+        row.name
+      }</strong>吗?`,
+    successText: row =>
+      `已${enableLabelOf(row.status)}<strong style='color:var(--el-color-primary)'>${row.name}</strong>角色`
   });
+  // 「是否内置」列统一渲染(字典 yes 驱动)
+  const builtinTagCell = useBuiltinTag();
   const columns: TableColumnList = [
     {
       label: "勾选列", // 如果需要表格多选，此处label必须设置
@@ -80,7 +96,7 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
       cellRenderer: scope => (
         <el-switch
           size={scope.props.size === "small" ? "small" : "default"}
-          loading={switchLoadMap.value[scope.index]?.loading}
+          loading={switchLoadMap.value[scope.row.id]?.loading}
           v-model={scope.row.status}
           active-value={0}
           inactive-value={1}
@@ -90,7 +106,7 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
           disabled={scope.row.builtin === 1 || !hasPerms("system:role:update")}
           inline-prompt
           style={switchStyle.value}
-          onChange={() => onChange(scope as any)}
+          onChange={() => onChange(scope.row)}
         />
       ),
       minWidth: 90
@@ -99,11 +115,7 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
       label: "是否内置",
       prop: "builtin",
       minWidth: 90,
-      cellRenderer: ({ row }) => (
-        <el-tag size="small" type={row.builtin === 1 ? "warning" : "info"}>
-          {yesLabelOf(row.builtin)}
-        </el-tag>
-      )
+      cellRenderer: builtinTagCell
     },
     {
       label: "备注",
@@ -134,81 +146,23 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
   //   ];
   // });
 
-  function onChange({ row, index }) {
-    ElMessageBox.confirm(
-      `确认要<strong>${
-        row.status === 0 ? enableLabelOf(0) : enableLabelOf(1)
-      }</strong><strong style='color:var(--el-color-primary)'>${
-        row.name
-      }</strong>吗?`,
-      "系统提示",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning",
-        dangerouslyUseHTMLString: true,
-        draggable: true
-      }
-    )
-      .then(async () => {
-        switchLoadMap.value[index] = Object.assign(
-          {},
-          switchLoadMap.value[index],
-          {
-            loading: true
-          }
-        );
-        try {
-          await changeRoleStatus({ id: row.id, status: row.status });
-          message(
-            `已${enableLabelOf(row.status)}<strong style='color:var(--el-color-primary)'>${row.name}</strong>角色`,
-            { type: "success", dangerouslyUseHTMLString: true }
-          );
-        } catch (error) {
-          // 接口失败(含内置角色禁用被拒)时回滚开关状态
-          row.status === 0 ? (row.status = 1) : (row.status = 0);
-          throw error;
-        } finally {
-          switchLoadMap.value[index] = Object.assign(
-            {},
-            switchLoadMap.value[index],
-            {
-              loading: false
-            }
-          );
-        }
-      })
-      .catch(() => {
-        row.status === 0 ? (row.status = 1) : (row.status = 0);
-      });
-  }
-
   async function handleDelete(row) {
     // 确认弹窗与用户管理风格一致;角色名样式加粗 + 主题主色
-    ElMessageBox.confirm(
+    const confirmed = await confirmAction(
       `确认要删除<strong style='color:var(--el-color-primary)'>${row.name}</strong>角色吗?`,
-      "系统提示",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning",
-        dangerouslyUseHTMLString: true,
-        draggable: true
-      }
-    )
-      .then(async () => {
-        await deleteRole(row.id);
-        message(
-          `成功删除<strong style='color:var(--el-color-primary)'>${row.name}</strong>角色`,
-          { type: "success", dangerouslyUseHTMLString: true }
-        );
-        onSearch();
-      })
-      .catch(() => {});
+      { html: true }
+    );
+    if (!confirmed) return;
+    await deleteRole(row.id);
+    message(
+      `成功删除<strong style='color:var(--el-color-primary)'>${row.name}</strong>角色`,
+      { type: "success", dangerouslyUseHTMLString: true }
+    );
+    onSearch();
   }
 
   /** 批量删除(复用删除接口,ID 逗号拼接,后端整批校验) */
-  function onbatchDel() {
+  async function onbatchDel() {
     // 返回当前选中的行(selectable 已禁用内置角色勾选,选中项不会包含内置角色)
     const curSelected = tableRef.value.getTableRef().getSelectionRows();
     const ids = getKeyList(curSelected, "id");
@@ -219,37 +173,17 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
         ? `${names.slice(0, 3).join("、")} 等 ${names.length} 个`
         : names.join("、");
     // 确认弹窗与单条删除/状态开关风格一致;角色名加粗 + 主题主色
-    ElMessageBox.confirm(
+    const confirmed = await confirmAction(
       `确认要删除<strong style='color:var(--el-color-primary)'>${displayNames}</strong>角色吗?`,
-      "系统提示",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning",
-        dangerouslyUseHTMLString: true,
-        draggable: true
-      }
-    )
-      .then(async () => {
-        await deleteRole(ids.join(","));
-        message(
-          `成功删除<strong style='color:var(--el-color-primary)'>${displayNames}</strong>角色`,
-          { type: "success", dangerouslyUseHTMLString: true }
-        );
-        tableRef.value.getTableRef().clearSelection();
-        onSearch();
-      })
-      .catch(() => {});
-  }
-
-  /** pure-table 的分页事件只携带新值(写在其内部分页副本上),需在此写回分页状态后再查询 */
-  function handleSizeChange(val: number) {
-    pagination.pageSize = val;
-    onSearch();
-  }
-
-  function handleCurrentChange(val: number) {
-    pagination.currentPage = val;
+      { html: true }
+    );
+    if (!confirmed) return;
+    await deleteRole(ids.join(","));
+    message(
+      `成功删除<strong style='color:var(--el-color-primary)'>${displayNames}</strong>角色`,
+      { type: "success", dangerouslyUseHTMLString: true }
+    );
+    tableRef.value.getTableRef().clearSelection();
     onSearch();
   }
 
@@ -276,21 +210,12 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
         pageSize: pagination.pageSize
       });
       if (success) {
-        dataList.value = data.records;
-        pagination.total = data.totalRow;
-        pagination.pageSize = data.pageSize;
-        pagination.currentPage = data.pageNumber;
+        dataList.value = applyPageResult(data);
       }
     } finally {
       loading.value = false;
     }
   }
-
-  const resetForm = formEl => {
-    if (!formEl) return;
-    formEl.resetFields();
-    onSearch();
-  };
 
   function openDialog(title = "新增", row?: FormItemProps) {
     addDialog({
@@ -309,8 +234,10 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
       fullscreen: deviceDetection(),
       fullscreenIcon: true,
       closeOnClickModal: false,
+      // 开启确定按钮提交加载态,防止异步提交期间连点重复提交
+      sureBtnLoading: true,
       contentRenderer: () => h(editForm, { ref: formRef, formInline: null }),
-      beforeSure: (done, { options }) => {
+      beforeSure: (done, { options, closeLoading }) => {
         const FormRef = formRef.value.getRef();
         const curData = options.props.formInline as FormItemProps;
         function chores() {
@@ -319,11 +246,17 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
             `${title === "新增" ? "成功新增" : "成功修改"}<strong style='color:var(--el-color-primary)'>${curData.name}</strong>角色`,
             { type: "success", dangerouslyUseHTMLString: true }
           );
+          closeLoading(); // 复位确定按钮加载态(弹窗即将关闭)
           done(); // 关闭弹框
           onSearch(); // 刷新表格数据
         }
         FormRef.validate(async valid => {
-          if (valid) {
+          if (!valid) {
+            // 校验未通过:复位确定按钮加载态
+            closeLoading();
+            return;
+          }
+          try {
             // 表单规则校验通过
             if (title === "新增") {
               await insertRole(curData);
@@ -337,6 +270,9 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
               });
             }
             chores();
+          } catch {
+            // 提交失败(失败提示由拦截器统一弹出):复位加载态,弹窗保持打开
+            closeLoading();
           }
         });
       }
@@ -442,5 +378,3 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
     handleSelectionChange
   };
 }
-
-

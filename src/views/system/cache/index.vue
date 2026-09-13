@@ -11,8 +11,6 @@ import Coin from "~icons/ep/coin";
 import Box from "~icons/ep/box";
 import Aim from "~icons/ep/aim";
 import Delete from "~icons/ep/delete";
-import CopyDocument from "~icons/ep/copy-document";
-import Check from "~icons/ep/check";
 import PieChart from "~icons/ep/pie-chart";
 import WarningFilled from "~icons/ep/warning-filled";
 import DataLine from "~icons/ep/data-line";
@@ -21,6 +19,7 @@ import Timer from "~icons/ep/timer";
 import Clock from "~icons/ep/clock";
 import Pointer from "~icons/ep/pointer";
 import Odometer from "~icons/ep/odometer";
+import { ReCodeBlock } from "@/components/ReCodeBlock";
 
 defineOptions({
   name: "SystemCache"
@@ -53,9 +52,7 @@ const {
   prettyJson,
   detail,
   detailVisible,
-  copied,
-  openDetail,
-  copyDetail
+  openDetail
 } = useCacheMonitor();
 
 /** 概览 KPI 卡(数字/右上淡图标/底部语义色微条) */
@@ -469,29 +466,12 @@ const policyTiles = computed(() => [
           该键缓存的是数据不存在的空值占位
         </el-tag>
       </div>
-      <div v-else class="code-block">
-        <div class="code-header">
-          <span class="code-dot" />
-          <span class="text-xs text-[rgba(220,220,242,0.6)]">JSON</span>
-          <el-button
-            text
-            size="small"
-            class="ml-auto!"
-            :style="{
-              color: copied
-                ? 'var(--el-color-success)'
-                : 'rgba(220,220,242,0.8)'
-            }"
-            @click="copyDetail"
-          >
-            <el-icon class="mr-1">
-              <component :is="copied ? Check : CopyDocument" />
-            </el-icon>
-            {{ copied ? "已复制" : "复制" }}
-          </el-button>
-        </div>
-        <pre class="code-body">{{ prettyJson(detail?.value) }}</pre>
-      </div>
+      <ReCodeBlock
+        v-else
+        :code="prettyJson(detail?.value)"
+        label="JSON"
+        :max-height="400"
+      />
     </el-dialog>
   </div>
 </template>
@@ -538,37 +518,5 @@ const policyTiles = computed(() => [
   &:hover {
     border-color: var(--el-border-color);
   }
-}
-
-.code-block {
-  overflow: hidden;
-  background: #1e1e1e;
-  border-radius: 8px;
-}
-
-.code-header {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  padding: 8px 12px;
-  border-bottom: 1px solid rgb(255 255 255 / 8%);
-}
-
-.code-dot {
-  width: 8px;
-  height: 8px;
-  background: var(--el-color-success);
-  border-radius: 50%;
-}
-
-.code-body {
-  max-height: 400px;
-  padding: 12px 16px;
-  margin: 0;
-  overflow: auto;
-  font-family: Consolas, Monaco, monospace;
-  font-size: 13px;
-  line-height: 1.6;
-  color: #d4d4d4;
 }
 </style>

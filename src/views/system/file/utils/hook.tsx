@@ -1,16 +1,15 @@
 import { reactive, ref, toRaw } from "vue";
-import { ElMessageBox } from "element-plus";
-import { useClipboard } from "@vueuse/core";
-import type { PaginationProps } from "@pureadmin/table";
+import { usePageQuery } from "../../hooks";
 import {
   deleteFile,
+  downloadFile,
   getFilePage,
   physicalDeleteFile,
   restoreFile,
   type FileItem
 } from "@/api/file";
-import { http } from "@/utils/http";
-import { message } from "@/utils/message";
+import type { ApiResult } from "@/api/types";
+import { confirmAction, message } from "@/utils/message";
 
 /** 页签模式: active-文件列表(未删除), recycle-回收站(已逻辑删除) */
 export type FilePageMode = "active" | "recycle";
@@ -60,14 +59,34 @@ export function useFilePage(mode: FilePageMode = "active") {
   const dataList = ref<FileItem[]>([]);
   const loading = ref(true);
 
-  const pagination = reactive<PaginationProps>({
-    total: 0,
-    pageSize: 20,
-    currentPage: 1,
-    background: true
-  });
+  // 分页查询公共骨架:分页状态 + 分页事件写回 + 查询结果回填 + 搜索表单重置
+  const {
+    pagination,
+    applyPageResult,
+    handleSizeChange,
+    handleCurrentChange,
+    resetForm
+  } = usePageQuery(onSearch);
 
   const columns: TableColumnList = [
+    {
+      label: "预览",
+      prop: "preview",
+      // 与用户列表头像列同构:图片文件显示缩略图(点击放大),非图片文件留空
+      cellRenderer: ({ row }) =>
+        row.contentType?.startsWith("image/") ? (
+          <el-image
+            fit="cover"
+            preview-teleported={true}
+            src={`/file/view/${row.id}`}
+            preview-src-list={Array.of(`/file/view/${row.id}`)}
+            class="size-6 rounded-full align-middle"
+          />
+        ) : (
+          ""
+        ),
+      width: 90
+    },
     {
       label: "文件名",
       prop: "originalName",
@@ -126,17 +145,6 @@ export function useFilePage(mode: FilePageMode = "active") {
     }
   ];
 
-  /** pure-table 的分页事件只携带新值(写在其内部分页副本上),需在此写回分页状态后再查询 */
-  function handleSizeChange(val: number) {
-    pagination.pageSize = val;
-    onSearch();
-  }
-
-  function handleCurrentChange(val: number) {
-    pagination.currentPage = val;
-    onSearch();
-  }
-
   async function onSearch() {
     loading.value = true;
     try {
@@ -150,10 +158,7 @@ export function useFilePage(mode: FilePageMode = "active") {
         pageSize: pagination.pageSize
       });
       if (success) {
-        dataList.value = data.records;
-        pagination.total = data.totalRow;
-        pagination.pageSize = data.pageSize;
-        pagination.currentPage = data.pageNumber;
+        dataList.value = applyPageResult(data);
       }
     } finally {
       // 请求失败(业务失败被拦截器 reject)时也复位加载态,避免表格永久转圈
@@ -161,27 +166,22 @@ export function useFilePage(mode: FilePageMode = "active") {
     }
   }
 
-  const resetForm = formEl => {
-    if (!formEl) return;
-    formEl.resetFields();
-    onSearch();
-  };
-
   /** 删除文件到回收站:仅逻辑删除,物理文件保留,可在回收站恢复或彻底删除 */
   async function handleDelete(row: FileItem) {
-    const confirmed = await ElMessageBox.confirm(
-      `确认删除文件「${row.originalName}」吗?删除后可在回收站恢复。`,
-      "系统提示",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning",
-        draggable: true
-      }
-    )
-      .then(() => true)
-      .catch(() => false);
+    // 文件名按纯文本渲染,不走 HTML 片段,避免业务数据被当作 HTML 解析;
+    // 关联业务的文件采用两段确认:第一段确认删除,第二段提示关联业务后再次确认
+    const confirmed = await confirmAction(
+      `确认删除文件「${row.originalName}」吗?删除后可在回收站恢复。`
+    );
     if (!confirmed) return;
+    if (row.bizId != null && row.bizId !== "") {
+      const bizLabel = BIZ_TYPE_LABELS[row.bizType] ?? row.bizType;
+      const bizConfirmed = await confirmAction(
+        `该文件关联业务「${bizLabel}」,删除后业务展示不受影响,可在回收站恢复。是否继续删除?`,
+        { confirmButtonText: "继续删除" }
+      );
+      if (!bizConfirmed) return;
+    }
     const { success } = await deleteFile(row.id);
     if (success) {
       message("删除成功", { type: "success" });
@@ -189,8 +189,13 @@ export function useFilePage(mode: FilePageMode = "active") {
     }
   }
 
-  /** 恢复回收站文件:仅恢复文件记录本身,不自动回滚业务引用(如头像仍指向现文件) */
+  /** 恢复回收站文件:确认后仅恢复文件记录本身,不自动回滚业务引用(如头像仍指向现文件) */
   async function handleRestore(row: FileItem) {
+    // 文件名按纯文本渲染,不走 HTML 片段,避免业务数据被当作 HTML 解析
+    const confirmed = await confirmAction(
+      `确认恢复文件「${row.originalName}」吗?恢复后将重新出现在文件列表。`
+    );
+    if (!confirmed) return;
     const { success } = await restoreFile(row.id);
     if (success) {
       message("已恢复至文件列表", { type: "success" });
@@ -206,19 +211,21 @@ export function useFilePage(mode: FilePageMode = "active") {
 
   /** 彻底删除回收站文件:物理删除记录并兜底清理残留物理文件,不可恢复 */
   async function handlePhysicalDelete(row: FileItem) {
-    const confirmed = await ElMessageBox.confirm(
+    // 文件名按纯文本渲染,不走 HTML 片段,避免业务数据被当作 HTML 解析;
+    // 关联业务的文件采用两段确认:第一段确认彻底删除,第二段提示关联业务后再次确认
+    const confirmed = await confirmAction(
       `确认彻底删除文件「${row.originalName}」吗?删除后不可恢复。`,
-      "系统提示",
-      {
-        confirmButtonText: "彻底删除",
-        cancelButtonText: "取消",
-        type: "warning",
-        draggable: true
-      }
-    )
-      .then(() => true)
-      .catch(() => false);
+      { confirmButtonText: "彻底删除" }
+    );
     if (!confirmed) return;
+    if (row.bizId != null && row.bizId !== "") {
+      const bizLabel = BIZ_TYPE_LABELS[row.bizType] ?? row.bizType;
+      const bizConfirmed = await confirmAction(
+        `该文件关联业务「${bizLabel}」,删除后相关业务将无法展示该文件,且不可恢复。是否继续彻底删除?`,
+        { confirmButtonText: "继续彻底删除" }
+      );
+      if (!bizConfirmed) return;
+    }
     const { success } = await physicalDeleteFile(row.id);
     if (success) {
       message("已彻底删除", { type: "success" });
@@ -231,15 +238,11 @@ export function useFilePage(mode: FilePageMode = "active") {
   }
   /** 下载文件:二进制流原样透传,按原始文件名触发另存为 */
   async function handleDownload(row: FileItem) {
-    const res = await http.request<Blob>(
-      "get",
-      `/file/download/${row.id}`,
-      { responseType: "blob", timeout: 0 }
-    );
-    // 异常以 JSON 形式返回时降级为文本读取后提示
+    const res = await downloadFile(row.id);
+    // 异常以 JSON 形式返回时降级为文本读取后提示(响应契约对齐 ApiResult)
     if (res instanceof Blob && res.type.includes("application/json")) {
       const text = await res.text();
-      const result = JSON.parse(text) as { msg?: string };
+      const result = JSON.parse(text) as ApiResult;
       message(result.msg || "下载失败", { type: "error" });
       return;
     }
@@ -271,16 +274,13 @@ export function useFilePage(mode: FilePageMode = "active") {
 }
 
 /**
- * 文件详情 hook —— 弹窗元数据展示 + 图片预览 + 访问地址复制;
- * 访问地址为免登录分发地址(/file/view/{id}),可直接用于 img 标签渲染。
+ * 文件详情 hook —— 弹窗元数据展示 + 图片预览;
+ * 访问地址为免登录分发地址(/file/view/{id}),可直接用于 img 标签渲染;
+ * 访问地址的展示与复制由 ReCodeBlock 组件承载。
  */
 export function useFileDetail() {
   const detail = ref<FileItem | null>(null);
   const detailVisible = ref(false);
-  /** 访问地址复制态,1.5s 后还原按钮态 */
-  const copied = ref(false);
-  /** legacy 模式:非安全上下文(http)自动降级 execCommand 复制 */
-  const { copy: copyText } = useClipboard({ legacy: true });
 
   /** 图片类文件(content-type 以 image/ 开头)在详情弹窗内预览 */
   function isImage(row: FileItem) {
@@ -295,30 +295,13 @@ export function useFileDetail() {
   function openDetail(row: FileItem) {
     detail.value = row;
     detailVisible.value = true;
-    copied.value = false;
-  }
-
-  /** 复制访问地址到剪贴板,1.5s 后还原按钮态 */
-  async function copyUrl() {
-    if (!detail.value) return;
-    try {
-      await copyText(viewUrl(detail.value));
-      copied.value = true;
-      setTimeout(() => {
-        copied.value = false;
-      }, 1500);
-    } catch {
-      ElMessageBox.alert("复制失败,请手动选择文本复制", "系统提示");
-    }
   }
 
   return {
     detail,
     detailVisible,
-    copied,
     isImage,
     viewUrl,
-    openDetail,
-    copyUrl
+    openDetail
   };
 }

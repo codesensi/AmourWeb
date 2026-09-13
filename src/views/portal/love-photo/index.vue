@@ -3,6 +3,7 @@ import { computed, onMounted } from "vue";
 import { getLovePhoto, type LovePhotoItem } from "@/api/portal";
 import type { ApiResult, PageResult } from "@/api/types";
 import { usePagedList } from "@/hooks/usePagedList";
+import PortalLoadMore from "@/components/PortalLoadMore/index.vue";
 
 defineOptions({ name: "PortalLovePhoto" });
 
@@ -67,31 +68,7 @@ onMounted(() => loadMore());
         暂无照片…
       </div>
     </div>
-    <!-- 「加载更多」按钮:替代原站 layui flow 的按钮式分页 -->
-    <div v-if="hasMore" class="photo-load-more" @click="loadMore">
-      {{ loading ? "加载中..." : "加载更多" }}
-    </div>
+    <!-- 「加载更多」按钮:替代原站 layui flow 的按钮式分页(门户列表页共用组件) -->
+    <PortalLoadMore :loading="loading" :has-more="hasMore" @load="loadMore" />
   </div>
 </template>
-
-<style scoped>
-/* 「加载更多」按钮:替代原站 layui flow 的按钮式分页(与点点滴滴页一致) */
-.photo-load-more {
-  width: fit-content;
-  padding: 0.5rem 2rem;
-  margin: 2rem auto 0;
-  font-size: 1.2rem;
-  color: #959595;
-  text-align: center;
-  letter-spacing: 0.3rem;
-  cursor: pointer;
-  border: 1px solid #e4e4e4;
-  border-radius: 2rem;
-  transition: all 0.2s;
-}
-
-.photo-load-more:hover {
-  color: #ff69b4;
-  border-color: #ff69b4;
-}
-</style>

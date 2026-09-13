@@ -1,8 +1,8 @@
 import editForm from "../form.vue";
 import dayjs from "dayjs";
 import { handleTree } from "@/utils/tree";
-import { message } from "@/utils/message";
-import { usePublicHooks } from "../../hooks";
+import { confirmAction, message } from "@/utils/message";
+import { useBuiltinTag, useStatusSwitch, usePublicHooks } from "../../hooks";
 import { hasPerms } from "@/utils/auth";
 import {
   deleteMenu,
@@ -18,7 +18,6 @@ import type { MenuItem } from "@/api/user";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { useDict } from "@/hooks/useDict";
 import { DICT_CODES } from "@/api/dict";
-import { ElMessageBox } from "element-plus";
 import { reactive, ref, onMounted, h } from "vue";
 import { cloneDeep, isAllEmpty, deviceDetection } from "@pureadmin/utils";
 
@@ -38,13 +37,25 @@ export function useMenu() {
   /** 树表展开/折叠全部:展开时回填全部节点 id(el-table 的 expand-row-keys 响应式生效) */
   const isExpandAll = ref(false);
   const expandRowKeys = ref([]);
-  /** 状态开关加载态(树表行无稳定 index,以 row.id 为键) */
-  const switchLoadMap = ref({});
   const { switchStyle } = usePublicHooks();
   // 启停状态字典:开关文案与确认弹窗统一由 sys_dict(enable) 驱动
   const { labelOf: enableLabelOf } = useDict(DICT_CODES.enable);
   // 是否字典:隐藏/是否内置列文案由 sys_dict(yes) 驱动
   const { labelOf: yesLabelOf } = useDict(DICT_CODES.yes);
+  // 状态开关公共骨架:确认 + 提交加载态 + 成功提示 + 取消/失败回滚(加载态以行 id 为键)
+  const { switchLoadMap, onChange } = useStatusSwitch({
+    submit: row => changeMenuStatus({ id: row.id, status: row.status }),
+    confirmText: row =>
+      `确认要<strong>${
+        row.status === 0 ? enableLabelOf(0) : enableLabelOf(1)
+      }</strong><strong style='color:var(--el-color-primary)'>${
+        row.title
+      }</strong>菜单吗?`,
+    successText: row =>
+      `已${enableLabelOf(row.status)}<strong style='color:var(--el-color-primary)'>${row.title}</strong>菜单`
+  });
+  // 「是否内置」列统一渲染(字典 yes 驱动)
+  const builtinTagCell = useBuiltinTag();
 
   const getMenuType = (type, text = false) => {
     switch (type) {
@@ -127,7 +138,7 @@ export function useMenu() {
           disabled={scope.row.builtin === 1 || !hasPerms("system:menu:update")}
           inline-prompt
           style={switchStyle.value}
-          onChange={() => onStatusChange(scope.row)}
+          onChange={() => onChange(scope.row)}
         />
       )
     },
@@ -145,11 +156,7 @@ export function useMenu() {
       label: "是否内置",
       prop: "builtin",
       width: 90,
-      cellRenderer: ({ row }) => (
-        <el-tag size="small" type={row.builtin === 1 ? "warning" : "info"}>
-          {yesLabelOf(row.builtin)}
-        </el-tag>
-      )
+      cellRenderer: builtinTagCell
     },
     {
       label: "创建时间",
@@ -165,48 +172,6 @@ export function useMenu() {
       slot: "operation"
     }
   ];
-
-  /** 状态开关确认与提交;失败或取消时回滚开关(与用户/角色页交互一致) */
-  function onStatusChange(row) {
-    const action = row.status === 0 ? enableLabelOf(0) : enableLabelOf(1);
-    ElMessageBox.confirm(
-      `确认要<strong>${action}</strong><strong style='color:var(--el-color-primary)'>${row.title}</strong>菜单吗?`,
-      "系统提示",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning",
-        dangerouslyUseHTMLString: true,
-        draggable: true
-      }
-    )
-      .then(async () => {
-        switchLoadMap.value[row.id] = Object.assign(
-          {},
-          switchLoadMap.value[row.id],
-          { loading: true }
-        );
-        try {
-          await changeMenuStatus({ id: row.id, status: row.status });
-          message(
-            `已${action}<strong style='color:var(--el-color-primary)'>${row.title}</strong>菜单`,
-            { type: "success", dangerouslyUseHTMLString: true }
-          );
-        } catch {
-          // 接口失败回滚开关,与取消回滚共用同一处理
-          row.status = row.status === 0 ? 1 : 0;
-        } finally {
-          switchLoadMap.value[row.id] = Object.assign(
-            {},
-            switchLoadMap.value[row.id],
-            { loading: false }
-          );
-        }
-      })
-      .catch(() => {
-        row.status = row.status === 0 ? 1 : 0;
-      });
-  }
 
   function resetForm(formEl) {
     if (!formEl) return;
@@ -324,19 +289,27 @@ export function useMenu() {
       fullscreen: deviceDetection(),
       fullscreenIcon: true,
       closeOnClickModal: false,
+      // 开启确定按钮提交加载态,防止异步提交期间连点重复提交
+      sureBtnLoading: true,
       contentRenderer: () => h(editForm, { ref: formRef, formInline: null }),
-      beforeSure: (done, { options }) => {
+      beforeSure: (done, { options, closeLoading }) => {
         const FormRef = formRef.value.getRef();
         const curData = options.props.formInline as FormItemProps;
         function chores() {
           message(`您${title}了菜单名称为${curData.title}的这条数据`, {
             type: "success"
           });
+          closeLoading(); // 复位确定按钮加载态(弹窗即将关闭)
           done(); // 关闭弹框
           onSearch(); // 刷新表格数据
         }
         FormRef.validate(async valid => {
-          if (valid) {
+          if (!valid) {
+            // 校验未通过:复位确定按钮加载态
+            closeLoading();
+            return;
+          }
+          try {
             // 表单规则校验通过
             // higherMenuOptions 为 UI 数据,不提交后端
             const { higherMenuOptions: _higherMenuOptions, ...menuData } =
@@ -347,6 +320,9 @@ export function useMenu() {
               await updateMenu(menuData as MenuUpsertRequest);
             }
             chores();
+          } catch {
+            // 提交失败(失败提示由拦截器统一弹出):复位加载态,弹窗保持打开
+            closeLoading();
           }
         });
       }
@@ -355,30 +331,21 @@ export function useMenu() {
 
   async function handleDelete(row) {
     // 确认弹窗与状态开关/修改新增弹窗风格一致;菜单名样式加粗 + 主题主色
-    ElMessageBox.confirm(
+    const confirmed = await confirmAction(
       `确认要删除<strong style='color:var(--el-color-primary)'>${row.title}</strong>菜单吗?${
         row?.children?.length > 0
           ? "<br/>注意其下级菜单也会一并删除，请谨慎操作"
           : ""
       }`,
-      "系统提示",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning",
-        dangerouslyUseHTMLString: true,
-        draggable: true
-      }
-    )
-      .then(async () => {
-        await deleteMenu(row.id);
-        message(
-          `成功删除<strong style='color:var(--el-color-primary)'>${row.title}</strong>菜单`,
-          { type: "success", dangerouslyUseHTMLString: true }
-        );
-        onSearch();
-      })
-      .catch(() => {});
+      { html: true }
+    );
+    if (!confirmed) return;
+    await deleteMenu(row.id);
+    message(
+      `成功删除<strong style='color:var(--el-color-primary)'>${row.title}</strong>菜单`,
+      { type: "success", dangerouslyUseHTMLString: true }
+    );
+    onSearch();
   }
 
   onMounted(() => {
@@ -404,4 +371,3 @@ export function useMenu() {
     handleDelete
   };
 }
-
