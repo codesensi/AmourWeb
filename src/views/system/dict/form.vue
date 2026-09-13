@@ -1,8 +1,13 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
+import { DICT_CODES } from "@/api/dict";
+import { useDict } from "@/hooks/useDict";
 import { formRules } from "./utils/rule";
 import { FormProps } from "./utils/types";
 import { usePublicHooks } from "../hooks";
+
+// 状态开关文案统一由 sys_dict(enable) 驱动
+const { labelOf: enableLabelOf } = useDict(DICT_CODES.enable);
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
@@ -81,8 +86,8 @@ defineExpose({ getRef });
         inline-prompt
         :active-value="0"
         :inactive-value="1"
-        active-text="启用"
-        inactive-text="禁用"
+        :active-text="enableLabelOf(0)"
+        :inactive-text="enableLabelOf(1)"
         :style="switchStyle"
       />
     </el-form-item>

@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { reactive, ref } from "vue";
+import { DICT_CODES } from "@/api/dict";
 import { hasPerms } from "@/utils/auth";
 import { useLazyTabs } from "@/views/system/hooks";
-import { useLogPage, useLogDetail, LOG_TYPE_OPTIONS } from "./utils/hook";
+import { useLogPage, useLogDetail } from "./utils/hook";
+import { DictSelect } from "@/components/DictSelect";
 import { ReCodeBlock } from "@/components/ReCodeBlock";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
@@ -64,15 +66,13 @@ const handleTabChange = useLazyTabs(
             />
           </el-form-item>
           <el-form-item label="登录状态" prop="status">
-            <el-select
+            <DictSelect
               v-model="loginTab.form.status"
+              :dict-code="DICT_CODES.success"
               placeholder="请选择"
               clearable
               class="w-37.5!"
-            >
-              <el-option label="成功" value="1" />
-              <el-option label="失败" value="0" />
-            </el-select>
+            />
           </el-form-item>
           <el-form-item>
             <el-button
@@ -150,15 +150,13 @@ const handleTabChange = useLazyTabs(
             />
           </el-form-item>
           <el-form-item label="操作状态" prop="status">
-            <el-select
+            <DictSelect
               v-model="operateTab.form.status"
+              :dict-code="DICT_CODES.success"
               placeholder="请选择"
               clearable
               class="w-37.5!"
-            >
-              <el-option label="成功" value="1" />
-              <el-option label="失败" value="0" />
-            </el-select>
+            />
           </el-form-item>
           <el-form-item label="操作类型" prop="logTypes">
             <el-select
@@ -171,7 +169,7 @@ const handleTabChange = useLazyTabs(
               class="w-70!"
             >
               <el-option
-                v-for="item in LOG_TYPE_OPTIONS"
+                v-for="item in operateTab.logTypeOptions"
                 :key="item.value"
                 :label="item.label"
                 :value="item.value"

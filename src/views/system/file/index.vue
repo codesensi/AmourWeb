@@ -1,12 +1,8 @@
 <script setup lang="ts">
 import { reactive, ref } from "vue";
-import {
-  BIZ_TYPE_LABELS,
-  formatSize,
-  STORAGE_TYPE_LABELS,
-  useFileDetail,
-  useFilePage
-} from "./utils/hook";
+import { formatSize, useFileDetail, useFilePage } from "./utils/hook";
+import { DICT_CODES } from "@/api/dict";
+import { useDict } from "@/hooks/useDict";
 import { useLazyTabs } from "@/views/system/hooks";
 import { ReCodeBlock } from "@/components/ReCodeBlock";
 import { PureTableBar } from "@/components/RePureTableBar";
@@ -19,6 +15,14 @@ import Refresh from "~icons/ep/refresh";
 defineOptions({
   name: "SystemFile"
 });
+
+// 字典驱动:业务来源与存储类型的下拉选项及标签文案
+const { labelOf: bizLabelOf, options: bizTypeOptions } = useDict(
+  DICT_CODES.bizType
+);
+const { labelOf: storageLabelOf, options: storageTypeOptions } = useDict(
+  DICT_CODES.fileStorageType
+);
 
 // reactive 包装:模板经 activeTab.xxx 属性访问,ref 自动拆箱保持响应式
 const activeTabState = reactive(useFilePage("active"));
@@ -67,10 +71,10 @@ const handleTabChange = useLazyTabs(
               class="w-37.5!"
             >
               <el-option
-                v-for="(label, value) in BIZ_TYPE_LABELS"
-                :key="value"
-                :label="label"
-                :value="value"
+                v-for="item in bizTypeOptions"
+                :key="item.dictValue"
+                :label="item.dictLabel"
+                :value="item.dictValue"
               />
             </el-select>
           </el-form-item>
@@ -82,10 +86,10 @@ const handleTabChange = useLazyTabs(
               class="w-37.5!"
             >
               <el-option
-                v-for="(label, value) in STORAGE_TYPE_LABELS"
-                :key="value"
-                :label="label"
-                :value="value"
+                v-for="item in storageTypeOptions"
+                :key="item.dictValue"
+                :label="item.dictLabel"
+                :value="item.dictValue"
               />
             </el-select>
           </el-form-item>
@@ -206,10 +210,10 @@ const handleTabChange = useLazyTabs(
               class="w-37.5!"
             >
               <el-option
-                v-for="(label, value) in BIZ_TYPE_LABELS"
-                :key="value"
-                :label="label"
-                :value="value"
+                v-for="item in bizTypeOptions"
+                :key="item.dictValue"
+                :label="item.dictLabel"
+                :value="item.dictValue"
               />
             </el-select>
           </el-form-item>
@@ -221,10 +225,10 @@ const handleTabChange = useLazyTabs(
               class="w-37.5!"
             >
               <el-option
-                v-for="(label, value) in STORAGE_TYPE_LABELS"
-                :key="value"
-                :label="label"
-                :value="value"
+                v-for="item in storageTypeOptions"
+                :key="item.dictValue"
+                :label="item.dictLabel"
+                :value="item.dictValue"
               />
             </el-select>
           </el-form-item>
@@ -341,19 +345,13 @@ const handleTabChange = useLazyTabs(
           {{ detail?.extension?.toUpperCase() }}
         </el-descriptions-item>
         <el-descriptions-item label="业务来源">
-          {{
-            detail ? (BIZ_TYPE_LABELS[detail.bizType] ?? detail.bizType) : ""
-          }}
+          {{ detail ? bizLabelOf(detail.bizType) : "" }}
         </el-descriptions-item>
         <el-descriptions-item label="关联业务ID">
           {{ detail?.bizId }}
         </el-descriptions-item>
         <el-descriptions-item label="存储类型">
-          {{
-            detail
-              ? (STORAGE_TYPE_LABELS[detail.storageType] ?? detail.storageType)
-              : ""
-          }}
+          {{ detail ? storageLabelOf(detail.storageType) : "" }}
         </el-descriptions-item>
         <el-descriptions-item label="上传人">
           {{ detail?.creatorName ?? "—" }}

@@ -1,5 +1,7 @@
 import { reactive, ref, toRaw } from "vue";
 import { usePageQuery } from "../../hooks";
+import { DICT_CODES } from "@/api/dict";
+import { useDict } from "@/hooks/useDict";
 import {
   deleteFile,
   downloadFile,
@@ -13,19 +15,6 @@ import { confirmAction, message } from "@/utils/message";
 
 /** 页签模式: active-文件列表(未删除), recycle-回收站(已逻辑删除) */
 export type FilePageMode = "active" | "recycle";
-
-/** 业务类型标签映射(与后端 FileBizTypeEnum 对齐) */
-export const BIZ_TYPE_LABELS: Record<string, string> = {
-  avatar: "用户头像",
-  photo: "相册照片",
-  markdown: "点滴配图"
-};
-
-/** 存储类型标签映射 */
-export const STORAGE_TYPE_LABELS: Record<string, string> = {
-  local: "本地",
-  oss: "对象存储"
-};
 
 /** 字节数人性化展示(B/KB/MB/GB) */
 export function formatSize(size: number) {
@@ -42,6 +31,9 @@ export function formatSize(size: number) {
  * mode 区分文件列表(active, delFlag=0)与回收站(recycle, delFlag=1)两个数据域。
  */
 export function useFilePage(mode: FilePageMode = "active") {
+  // 业务类型/存储类型字典:列文案统一由 sys_dict(biz-type/file-storage-type) 驱动
+  const { labelOf: bizLabelOf } = useDict(DICT_CODES.bizType);
+  const { labelOf: storageLabelOf } = useDict(DICT_CODES.fileStorageType);
   const form = reactive<{
     originalName: string;
     bizType: string;
@@ -98,7 +90,7 @@ export function useFilePage(mode: FilePageMode = "active") {
       minWidth: 110,
       cellRenderer: ({ row, props }) => (
         <el-tag size={props.size} effect="light">
-          {BIZ_TYPE_LABELS[row.bizType] ?? row.bizType ?? "未知"}
+          {bizLabelOf(row.bizType) || "未知"}
         </el-tag>
       )
     },
@@ -112,7 +104,7 @@ export function useFilePage(mode: FilePageMode = "active") {
           type={row.storageType === "oss" ? "warning" : "info"}
           effect="light"
         >
-          {STORAGE_TYPE_LABELS[row.storageType] ?? row.storageType ?? "未知"}
+          {storageLabelOf(row.storageType) || "未知"}
         </el-tag>
       )
     },
@@ -175,7 +167,7 @@ export function useFilePage(mode: FilePageMode = "active") {
     );
     if (!confirmed) return;
     if (row.bizId != null && row.bizId !== "") {
-      const bizLabel = BIZ_TYPE_LABELS[row.bizType] ?? row.bizType;
+      const bizLabel = bizLabelOf(row.bizType);
       const bizConfirmed = await confirmAction(
         `该文件关联业务「${bizLabel}」,删除后业务展示不受影响,可在回收站恢复。是否继续删除?`,
         { confirmButtonText: "继续删除" }
@@ -201,7 +193,7 @@ export function useFilePage(mode: FilePageMode = "active") {
       message("已恢复至文件列表", { type: "success" });
       if (row.bizId != null && row.bizId !== "") {
         message(
-          `该文件曾作为「${BIZ_TYPE_LABELS[row.bizType] ?? row.bizType}」使用,恢复后不会自动重新生效`,
+          `该文件曾作为「${bizLabelOf(row.bizType)}」使用,恢复后不会自动重新生效`,
           { type: "info" }
         );
       }
@@ -219,7 +211,7 @@ export function useFilePage(mode: FilePageMode = "active") {
     );
     if (!confirmed) return;
     if (row.bizId != null && row.bizId !== "") {
-      const bizLabel = BIZ_TYPE_LABELS[row.bizType] ?? row.bizType;
+      const bizLabel = bizLabelOf(row.bizType);
       const bizConfirmed = await confirmAction(
         `该文件关联业务「${bizLabel}」,删除后相关业务将无法展示该文件,且不可恢复。是否继续彻底删除?`,
         { confirmButtonText: "继续彻底删除" }

@@ -37,7 +37,13 @@ export const DICT_CODES = {
   /** 配置值类型(与 sys_config.value_type 对齐) */
   configValueType: "config-value-type",
   /** 存储类型(与 StorageTypeEnum 对齐) */
-  fileStorageType: "file-storage-type"
+  fileStorageType: "file-storage-type",
+  /** 成功状态 */
+  success: "success",
+  /** 文件业务类型(与 FileBizTypeEnum 对齐) */
+  bizType: "biz-type",
+  /** 日志类型(与 LogTypeEnum 对齐) */
+  logType: "log-type"
 } as const;
 
 /** 字典批量查询(GET /portal/dict/list-by-codes,免登录;codes 逗号分隔) */

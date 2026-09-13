@@ -42,6 +42,8 @@ export function useMenu() {
   const { labelOf: enableLabelOf } = useDict(DICT_CODES.enable);
   // 是否字典:隐藏/是否内置列文案由 sys_dict(yes) 驱动
   const { labelOf: yesLabelOf } = useDict(DICT_CODES.yes);
+  // 菜单类型字典:类型列文案由 sys_dict(menu-type) 驱动
+  const { labelOf: menuTypeLabelOf } = useDict(DICT_CODES.menuType);
   // 状态开关公共骨架:确认 + 提交加载态 + 成功提示 + 取消/失败回滚(加载态以行 id 为键)
   const { switchLoadMap, onChange } = useStatusSwitch({
     submit: row => changeMenuStatus({ id: row.id, status: row.status }),
@@ -60,11 +62,11 @@ export function useMenu() {
   const getMenuType = (type, text = false) => {
     switch (type) {
       case "D":
-        return text ? "目录" : "primary";
+        return text ? menuTypeLabelOf(type) : "primary";
       case "M":
-        return text ? "菜单" : "success";
+        return text ? menuTypeLabelOf(type) : "success";
       case "B":
-        return text ? "按钮" : "info";
+        return text ? menuTypeLabelOf(type) : "info";
     }
   };
 

@@ -1,27 +1,10 @@
 import { getLogPage, type SysLogItem } from "@/api/log";
+import { DICT_CODES } from "@/api/dict";
+import { useDict } from "@/hooks/useDict";
 import { usePageQuery, usePublicHooks } from "@/views/system/hooks";
-import { reactive, ref, toRaw } from "vue";
+import { computed, reactive, ref, toRaw } from "vue";
 
 export type LogTab = "login" | "operate";
-
-/** 日志类型 code → 文案(与后端 LogTypeEnum 对齐) */
-const LOG_TYPE_LABELS: Record<number, string> = {
-  1: "登录",
-  2: "登出",
-  3: "查询",
-  4: "新增",
-  5: "修改",
-  6: "删除",
-  7: "授权",
-  8: "上传",
-  9: "下载"
-};
-
-/** 操作日志类型筛选项(与后端操作日志端点的固定类型范围对齐:查询/新增/修改/删除/授权/上传/下载) */
-export const LOG_TYPE_OPTIONS = (Object.keys(LOG_TYPE_LABELS) as unknown[])
-  .map(Number)
-  .filter(code => code >= 3)
-  .map(code => ({ value: code, label: LOG_TYPE_LABELS[code] }));
 
 /** 操作列(两 Tab 共用,固定右侧,详情弹窗由页面层注入) */
 function operateSlotColumn(): TableColumnList[number] {
@@ -51,6 +34,18 @@ export function useLogPage(tab: LogTab) {
   const dataList = ref([]);
   const loading = ref(false);
   const { tagStyle } = usePublicHooks();
+  // 登录/操作状态字典:列文案统一由 sys_dict(success) 驱动
+  const { labelOf: successLabelOf } = useDict(DICT_CODES.success);
+  // 日志类型字典:类型列文案与操作日志筛选项由 sys_dict(log-type) 驱动
+  const { labelOf: logTypeLabelOf, options: logTypeDictOptions } = useDict(
+    DICT_CODES.logType
+  );
+  // 操作日志类型筛选项:过滤掉 0-未知/1-登录/2-登出,仅保留操作日志类型范围
+  const logTypeOptions = computed(() =>
+    logTypeDictOptions.value
+      .filter(item => Number(item.dictValue) >= 3)
+      .map(item => ({ value: Number(item.dictValue), label: item.dictLabel }))
+  );
 
   // 分页查询公共骨架:分页状态 + 分页事件写回 + 查询结果回填 + 搜索表单重置
   const {
@@ -84,7 +79,7 @@ export function useLogPage(tab: LogTab) {
       minWidth: 90,
       cellRenderer: ({ row, props }) => (
         <el-tag size={props.size} style={tagStyle.value(row.status)}>
-          {row.status === 1 ? "成功" : "失败"}
+          {successLabelOf(row.status)}
         </el-tag>
       )
     },
@@ -124,7 +119,7 @@ export function useLogPage(tab: LogTab) {
       label: "类型",
       prop: "logType",
       minWidth: 80,
-      formatter: ({ logType }) => LOG_TYPE_LABELS[logType] ?? "未知"
+      formatter: ({ logType }) => logTypeLabelOf(logType) || "未知"
     },
     {
       label: "操作 IP",
@@ -148,7 +143,7 @@ export function useLogPage(tab: LogTab) {
       minWidth: 90,
       cellRenderer: ({ row, props }) => (
         <el-tag size={props.size} style={tagStyle.value(row.status)}>
-          {row.status === 1 ? "成功" : "失败"}
+          {successLabelOf(row.status)}
         </el-tag>
       )
     },
@@ -186,6 +181,7 @@ export function useLogPage(tab: LogTab) {
     columns,
     dataList,
     pagination,
+    logTypeOptions,
     onSearch,
     resetForm,
     handleSizeChange,

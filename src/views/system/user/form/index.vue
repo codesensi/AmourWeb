@@ -3,9 +3,14 @@ import { ref } from "vue";
 import ReCol from "@/components/ReCol";
 import ReAvatarUpload from "@/components/ReAvatarUpload";
 import { DictSelect } from "@/components/DictSelect";
+import { DICT_CODES } from "@/api/dict";
+import { useDict } from "@/hooks/useDict";
 import { formRules } from "../utils/rule";
 import { FormProps } from "../utils/types";
 import { usePublicHooks } from "../../hooks";
+
+// 用户状态开关文案统一由 sys_dict(enable) 驱动
+const { labelOf: enableLabelOf } = useDict(DICT_CODES.enable);
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
@@ -107,8 +112,8 @@ defineExpose({ getRef });
             inline-prompt
             :active-value="0"
             :inactive-value="1"
-            active-text="启用"
-            inactive-text="停用"
+            :active-text="enableLabelOf(0)"
+            :inactive-text="enableLabelOf(1)"
             :style="switchStyle"
           />
         </el-form-item>
