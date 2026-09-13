@@ -136,15 +136,6 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
       slot: "operation"
     }
   ];
-  // const buttonClass = computed(() => {
-  //   return [
-  //     "h-5!",
-  //     "reset-margin",
-  //     "text-gray-500!",
-  //     "dark:text-white!",
-  //     "dark:hover:text-primary!"
-  //   ];
-  // });
 
   async function handleDelete(row) {
     // 确认弹窗与用户管理风格一致;角色名样式加粗 + 主题主色
@@ -153,7 +144,12 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
       { html: true }
     );
     if (!confirmed) return;
-    await deleteRole(row.id);
+    try {
+      await deleteRole(row.id);
+    } catch {
+      // 删除失败(失败提示由拦截器统一弹出):静默返回
+      return;
+    }
     message(
       `成功删除<strong style='color:var(--el-color-primary)'>${row.name}</strong>角色`,
       { type: "success", dangerouslyUseHTMLString: true }
@@ -306,7 +302,15 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
   /** 菜单权限-保存 */
   async function handleSave() {
     const { id, name } = curRow.value;
-    await assignMenus({ roleId: id, menuIds: treeRef.value.getCheckedKeys() });
+    try {
+      await assignMenus({
+        roleId: id,
+        menuIds: treeRef.value.getCheckedKeys()
+      });
+    } catch {
+      // 保存失败(失败提示由拦截器统一弹出):静默返回
+      return;
+    }
     message(`角色名称为${name}的菜单权限修改成功`, {
       type: "success"
     });
@@ -362,7 +366,6 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
     treeSearchValue,
     selectedNum,
     onSelectionCancel,
-    // buttonClass,
     onSearch,
     resetForm,
     openDialog,
@@ -372,7 +375,6 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
     onbatchDel,
     filterMethod,
     onQueryChanged,
-    // handleDatabase,
     handleSizeChange,
     handleCurrentChange,
     handleSelectionChange

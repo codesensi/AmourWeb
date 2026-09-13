@@ -6,6 +6,7 @@ import editForm from "../form.vue";
 import type { FormItemProps } from "./types";
 import { getConfigPage, updateConfig } from "@/api/sysConfig";
 import type { SysConfigPageItem } from "@/api/sysConfig";
+import { DICT_CODES } from "@/api/dict";
 import { deviceDetection } from "@pureadmin/utils";
 import { h, ref, toRaw, reactive, onMounted } from "vue";
 
@@ -43,7 +44,7 @@ export function useConfigPage() {
       minWidth: 100,
       cellRenderer: ({ row, props }) => (
         <DictTag
-          dictCode="config-value-type"
+          dictCode={DICT_CODES.configValueType}
           value={row.valueType}
           size={props.size}
           effect="light"

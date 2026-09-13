@@ -3,8 +3,8 @@
 interface FormItemProps {
   /** 弹窗类型:新增/修改(修改时角色标识禁改) */
   title?: string;
-  /** 角色ID(修改时传入) */
-  id?: number | string;
+  /** 角色ID(修改时传入;后端 Long 序列化为字符串) */
+  id?: string;
   /** 角色名称 */
   name: string;
   /** 角色编码 */

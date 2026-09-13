@@ -93,17 +93,17 @@ export const sendMessage = (data: {
 
 /** 门户主角-单个主角信息(对齐后端 PortalHeroUserResponse) */
 export type HeroInfoData = {
-  /** 用户昵称 */
-  nickname: string;
-  /** 用户名称(昵称为空时的展示兜底) */
-  username: string;
-  /** 用户上传头像地址(未维护时为空) */
-  avatar: string;
-  /** 用户QQ号码(未维护时为空) */
-  qq: string;
+  /** 用户昵称(用户未维护时为 null,由前端兜底为空串) */
+  nickname: string | null;
+  /** 用户名称(昵称为空时的展示兜底;未维护时为 null) */
+  username: string | null;
+  /** 用户上传头像地址(未维护时为 null,由前端兜底为本地兜底图) */
+  avatar: string | null;
+  /** 用户QQ号码(未维护时为 null,由前端兜底) */
+  qq: string | null;
 };
 
-/** 门户主角(GET /portal/hero 免登录;对齐后端 HeroResponse) */
+/** 门户主角(GET /portal/hero 免登录;对齐后端 PortalHeroResponse) */
 export type HeroData = {
   /** 男主信息(暂无启用的男性主角用户时为 null) */
   male: HeroInfoData | null;

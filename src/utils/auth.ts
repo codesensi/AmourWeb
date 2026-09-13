@@ -40,10 +40,12 @@ export function getToken(): DataInfo<number> {
 }
 
 /**
- * @description 设置`token`以及一些必要信息并采用无感刷新`token`方案
- * 无感刷新：后端返回`accessToken`（访问接口使用的`token`）、`refreshToken`（用于调用刷新`accessToken`的接口时所需的`token`，`refreshToken`的过期时间（比如30天）应大于`accessToken`的过期时间（比如2小时））、`expires`（`accessToken`的过期时间）
- * 将`accessToken`、`expires`、`refreshToken`这三条信息放在key值为authorized-token的cookie里（过期自动销毁）
- * 将`avatar`、`username`、`nickname`、`roles`、`permissions`、`refreshToken`、`expires`这七条信息放在key值为`user-info`的localStorage里（利用`multipleTabsKey`当浏览器完全关闭后自动销毁）
+ * @description 设置`token`以及一些必要信息
+ * 登录成功后将`accessToken`与`expires`（过期时间，毫秒时间戳）写入 key 值为 authorized-token 的 cookie
+ * （`expires`大于 0 时按剩余有效期设置 cookie 过期自动销毁，小于等于 0 时为会话 cookie），
+ * 并将`avatar`、`username`、`nickname`、`roles`、`permissions`、`expires`写入 key 值为`user-info`的 localStorage
+ * （利用`multipleTabsKey`当浏览器完全关闭后自动销毁）。
+ * 项目无`refreshToken`无感刷新机制：token 失效由后端 401 判定，前端收到 401 后统一登出
  */
 export function setToken(data: DataInfo<number>) {
   let expires = 0;

@@ -1,16 +1,16 @@
 import { fallbackAvatar } from "@/utils/avatar";
 import { fetchQqInfo } from "@/utils/qqInfo";
 
-/** 用户展示信息入参(nickname/username/avatar/qq,均可选) */
+/** 用户展示信息入参(nickname/username/avatar/qq,均可选;后端 PortalHeroUserResponse 允许 null,一并兼容) */
 export interface UserDisplayInput {
-  /** 用户昵称 */
-  nickname?: string;
-  /** 用户名 */
-  username?: string;
-  /** 用户上传头像地址 */
-  avatar?: string;
-  /** 用户QQ号码 */
-  qq?: string;
+  /** 用户昵称(null 视同未维护) */
+  nickname?: string | null;
+  /** 用户名(null 视同未维护) */
+  username?: string | null;
+  /** 用户上传头像地址(null 视同未维护,兜底为本地兜底图) */
+  avatar?: string | null;
+  /** 用户QQ号码(null 视同未维护) */
+  qq?: string | null;
 }
 
 /** 用户展示信息解析结果:展示昵称与头像地址 */

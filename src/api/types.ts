@@ -5,7 +5,7 @@
 
 /**
  * 后端业务状态码(ResultCode),基于 HTTP 语义。
- * 仅收录前端会用到的状态码,与后端 ResultCode 枚举保持同步。
+ * 仅收录前端特判所需的状态码,后端另有 201/204/405/409/410/503/504 等
  */
 export const Code = {
   /** 操作成功 */
@@ -39,6 +39,8 @@ export interface ApiResult<T = unknown> {
   data: T;
   /** 响应生成时间戳(毫秒,Unix epoch) */
   timestamp: number;
+  /** 链路追踪 ID(与响应头 X-Trace-Id 同源;报障时提供此值可精确定位服务端全链路日志) */
+  traceId?: string;
 }
 
 /** 统一分页请求参数;各业务查询参数通过 extends 继承,禁止在各文件内另行定义分页字段 */

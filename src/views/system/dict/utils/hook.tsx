@@ -186,7 +186,12 @@ export function useDictPage() {
       { html: true }
     );
     if (!confirmed) return;
-    await deleteDict(row.id);
+    try {
+      await deleteDict(row.id);
+    } catch {
+      // 删除失败(失败提示由拦截器统一弹出):静默返回
+      return;
+    }
     message(
       `成功删除<strong style='color:var(--el-color-primary)'>${row.dictLabel}</strong>字典条目`,
       { type: "success", dangerouslyUseHTMLString: true }
@@ -301,7 +306,8 @@ export function useDictPage() {
           try {
             // 表单规则校验通过
             if (title === "修改") {
-              await updateDict(curData);
+              // 修改场景针对已有行,id 必然存在(非空断言安全)
+              await updateDict({ ...curData, id: curData.id! });
             } else {
               await insertDict(curData);
             }

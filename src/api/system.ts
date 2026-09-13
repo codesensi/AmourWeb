@@ -52,13 +52,75 @@ export const getUserPage = (params?: SysUserQuery) => {
   );
 };
 
+/** 用户管理-新增请求参数(对齐后端 UserInsertRequest) */
+export type UserInsertRequest = {
+  /** 用户名称 */
+  username: string;
+  /** 用户昵称 */
+  nickname?: string;
+  /** 用户身份证号码 */
+  idCard?: string;
+  /** 用户邮箱 */
+  email?: string;
+  /** 用户手机号码 */
+  phone?: string;
+  /** 用户QQ号码 */
+  qq?: string;
+  /** 用户性别:U-未知,M-男,F-女 */
+  gender?: string;
+  /** 用户头像地址 */
+  avatar?: string;
+  /** 用户状态:0-启用,1-禁用(缺省视为启用) */
+  status?: number;
+  /** 备注 */
+  remark?: string;
+};
+
+/** 用户管理-修改请求参数(对齐后端 UserUpdateRequest;用户名称、状态与密码不在可修改范围) */
+export type UserUpdateRequest = {
+  /** 用户ID(后端 Long 序列化为字符串) */
+  id: string;
+  /** 用户昵称 */
+  nickname?: string;
+  /** 用户身份证号码 */
+  idCard?: string;
+  /** 用户邮箱 */
+  email?: string;
+  /** 用户手机号码 */
+  phone?: string;
+  /** 用户QQ号码 */
+  qq?: string;
+  /** 用户性别:U-未知,M-男,F-女 */
+  gender?: string;
+  /** 用户头像地址 */
+  avatar?: string;
+  /** 备注 */
+  remark?: string;
+};
+
+/** 用户管理-修改状态请求参数(对齐后端 UserChangeStatusRequest) */
+export type UserChangeStatusRequest = {
+  /** 用户ID(后端 Long 序列化为字符串) */
+  id: string;
+  /** 用户状态:0-启用,1-禁用 */
+  status: number;
+};
+
+/** 用户管理-分配角色请求参数(对齐后端 AssignRolesRequest) */
+export type AssignRolesRequest = {
+  /** 用户ID(后端 Long 序列化为字符串) */
+  userId: string;
+  /** 角色ID列表(空列表表示移除所有角色) */
+  roleIds?: Array<string>;
+};
+
 /** 用户管理-新增(POST /sys/user/insert) */
-export const insertUser = (data?: object) => {
+export const insertUser = (data: UserInsertRequest) => {
   return http.request<ApiResult<null>>("post", "/sys/user/insert", { data });
 };
 
 /** 用户管理-修改(PUT /sys/user/update) */
-export const updateUser = (data?: object) => {
+export const updateUser = (data: UserUpdateRequest) => {
   return http.request<ApiResult<null>>("put", "/sys/user/update", { data });
 };
 
@@ -73,14 +135,14 @@ export const resetUserPwd = (id: string) => {
 };
 
 /** 用户管理-修改用户状态(PUT /sys/user/change-status) */
-export const changeUserStatus = (data?: object) => {
+export const changeUserStatus = (data: UserChangeStatusRequest) => {
   return http.request<ApiResult<null>>("put", "/sys/user/change-status", {
     data
   });
 };
 
 /** 用户管理-分配角色(PUT /sys/user/assign-roles) */
-export const assignRoles = (data?: object) => {
+export const assignRoles = (data: AssignRolesRequest) => {
   return http.request<ApiResult<null>>("put", "/sys/user/assign-roles", {
     data
   });
@@ -146,18 +208,58 @@ export const getRoleList = () => {
   return http.request<ApiResult<Array<SysRoleOption>>>("get", "/sys/role/list");
 };
 
+/** 角色管理-新增请求参数(对齐后端 RoleInsertRequest) */
+export type RoleInsertRequest = {
+  /** 角色名称 */
+  name: string;
+  /** 角色编码 */
+  code: string;
+  /** 角色排序 */
+  sort?: number;
+  /** 备注 */
+  remark?: string;
+};
+
+/** 角色管理-修改请求参数(对齐后端 RoleUpdateRequest;角色编码创建后不可修改) */
+export type RoleUpdateRequest = {
+  /** 角色ID(后端 Long 序列化为字符串) */
+  id: string;
+  /** 角色名称 */
+  name: string;
+  /** 角色排序 */
+  sort?: number;
+  /** 备注 */
+  remark?: string;
+};
+
+/** 角色管理-修改状态请求参数(对齐后端 RoleChangeStatusRequest) */
+export type RoleChangeStatusRequest = {
+  /** 角色ID(后端 Long 序列化为字符串) */
+  id: string;
+  /** 角色状态:0-启用,1-禁用 */
+  status: number;
+};
+
+/** 角色管理-分配菜单请求参数(对齐后端 AssignMenusRequest) */
+export type AssignMenusRequest = {
+  /** 角色ID(后端 Long 序列化为字符串) */
+  roleId: string;
+  /** 菜单ID列表 */
+  menuIds?: Array<string>;
+};
+
 /** 角色管理-新增(POST /sys/role/insert) */
-export const insertRole = (data?: object) => {
+export const insertRole = (data: RoleInsertRequest) => {
   return http.request<ApiResult<null>>("post", "/sys/role/insert", { data });
 };
 
 /** 角色管理-修改(PUT /sys/role/update) */
-export const updateRole = (data?: object) => {
+export const updateRole = (data: RoleUpdateRequest) => {
   return http.request<ApiResult<null>>("put", "/sys/role/update", { data });
 };
 
 /** 角色管理-修改角色状态(PUT /sys/role/change-status) */
-export const changeRoleStatus = (data?: object) => {
+export const changeRoleStatus = (data: RoleChangeStatusRequest) => {
   return http.request<ApiResult<null>>("put", "/sys/role/change-status", {
     data
   });
@@ -177,7 +279,7 @@ export const getRoleMenuIds = (id: number | string) => {
 };
 
 /** 角色管理-保存菜单授权(PUT /sys/role/assign-menus) */
-export const assignMenus = (data?: object) => {
+export const assignMenus = (data: AssignMenusRequest) => {
   return http.request<ApiResult<null>>("put", "/sys/role/assign-menus", {
     data
   });

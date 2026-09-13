@@ -34,6 +34,8 @@ export const DICT_CODES = {
   imageType: "image-type",
   /** 配置分组(与 sys_config.config_group 对齐) */
   configGroup: "config-group",
+  /** 配置值类型(与 sys_config.value_type 对齐) */
+  configValueType: "config-value-type",
   /** 存储类型(与 StorageTypeEnum 对齐) */
   fileStorageType: "file-storage-type"
 } as const;
@@ -109,18 +111,56 @@ export const getDictPage = (params?: SysDictQuery) => {
   );
 };
 
+/** 字典管理-新增请求参数(对齐后端 DictInsertRequest;字典名称由后端按编码继承组内已有名称,不在可提交字段之列) */
+export type DictInsertRequest = {
+  /** 字典编码(kebab-case,如 gender、menu-type) */
+  dictCode: string;
+  /** 字典值(统一字符串存储) */
+  dictValue: string;
+  /** 字典标签 */
+  dictLabel: string;
+  /** 排序(数字越小越靠前) */
+  sort?: number;
+  /** 状态:0-启用,1-禁用 */
+  status?: number;
+  /** 备注 */
+  remark?: string;
+};
+
+/** 字典管理-修改请求参数(对齐后端 DictUpdateRequest;字典编码/名称与内置标识不可修改,状态经 change-status 单独维护) */
+export type DictUpdateRequest = {
+  /** 字典条目ID(后端 Long 序列化为字符串) */
+  id: string;
+  /** 字典值(统一字符串存储;内置条目不允许修改) */
+  dictValue: string;
+  /** 字典标签 */
+  dictLabel: string;
+  /** 排序(数字越小越靠前) */
+  sort?: number;
+  /** 备注 */
+  remark?: string;
+};
+
+/** 字典管理-修改状态请求参数(对齐后端 DictChangeStatusRequest) */
+export type DictChangeStatusRequest = {
+  /** 字典条目ID(后端 Long 序列化为字符串) */
+  id: string;
+  /** 字典状态:0-启用,1-禁用 */
+  status: number;
+};
+
 /** 字典管理-新增(POST /sys/dict/insert) */
-export const insertDict = (data?: object) => {
+export const insertDict = (data: DictInsertRequest) => {
   return http.request<ApiResult<null>>("post", "/sys/dict/insert", { data });
 };
 
 /** 字典管理-修改(PUT /sys/dict/update) */
-export const updateDict = (data?: object) => {
+export const updateDict = (data: DictUpdateRequest) => {
   return http.request<ApiResult<null>>("put", "/sys/dict/update", { data });
 };
 
 /** 字典管理-修改状态(PUT /sys/dict/change-status) */
-export const changeDictStatus = (data?: object) => {
+export const changeDictStatus = (data: DictChangeStatusRequest) => {
   return http.request<ApiResult<null>>("put", "/sys/dict/change-status", {
     data
   });

@@ -256,21 +256,29 @@ function handleAsyncRoutes(routeList) {
 /** 初始化路由（`new Promise` 写法防止在异步请求中造成无限循环）*/
 function initRouter() {
   return new Promise(resolve => {
-    getCurrentUser().then(({ success, data }) => {
-      if (success) {
-        // 同步用户信息(perms 映射为 permissions)后装配动态路由;
-        // 头像/昵称直接用 sys_user 维护的上传头像与昵称,不走 QQ 解析链路
-        useUserStoreHook().syncUserInfo({
-          avatar: data.avatar,
-          username: data.username,
-          nickname: data.nickname,
-          roles: data.roles,
-          permissions: data.perms ?? []
-        });
-        handleAsyncRoutes(cloneDeep(transformMenus(data.menus)));
-      }
-      resolve(router);
-    });
+    getCurrentUser()
+      .then(({ success, data }) => {
+        if (success) {
+          // 同步用户信息(perms 映射为 permissions)后装配动态路由;
+          // 头像/昵称直接用 sys_user 维护的上传头像与昵称,不走 QQ 解析链路
+          useUserStoreHook().syncUserInfo({
+            avatar: data.avatar,
+            username: data.username,
+            nickname: data.nickname,
+            roles: data.roles,
+            permissions: data.perms ?? []
+          });
+          handleAsyncRoutes(cloneDeep(transformMenus(data.menus)));
+        }
+        resolve(router);
+      })
+      .catch(() => {
+        // 获取用户信息失败(登录态失效/后端异常)时兜底登出并放行 resolve,
+        // 避免 Promise 永不 settle 导致刷新白屏、NProgress 挂起;
+        // 错误提示由 http 拦截器统一弹出,此处不再重复提示
+        useUserStoreHook().logOut();
+        resolve(router);
+      });
   });
 }
 
@@ -439,9 +447,10 @@ function handleTopMenu(route) {
 
 /** 获取所有菜单中的第一个菜单（顶级菜单）*/
 function getTopMenu(tag = false): menuType {
-  const topMenu = handleTopMenu(
-    usePermissionStoreHook().wholeMenus[0]?.children[0]
-  );
+  const wholeMenus = usePermissionStoreHook().wholeMenus;
+  // 无子级的顶级菜单 children 为 undefined、无任何菜单权限时 wholeMenus 为空数组,
+  // 逐级判空后回退顶级菜单自身,避免 TypeError
+  const topMenu = handleTopMenu(wholeMenus[0]?.children?.[0] ?? wholeMenus[0]);
   tag && useMultiTagsStoreHook().handleTags("push", topMenu);
   return topMenu;
 }

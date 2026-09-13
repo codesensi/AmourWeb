@@ -98,7 +98,7 @@ export function useUser(tableRef: Ref) {
       minWidth: 90,
       cellRenderer: ({ row, props }) => (
         <DictTag
-          dictCode="gender"
+          dictCode={DICT_CODES.gender}
           value={row.gender}
           tagMap={{ F: "danger" }}
           size={props.size}
@@ -192,7 +192,12 @@ export function useUser(tableRef: Ref) {
       { html: true }
     );
     if (!confirmed) return;
-    await deleteUser(row.id);
+    try {
+      await deleteUser(row.id);
+    } catch {
+      // 删除失败(失败提示由拦截器统一弹出):静默返回
+      return;
+    }
     message(
       `成功删除<strong style='color:var(--el-color-primary)'>${row.username}</strong>用户`,
       { type: "success", dangerouslyUseHTMLString: true }
@@ -345,7 +350,12 @@ export function useUser(tableRef: Ref) {
       { html: true }
     );
     if (!confirmed) return;
-    await resetUserPwd(row.id);
+    try {
+      await resetUserPwd(row.id);
+    } catch {
+      // 重置失败(失败提示由拦截器统一弹出):静默返回
+      return;
+    }
     message(`已成功重置 ${row.username} 用户的密码`, {
       type: "success"
     });
@@ -394,8 +404,12 @@ export function useUser(tableRef: Ref) {
   onMounted(async () => {
     onSearch();
 
-    // 角色列表
-    roleOptions.value = (await getRoleList()).data ?? [];
+    // 角色列表(失败提示由拦截器统一弹出:失败时保持空列表,不阻塞首屏)
+    try {
+      roleOptions.value = (await getRoleList()).data ?? [];
+    } catch {
+      // 静默降级
+    }
   });
 
   return {

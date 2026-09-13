@@ -15,6 +15,7 @@ export default defineFakeRoute([
           // 访问令牌(对齐后端 LoginResponse;用户信息统一由 getCurrentUser 下发)
           accessToken: "eyJhbGciOiJIUzUxMiJ9.admin",
           // 访问令牌过期时间（毫秒时间戳，模拟 30 天有效期）
+          // mock 返回 30 天过期；真实后端 sa-token.timeout=-1 时返回 expires: -1（永不过期），前端 setToken 对两种分支均兼容
           expires: Date.now() + 30 * 24 * 60 * 60 * 1000,
           // 访问令牌名称与前缀(与后端 sa-token 配置一致)
           tokenName: "Authorization",

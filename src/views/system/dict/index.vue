@@ -5,6 +5,7 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import { DictSelect } from "@/components/DictSelect";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { hasPerms } from "@/utils/auth";
+import { DICT_CODES } from "@/api/dict";
 
 import Delete from "~icons/ep/delete";
 import EditPen from "~icons/ep/edit-pen";
@@ -101,7 +102,7 @@ const {
         <el-form-item label="状态：" prop="status">
           <DictSelect
             v-model="form.status"
-            dict-code="enable"
+            :dict-code="DICT_CODES.enable"
             placeholder="请选择"
             clearable
             class="w-45!"
