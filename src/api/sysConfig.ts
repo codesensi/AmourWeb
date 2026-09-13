@@ -40,6 +40,8 @@ export type SysConfigPageItem = {
   valueType: string;
   /** 分组(base/site/captcha) */
   configGroup: string;
+  /** 是否敏感: 0-否, 1-是(敏感配置不经过免登录配置下发接口) */
+  sensitive: number;
   remark?: string;
   /** 更新时间(yyyy-MM-dd HH:mm:ss) */
   updateTime?: string;

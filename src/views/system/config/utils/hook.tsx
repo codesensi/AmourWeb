@@ -62,6 +62,21 @@ export function useConfigPage() {
       )
     },
     {
+      label: "是否敏感",
+      prop: "sensitive",
+      minWidth: 90,
+      cellRenderer: ({ row, props }) => (
+        <DictTag
+          dictCode="yes"
+          value={row.sensitive}
+          size={props.size}
+          effect="light"
+          /** 敏感条目醒目提示:该类配置不经过免登录的门户配置下发接口 */
+          tagMap={{ "1": "danger" }}
+        />
+      )
+    },
+    {
       label: "备注",
       prop: "remark",
       minWidth: 150

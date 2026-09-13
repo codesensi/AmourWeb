@@ -140,6 +140,11 @@ const nameRules = reactive<FormRules<{ username: string }>>({
   username: [{ required: true, message: "请输入用户名", trigger: "blur" }]
 });
 
+/** 内容无更改(与当前用户名一致或为空)时按钮禁用 */
+const nameDirty = computed(
+  () => !!nameForm.username && nameForm.username !== form.username
+);
+
 /** 保存用户名:用户名为登录凭证,修改成功后退出登录,需使用新用户名重新登录 */
 async function saveName() {
   await nameFormRef.value?.validate();
@@ -200,6 +205,11 @@ const pwdProgress = [
 ];
 const zxcvbnFactory = new ZxcvbnFactory();
 const curScore = ref(-1);
+
+/** 内容无更改(三项均为空)时按钮禁用 */
+const pwdDirty = computed(
+  () => !!(pwdForm.oldPwd || pwdForm.newPwd || pwdForm.confirmPwd)
+);
 
 watch(
   () => pwdForm.newPwd,
@@ -335,25 +345,25 @@ loadProfile();
                   placeholder="介绍一下自己吧"
                 />
               </el-form-item>
+              <!-- 内联保存操作:作为表单末项参与纵向均布,间距与其他表单项一致,宽屏下与右侧“确认修改”水平对齐 -->
+              <el-form-item class="profile-actions">
+                <span v-if="isDirty" class="dirty-hint">
+                  <IconifyIconOffline :icon="warningFilledIcon" />
+                  个人信息有未保存的更改
+                </span>
+                <el-button :disabled="!isDirty" @click="resetProfile">
+                  放弃
+                </el-button>
+                <el-button
+                  type="primary"
+                  :disabled="!isDirty"
+                  :loading="profileLoading"
+                  @click="saveProfile"
+                >
+                  保存更改
+                </el-button>
+              </el-form-item>
             </el-form>
-            <!-- 内联保存操作:常驻展示,有未保存更改时才可操作 -->
-            <div class="flex items-center justify-end -mt-4 gap-2">
-              <span v-if="isDirty" class="dirty-hint">
-                <IconifyIconOffline :icon="warningFilledIcon" />
-                个人信息有未保存的更改
-              </span>
-              <el-button :disabled="!isDirty" @click="resetProfile">
-                放弃
-              </el-button>
-              <el-button
-                type="primary"
-                :disabled="!isDirty"
-                :loading="profileLoading"
-                @click="saveProfile"
-              >
-                保存更改
-              </el-button>
-            </div>
           </template>
         </div>
         <div class="col">
@@ -392,6 +402,7 @@ loadProfile();
               <el-form-item>
                 <el-button
                   type="primary"
+                  :disabled="!nameDirty"
                   :loading="nameLoading"
                   @click="saveName"
                 >
@@ -459,6 +470,7 @@ loadProfile();
               <el-form-item>
                 <el-button
                   type="primary"
+                  :disabled="!pwdDirty"
                   :loading="pwdLoading"
                   @click="savePassword"
                 >
@@ -559,6 +571,34 @@ loadProfile();
     margin-left: 24px;
     border-left: 1px solid var(--el-border-color-lighter);
   }
+
+  /* 两栏内容纵向均布:表单项随栏高适当拉开,底部操作行保持水平对齐,避免中部出现大段空档 */
+  .col:first-child .el-form {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .col:last-child .sec {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+  }
+
+  .col:last-child .sec .el-form {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+
+}
+
+/* 保存操作行:提示文案 margin-right:auto 把按钮推到行尾,与右栏操作按钮对齐 */
+.profile-actions :deep(.el-form-item__content) {
+  justify-content: flex-end;
 }
 
 .dirty-hint {
@@ -619,7 +659,15 @@ loadProfile();
   /* 弱化为辅助说明:中性底色,不与表单抢视觉 */
   --el-alert-bg-color: var(--el-border-color-lighter);
 
-  margin-bottom: 16px;
+  /* 紧凑样式:小内边距压缩提示条高度 */
+  --el-alert-padding: 4px 8px;
+
+  margin-bottom: 8px;
+}
+
+.sec-alert :deep(.el-alert__title) {
+  font-size: 12px;
+  line-height: 20px;
 }
 
 .sec-alert :deep(.el-alert__description) {

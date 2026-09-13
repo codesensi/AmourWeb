@@ -278,6 +278,9 @@ const optionsBasis: Array<OptionsType> = [
 }
 
 .main-content {
+  padding-bottom: 18px;
+
+  /* 底部留白:自身 18px + 末行卡片 card-gap 18px = 36px,对齐表格页视觉留白 */
   margin: 24px 24px 0 !important;
 }
 
