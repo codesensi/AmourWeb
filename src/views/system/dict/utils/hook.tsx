@@ -258,7 +258,12 @@ export function useDictPage() {
       ])
     );
     if (!confirmed) return;
-    await deleteDict(ids.join(","));
+    try {
+      await deleteDict(ids.join(","));
+    } catch {
+      // 删除失败(失败提示由拦截器统一弹出):静默返回
+      return;
+    }
     // 批量删除可能涉及多个编码,统一刷新消费端字典缓存
     for (const code of new Set(getKeyList(curSelected, "dictCode"))) {
       await useDictStoreHook().refresh(code);

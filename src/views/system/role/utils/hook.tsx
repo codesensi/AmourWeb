@@ -190,7 +190,12 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
       ])
     );
     if (!confirmed) return;
-    await deleteRole(ids.join(","));
+    try {
+      await deleteRole(ids.join(","));
+    } catch {
+      // 删除失败(失败提示由拦截器统一弹出):静默返回
+      return;
+    }
     message(
       h("span", [
         "成功删除",
