@@ -57,7 +57,14 @@ export async function getPluginsList(
     VITE_CDN ? (await import("./cdn.ts")).cdn : null,
     configCompressPlugin(VITE_COMPRESSION),
     // 线上环境删除console
-    removeConsole({ external: ["src/assets/iconfont/iconfont.js"] }),
+    // external:第三方生成的 iconfont 脚本含 `console && console.log(t)`,
+    // 剥除后会产生非法代码 `console && ;`,故整文件排除
+    removeConsole({
+      external: [
+        "src/assets/iconfont/iconfont.js",
+        "src/assets/portal/icons/iconfont-sprite.js"
+      ]
+    }),
     // 打包分析
     lifecycle === "report"
       ? visualizer({ open: true, brotliSize: true, filename: "report.html" })

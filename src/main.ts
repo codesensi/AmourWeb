@@ -19,7 +19,24 @@ import "./style/reset.scss";
 import "./style/index.scss";
 // 一定要在main.ts中导入tailwind.css，防止vite每次hmr都会请求src/style/index.scss整体css文件导致热更新慢的问题
 import "./style/tailwind.css";
-import "element-plus/dist/index.css";
+// element-plus 按需样式:模板中的 el-* 由 unplugin-vue-components 自动注入,
+// 此处仅兜底「API 直调 / tsx 渲染函数 / @pureadmin 包装组件内部」使用的组件样式
+import "element-plus/es/components/col/style/css";
+import "element-plus/es/components/descriptions/style/css";
+import "element-plus/es/components/divider/style/css";
+import "element-plus/es/components/dropdown/style/css";
+import "element-plus/es/components/image/style/css";
+import "element-plus/es/components/loading/style/css";
+import "element-plus/es/components/message-box/style/css";
+import "element-plus/es/components/message/style/css";
+import "element-plus/es/components/pagination/style/css";
+import "element-plus/es/components/popover/style/css";
+import "element-plus/es/components/scrollbar/style/css";
+import "element-plus/es/components/space/style/css";
+import "element-plus/es/components/switch/style/css";
+import "element-plus/es/components/table/style/css";
+import "element-plus/es/components/tag/style/css";
+import "element-plus/es/components/upload/style/css";
 // 导入字体图标
 import "./assets/iconfont/iconfont.js";
 import "./assets/iconfont/iconfont.css";

@@ -1,6 +1,7 @@
 import type { Plugin } from "vite";
 import gradient from "gradient-string";
 import dayjs, { type Dayjs } from "dayjs";
+import { existsSync } from "node:fs";
 import { getPackageSize } from "./utils.ts";
 import duration from "dayjs/plugin/duration";
 import boxen, { type Options as BoxenOptions } from "boxen";
@@ -56,21 +57,32 @@ export function viteBuildInfo(): Plugin {
     closeBundle() {
       if (config.command === "build") {
         endTime = dayjs(new Date());
-        getPackageSize({
-          folder: outDir,
-          callback: (size: string) => {
-            console.log(
-              boxen(
-                gradient(["cyan", "magenta"]).multiline(
-                  `🎉 恭喜打包完成（总用时${dayjs
-                    .duration(endTime.diff(startTime))
-                    .format("mm分ss秒")}，打包后的大小为${size}）`
-                ),
-                boxenOptions
-              )
-            );
+        // rolldown-vite(vite v8)下 closeBundle 先于产物写盘触发,
+        // 轮询等待 outDir 落盘后再统计体积,避免 readdir 缺目录抛未捕获异常导致构建崩溃
+        const maxWaitMs = 10_000;
+        const startedAt = Date.now();
+        const timer = setInterval(() => {
+          if (existsSync(outDir)) {
+            clearInterval(timer);
+            getPackageSize({
+              folder: outDir,
+              callback: (size: string) => {
+                console.log(
+                  boxen(
+                    gradient(["cyan", "magenta"]).multiline(
+                      `🎉 恭喜打包完成（总用时${dayjs
+                        .duration(endTime.diff(startTime))
+                        .format("mm分ss秒")}，打包后的大小为${size}）`
+                    ),
+                    boxenOptions
+                  )
+                );
+              }
+            });
+          } else if (Date.now() - startedAt > maxWaitMs) {
+            clearInterval(timer);
           }
-        });
+        }, 50);
       }
     }
   };
