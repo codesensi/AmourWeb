@@ -62,14 +62,8 @@ declare module 'vue' {
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
     ElTreeV2: typeof import('element-plus/es')['ElTreeV2']
     ElUpload: typeof import('element-plus/es')['ElUpload']
-    PortalLoadMore: typeof import('./src/components/PortalLoadMore/index.vue')['default']
-    ReAvatarUpload: typeof import('./src/components/ReAvatarUpload/index.vue')['default']
-    ReDialog: typeof import('./src/components/ReDialog/index.vue')['default']
-    ReDrawer: typeof import('./src/components/ReDrawer/index.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    Select: typeof import('./src/components/ReIcon/src/Select.vue')['default']
-    Src: typeof import('./src/components/DictSelect/src/index.vue')['default']
   }
   export interface GlobalDirectives {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']
@@ -128,12 +122,6 @@ declare global {
   const ElTooltip: typeof import('element-plus/es')['ElTooltip']
   const ElTreeV2: typeof import('element-plus/es')['ElTreeV2']
   const ElUpload: typeof import('element-plus/es')['ElUpload']
-  const PortalLoadMore: typeof import('./src/components/PortalLoadMore/index.vue')['default']
-  const ReAvatarUpload: typeof import('./src/components/ReAvatarUpload/index.vue')['default']
-  const ReDialog: typeof import('./src/components/ReDialog/index.vue')['default']
-  const ReDrawer: typeof import('./src/components/ReDrawer/index.vue')['default']
   const RouterLink: typeof import('vue-router')['RouterLink']
   const RouterView: typeof import('vue-router')['RouterView']
-  const Select: typeof import('./src/components/ReIcon/src/Select.vue')['default']
-  const Src: typeof import('./src/components/DictSelect/src/index.vue')['default']
 }

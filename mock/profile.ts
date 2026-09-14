@@ -4,6 +4,7 @@
  * 接口路径与 src/api/profile.ts 一一对应(后端端点已落地,默认 VITE_USE_MOCK=false 走真接口)。
  * 资料回显不走 mock:页面直接复用 /sys/user/current-user 现有接口。
  */
+import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
 /** 对齐 ApiResult<T> 的成功响应 */
 const ok = (data = null, msg = "操作成功") => ({
@@ -23,7 +24,7 @@ const fail = (msg: string) => ({
   timestamp: Date.now()
 });
 
-export default [
+export default defineFakeRoute([
   {
     url: "/sys/user/update-profile",
     method: "put",
@@ -37,11 +38,7 @@ export default [
   {
     url: "/sys/user/update-password",
     method: "put",
-    response: ({
-      body
-    }: {
-      body?: { oldPassword?: string; newPassword?: string };
-    }) => {
+    response: ({ body }) => {
       if (!body?.oldPassword) return fail("原密码错误");
       if (body?.newPassword === body?.oldPassword) {
         return fail("新密码不能与原密码相同");
@@ -49,4 +46,4 @@ export default [
       return ok(null, "密码修改成功");
     }
   }
-];
+]);

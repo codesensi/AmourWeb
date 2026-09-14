@@ -61,6 +61,45 @@ const CACHE_ICONS: Record<
   }
 };
 
+/** 缓存类别图标元数据(未知短名回退通用硬币图标) */
+export function iconMeta(cacheName: string) {
+  const short = cacheName.split("_").pop() ?? "";
+  return (
+    CACHE_ICONS[short] ?? {
+      icon: FallbackIcon,
+      color: "var(--el-color-primary)",
+      bg: "rgba(64,158,255,0.12)"
+    }
+  );
+}
+
+/** 秒 → 人性化时长;null 呈现为兜底文案(如"不限制"/"驻留不过期") */
+export function formatDuration(seconds?: number | null, noneText = "不限制") {
+  if (seconds == null) return noneText;
+  if (seconds === 0) return "0 秒";
+  const d = Math.floor(seconds / 86400);
+  const h = Math.floor((seconds % 86400) / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  if (d > 0) return `${d} 天${h ? ` ${h} 小时` : ""}`;
+  if (h > 0) return `${h} 小时${m ? ` ${m} 分钟` : ""}`;
+  if (m > 0) return `${m} 分钟${s ? ` ${s} 秒` : ""}`;
+  return `${s} 秒`;
+}
+
+/** 命中率(0~1) → 百分比文案 */
+export function formatRate(rate?: number | null) {
+  return rate == null ? "—" : `${(rate * 100).toFixed(1)}%`;
+}
+
+/** 命中率着色:≥80% 正常,50~80% 提醒,<50% 告警(echarts 内取具体色值,不解析 CSS 变量) */
+export function rateColor(rate?: number | null) {
+  if (rate == null) return "var(--el-text-color-secondary)";
+  if (rate >= 0.8) return "var(--el-color-success)";
+  if (rate >= 0.5) return "var(--el-color-warning)";
+  return "var(--el-color-danger)";
+}
+
 export function useCacheMonitor() {
   const loading = ref(true);
   /** 全量缓存列表(一次请求,左侧与右侧均由其派生) */
@@ -197,45 +236,6 @@ export function useCacheMonitor() {
   /** 条目分页:页码变化 */
   function handleCurrentChange(page: number) {
     pageInfo.currentPage = page;
-  }
-
-  /** 缓存类别图标元数据(未知短名回退通用硬币图标) */
-  function iconMeta(cacheName: string) {
-    const short = cacheName.split("_").pop() ?? "";
-    return (
-      CACHE_ICONS[short] ?? {
-        icon: FallbackIcon,
-        color: "var(--el-color-primary)",
-        bg: "rgba(64,158,255,0.12)"
-      }
-    );
-  }
-
-  /** 秒 → 人性化时长;null 呈现为兜底文案(如"不限制"/"驻留不过期") */
-  function formatDuration(seconds?: number | null, noneText = "不限制") {
-    if (seconds == null) return noneText;
-    if (seconds === 0) return "0 秒";
-    const d = Math.floor(seconds / 86400);
-    const h = Math.floor((seconds % 86400) / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = seconds % 60;
-    if (d > 0) return `${d} 天${h ? ` ${h} 小时` : ""}`;
-    if (h > 0) return `${h} 小时${m ? ` ${m} 分钟` : ""}`;
-    if (m > 0) return `${m} 分钟${s ? ` ${s} 秒` : ""}`;
-    return `${s} 秒`;
-  }
-
-  /** 命中率(0~1) → 百分比文案 */
-  function formatRate(rate?: number | null) {
-    return rate == null ? "—" : `${(rate * 100).toFixed(1)}%`;
-  }
-
-  /** 命中率着色:≥80% 正常,50~80% 提醒,<50% 告警(echarts 内取具体色值,不解析 CSS 变量) */
-  function rateColor(rate?: number | null) {
-    if (rate == null) return "var(--el-text-color-secondary)";
-    if (rate >= 0.8) return "var(--el-color-success)";
-    if (rate >= 0.5) return "var(--el-color-warning)";
-    return "var(--el-color-danger)";
   }
 
   /** echarts 系列色(与 rateColor 同阈值的具体色值) */

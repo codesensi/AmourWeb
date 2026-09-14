@@ -2,17 +2,10 @@
 import { computed } from "vue";
 import { useCacheMonitor } from "./utils/hook";
 import { PureTableBar } from "@/components/RePureTableBar";
-import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import CacheOverview from "./components/CacheOverview.vue";
 
-import Refresh from "~icons/ep/refresh";
-import Monitor from "~icons/ep/monitor";
 import InfoFilled from "~icons/ep/info-filled";
-import Coin from "~icons/ep/coin";
-import Box from "~icons/ep/box";
-import Aim from "~icons/ep/aim";
 import Delete from "~icons/ep/delete";
-import PieChart from "~icons/ep/pie-chart";
-import WarningFilled from "~icons/ep/warning-filled";
 import DataLine from "~icons/ep/data-line";
 import Failed from "~icons/ep/failed";
 import Timer from "~icons/ep/timer";
@@ -54,39 +47,6 @@ const {
   detailVisible,
   openDetail
 } = useCacheMonitor();
-
-/** 概览 KPI 卡(数字/右上淡图标/底部语义色微条) */
-const kpiCards = computed(() => [
-  {
-    label: "缓存数量",
-    value: globalStats.value.cacheCount,
-    icon: Coin,
-    color: "var(--el-color-primary)",
-    bar: "var(--el-color-primary)"
-  },
-  {
-    label: "条目总数",
-    value: globalStats.value.entryCount,
-    icon: Box,
-    color: "var(--el-color-success)",
-    bar: "var(--el-color-success)"
-  },
-  {
-    label: "平均命中率",
-    value: formatRate(globalStats.value.hitRate),
-    colored: rateColor(globalStats.value.hitRate),
-    icon: Aim,
-    color: "var(--el-color-success)",
-    bar: "var(--el-color-success)"
-  },
-  {
-    label: "驱逐总数",
-    value: globalStats.value.evictionCount,
-    icon: Delete,
-    color: "#7c3aed",
-    bar: "#7c3aed"
-  }
-]);
 
 /** 选中缓存的运行统计磁贴(命中/未命中/驱逐/平均回源耗时) */
 const statTiles = computed(() => [
@@ -142,128 +102,15 @@ const policyTiles = computed(() => [
 
 <template>
   <div>
-    <!-- 页头:标题(含环境前缀) + 最近刷新 -->
-    <div class="bg-bg_color px-4 py-3 mb-3 rounded flex-bc">
-      <div class="flex items-center gap-3">
-        <div
-          class="size-10 rounded-lg flex-c flex-none"
-          style="
-            color: var(--el-color-primary);
-            background: rgb(64 158 255 / 12%);
-          "
-        >
-          <el-icon :size="22"><Monitor /></el-icon>
-        </div>
-        <div>
-          <div class="flex items-center gap-2">
-            <p class="text-base font-medium">缓存监控</p>
-            <el-tag v-if="envPrefix" size="small" effect="plain">
-              {{ envPrefix }}
-            </el-tag>
-          </div>
-          <p class="text-xs text-(--el-text-color-secondary)">
-            Caffeine 本地缓存运行状态 · 时点快照
-          </p>
-        </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <span class="text-xs text-(--el-text-color-secondary)">
-          最近刷新 {{ refreshTime }}
-        </span>
-        <el-button
-          type="primary"
-          :icon="useRenderIcon(Refresh)"
-          :loading="loading"
-          @click="loadAll"
-        >
-          刷新
-        </el-button>
-      </div>
-    </div>
-
-    <!-- 健康摘要带:平均命中率 / 高命中缓存占比 / 驱逐提醒 -->
-    <div class="bg-bg_color rounded px-4 py-2.5 mb-3 flex items-center text-sm">
-      <div class="flex items-center gap-2">
-        <el-icon :size="16" style="color: var(--el-color-success)">
-          <PieChart />
-        </el-icon>
-        <span class="text-(--el-text-color-regular)">
-          平均命中率
-          <span
-            class="font-medium"
-            :style="{ color: rateColor(globalStats.hitRate) }"
-          >
-            {{ formatRate(globalStats.hitRate) }}
-          </span>
-        </span>
-      </div>
-      <div class="w-px h-3 mx-4" style="background: var(--el-border-color)" />
-      <div class="flex items-center gap-2">
-        <span
-          class="size-2 rounded-full flex-none"
-          style="background: var(--el-color-success)"
-        />
-        <span class="text-(--el-text-color-regular)">
-          <span class="font-medium text-(--el-text-color-primary)">
-            {{ healthSummary.healthyCount }}/{{ healthSummary.total }}
-          </span>
-          个缓存命中率 ≥90%
-        </span>
-      </div>
-      <div class="w-px h-3 mx-4" style="background: var(--el-border-color)" />
-      <div
-        class="flex items-center gap-2"
-        :style="{
-          color:
-            globalStats.evictionCount > 0
-              ? 'var(--el-color-warning)'
-              : 'var(--el-text-color-secondary)'
-        }"
-      >
-        <el-icon :size="16"><WarningFilled /></el-icon>
-        <span>
-          {{
-            globalStats.evictionCount > 0
-              ? `驱逐 ${globalStats.evictionCount} 次需要关注`
-              : "暂无驱逐记录"
-          }}
-        </span>
-      </div>
-    </div>
-
-    <!-- 紧凑 KPI 概览带:数字左上 + 淡图标右上 + 底部语义色微条 -->
-    <div class="grid grid-cols-4 gap-3 mb-3">
-      <div
-        v-for="card in kpiCards"
-        :key="card.label"
-        class="stat-card bg-bg_color rounded relative overflow-hidden flex flex-col p-4"
-      >
-        <div class="flex justify-between items-start">
-          <div>
-            <p
-              class="text-2xl leading-none font-medium m-0"
-              :style="card.colored ? { color: card.colored } : undefined"
-            >
-              {{ card.value }}
-            </p>
-            <p class="text-xs text-(--el-text-color-secondary) m-0 mt-2">
-              {{ card.label }}
-            </p>
-          </div>
-          <el-icon
-            :size="20"
-            class="opacity-30"
-            style="color: var(--el-text-color-secondary)"
-          >
-            <component :is="card.icon" />
-          </el-icon>
-        </div>
-        <div
-          class="absolute bottom-0 inset-x-0 h-1 opacity-80"
-          :style="{ background: card.bar }"
-        />
-      </div>
-    </div>
+    <!-- 仪表盘统计区:页头 + 健康摘要带 + 全局 KPI 概览带 -->
+    <CacheOverview
+      :loading="loading"
+      :refresh-time="refreshTime"
+      :env-prefix="envPrefix"
+      :global-stats="globalStats"
+      :health-summary="healthSummary"
+      @refresh="loadAll"
+    />
 
     <div class="flex items-stretch">
       <!-- 左侧:缓存列表(健康状态点 + 命中率进度);内层绝对定位,高度跟随右侧自适应表格,列表自身内滚、不撑高页面 -->
@@ -303,8 +150,7 @@ const policyTiles = computed(() => [
                 </p>
                 <div class="flex items-center gap-1.5 mt-1">
                   <div
-                    class="flex-1 h-2 rounded-full overflow-hidden"
-                    style="background: var(--el-fill-color)"
+                    class="flex-1 h-2 rounded-full overflow-hidden bg-(--el-fill-color)"
                   >
                     <div
                       class="h-full rounded-full"
@@ -345,10 +191,7 @@ const policyTiles = computed(() => [
                 content="统计为自应用启动以来的累计值，重启后归零"
                 placement="top"
               >
-                <el-icon
-                  class="cursor-pointer"
-                  style="color: var(--el-color-primary)"
-                >
+                <el-icon class="cursor-pointer text-(--el-color-primary)">
                   <InfoFilled />
                 </el-icon>
               </el-tooltip>
@@ -368,8 +211,7 @@ const policyTiles = computed(() => [
               <div
                 v-for="tile in statTiles"
                 :key="tile.label"
-                class="flex items-center gap-3 p-3 rounded"
-                style="background: var(--el-fill-color)"
+                class="flex items-center gap-3 p-3 rounded bg-(--el-fill-color)"
               >
                 <div
                   class="size-10 rounded flex-c flex-none"
@@ -395,10 +237,7 @@ const policyTiles = computed(() => [
             <!-- 命中率仪表环(echarts) + 缓存策略磁贴 -->
             <div class="flex items-center gap-8 mb-4 px-2">
               <div ref="ringRef" class="gauge-echarts" />
-              <div
-                class="w-px h-20 flex-none"
-                style="background: var(--el-border-color-lighter)"
-              />
+              <div class="w-px h-20 flex-none bg-(--el-border-color-lighter)" />
               <div class="flex-1 min-w-0 grid grid-cols-3 gap-4">
                 <div
                   v-for="tile in policyTiles"
@@ -480,17 +319,6 @@ const policyTiles = computed(() => [
 /* 对齐表格页:底部 margin 归零,底部留白由自适应表格 offsetBottom 决定 */
 .main-content {
   margin: 24px 24px 0 !important;
-}
-
-.stat-card {
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
-
-  &:hover {
-    box-shadow: var(--el-box-shadow-light);
-    transform: translateY(-2px);
-  }
 }
 
 .cache-item {

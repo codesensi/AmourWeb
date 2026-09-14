@@ -1,25 +1,15 @@
 <script setup lang="ts">
-// @ts-nocheck
-import { computed, reactive, ref, watch } from "vue";
-import ReAvatarUpload from "@/components/ReAvatarUpload";
-import { DictSelect } from "@/components/DictSelect";
-import { message } from "@/utils/message";
+// 个人中心:页面壳(数据加载 + 概要横幅 + 双栏布局)
+// 资料表单/改用户名/改密码分别由 components/ 下子组件承载
+import { reactive, ref } from "vue";
 import { useUserStoreHook } from "@/store/modules/user";
-import { ZxcvbnFactory } from "@zxcvbn-ts/core";
-import type { FormInstance, FormRules } from "element-plus";
-import {
-  renameUser,
-  updatePassword,
-  updateProfile,
-  type ProfileInfo
-} from "@/api/profile";
 import { getCurrentUser } from "@/api/user";
-import { ElMessageBox } from "element-plus";
+import type { ProfileInfo } from "@/api/profile";
+import ProfileForm from "./components/ProfileForm.vue";
+import RenameCard from "./components/RenameCard.vue";
+import PasswordCard from "./components/PasswordCard.vue";
 import userIcon from "~icons/ep/user";
 import lockIcon from "~icons/ep/lock";
-import warningFilledIcon from "~icons/ep/warning-filled";
-import editPenIcon from "~icons/ep/edit-pen";
-import keyIcon from "~icons/ep/key";
 
 defineOptions({
   name: "UserProfile"
@@ -27,8 +17,8 @@ defineOptions({
 
 const userStore = useUserStoreHook();
 
-/** 资料表单(与 sys_user 资料字段对齐) */
-const form = reactive<ProfileInfo>({
+/** 当前用户资料(加载后分发给各子组件,概要横幅据此渲染) */
+const user = reactive<ProfileInfo>({
   username: "",
   nickname: "",
   gender: "",
@@ -38,240 +28,33 @@ const form = reactive<ProfileInfo>({
   avatar: ""
 });
 
-/* ================= 个人信息 ================= */
-
-const profileFormRef = ref<FormInstance>();
-const profileLoading = ref(false);
 /** 首屏加载标记:加载中显示骨架屏 */
 const loading = ref(true);
-/** 已保存状态的快照(JSON):用于脏检测与「放弃」恢复 */
-const snapshot = ref<string | null>(null);
-/** 表单与最近一次保存状态不一致时显示底部保存条 */
-const isDirty = computed(
-  () =>
-    snapshot.value !== null && JSON.stringify({ ...form }) !== snapshot.value
-);
-
-function syncSnapshot() {
-  snapshot.value = JSON.stringify({ ...form });
-}
-
-/** 放弃修改:恢复到最近一次保存状态 */
-function resetProfile() {
-  if (!snapshot.value) return;
-  Object.assign(form, JSON.parse(snapshot.value) as ProfileInfo);
-  profileFormRef.value?.clearValidate();
-}
-
-const profileRules = reactive<FormRules<ProfileInfo>>({
-  nickname: [{ required: true, message: "请输入昵称", trigger: "blur" }],
-  email: [
-    {
-      type: "email",
-      message: "邮箱格式不正确",
-      trigger: ["blur", "change"]
-    }
-  ]
-});
 
 /** 加载当前用户资料:复用 current-user 接口(资料部分走后端 user 缓存,不额外查库) */
 async function loadProfile() {
   try {
     const { success, data } = await getCurrentUser();
     if (success) {
-      form.username = data.username;
-      form.nickname = data.nickname ?? "";
-      nameForm.username = data.username ?? "";
-      form.gender = data.gender ?? "";
-      form.email = data.email ?? "";
-      form.qq = data.qq ?? "";
-      form.remark = data.remark ?? "";
-      form.avatar = data.avatar ?? "";
-      syncSnapshot();
+      Object.assign(user, {
+        username: data.username,
+        nickname: data.nickname ?? "",
+        gender: data.gender ?? "",
+        email: data.email ?? "",
+        qq: data.qq ?? "",
+        remark: data.remark ?? "",
+        avatar: data.avatar ?? ""
+      });
     }
   } finally {
     loading.value = false;
   }
 }
 
-/** 资料更新载荷(剔除只读的 username 字段,后端仅接收白名单资料字段) */
-function profilePayload(): Omit<ProfileInfo, "username"> {
-  return {
-    nickname: form.nickname,
-    gender: form.gender,
-    email: form.email,
-    qq: form.qq,
-    remark: form.remark,
-    avatar: form.avatar
-  };
-}
-
-/** 敏感操作二次确认:确认返回 true,取消返回 false */
-function confirmRelogin(tip: string): Promise<boolean> {
-  return ElMessageBox.confirm(tip, "系统提示", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
-    type: "warning",
-    draggable: true
-  })
-    .then(() => true)
-    .catch(() => false);
-}
-
-async function saveProfile() {
-  await profileFormRef.value?.validate();
-  profileLoading.value = true;
-  try {
-    const { success } = await updateProfile(profilePayload());
-    if (success) {
-      message("资料更新成功", { type: "success" });
-      // 同步导航栏昵称与头像显示
-      userStore.SET_NICKNAME(form.nickname);
-      userStore.SET_AVATAR(form.avatar ?? "");
-      syncSnapshot();
-    }
-  } finally {
-    profileLoading.value = false;
-  }
-}
-
-/* ================= 更改名称 ================= */
-const nameFormRef = ref();
-const nameLoading = ref(false);
-const nameForm = reactive({ username: "" });
-const nameRules = reactive<FormRules<{ username: string }>>({
-  username: [{ required: true, message: "请输入用户名", trigger: "blur" }]
-});
-
-/** 内容无更改(与当前用户名一致或为空)时按钮禁用 */
-const nameDirty = computed(
-  () => !!nameForm.username && nameForm.username !== form.username
-);
-
-/** 保存用户名:用户名为登录凭证,修改成功后退出登录,需使用新用户名重新登录 */
-async function saveName() {
-  await nameFormRef.value?.validate();
-  if (
-    !(await confirmRelogin(
-      "修改用户名后将退出登录,需使用新用户名重新登录,是否继续?"
-    ))
-  ) {
-    return;
-  }
-  nameLoading.value = true;
-  try {
-    const { success } = await renameUser({ username: nameForm.username });
-    if (success) {
-      message("用户名修改成功,请重新登录", { type: "success" });
-      // 服务端已踢出会话,前端清理本地登录态并跳转登录页
-      userStore.logOut();
-    }
-  } finally {
-    nameLoading.value = false;
-  }
-}
-
-/** 邮箱后缀联想(对齐 pure-admin 个人信息页) */
-function queryEmail(queryString, callback) {
-  const emailList = [
-    { value: "@qq.com" },
-    { value: "@126.com" },
-    { value: "@163.com" }
-  ];
-  const queryList = emailList.map(item => ({
-    value: `${queryString.split("@")[0]}${item.value}`
-  }));
-  callback(
-    queryString
-      ? queryList.filter(item =>
-          item.value.toLowerCase().startsWith(queryString.toLowerCase())
-        )
-      : queryList
-  );
-}
-
-/* ================= 更改密码 ================= */
-
-const pwdFormRef = ref<FormInstance>();
-const pwdLoading = ref(false);
-const pwdForm = reactive({
-  oldPwd: "",
-  newPwd: "",
-  confirmPwd: ""
-});
-const pwdProgress = [
-  { color: "#e74242", text: "非常弱" },
-  { color: "#EFBD47", text: "弱" },
-  { color: "#ffa500", text: "一般" },
-  { color: "#1bbf1b", text: "强" },
-  { color: "#008000", text: "非常强" }
-];
-const zxcvbnFactory = new ZxcvbnFactory();
-const curScore = ref(-1);
-
-/** 内容无更改(三项均为空)时按钮禁用 */
-const pwdDirty = computed(
-  () => !!(pwdForm.oldPwd || pwdForm.newPwd || pwdForm.confirmPwd)
-);
-
-watch(
-  () => pwdForm.newPwd,
-  newPwd => (curScore.value = newPwd ? zxcvbnFactory.check(newPwd).score : -1)
-);
-
-/** 密码强度展示:zxcvbn score(0-4)映射为单条进度条与文案 */
-const strengthPercentage = computed(() => ((curScore.value + 1) / 5) * 100);
-const strengthColor = computed(() =>
-  curScore.value >= 0 ? pwdProgress[curScore.value].color : "#dcdfe6"
-);
-const strengthText = computed(() =>
-  curScore.value >= 0 ? pwdProgress[curScore.value].text : ""
-);
-
-const pwdRules = {
-  oldPwd: [{ required: true, message: "请输入原密码", trigger: "blur" }],
-  newPwd: [
-    { required: true, message: "请输入新密码", trigger: "blur" },
-    { min: 6, message: "密码长度不能少于 6 位", trigger: "blur" }
-  ],
-  confirmPwd: [
-    { required: true, message: "请再次输入新密码", trigger: "blur" },
-    {
-      validator: (_rule, value, callback) => {
-        if (value !== pwdForm.newPwd) {
-          callback(new Error("两次输入的密码不一致"));
-        } else {
-          callback();
-        }
-      },
-      trigger: "blur"
-    }
-  ]
-};
-
-async function savePassword() {
-  await pwdFormRef.value?.validate();
-  if (
-    !(await confirmRelogin(
-      "修改密码后将退出登录,需使用新密码重新登录,是否继续?"
-    ))
-  ) {
-    return;
-  }
-  pwdLoading.value = true;
-  try {
-    const { success } = await updatePassword({
-      oldPassword: pwdForm.oldPwd,
-      newPassword: pwdForm.newPwd
-    });
-    if (success) {
-      message("密码修改成功,请重新登录", { type: "success" });
-      // 服务端已踢出会话,前端清理本地登录态并跳转登录页
-      userStore.logOut();
-    }
-  } finally {
-    pwdLoading.value = false;
-  }
+/** 资料保存成功:同步概要横幅显示 */
+function onProfileSaved(info: { nickname: string; avatar: string }) {
+  user.nickname = info.nickname;
+  user.avatar = info.avatar;
 }
 
 loadProfile();
@@ -288,12 +71,12 @@ loadProfile();
       </div>
       <!-- 概要横幅:头像实时预览 + 身份信息;头像更换入口在左栏"头像"表单项 -->
       <div class="profile-banner">
-        <el-avatar :size="64" :src="form.avatar">
+        <el-avatar :size="64" :src="user.avatar">
           <IconifyIconOffline :icon="userIcon" class="text-3xl" />
         </el-avatar>
         <div class="banner-info">
           <div class="banner-name">
-            {{ form.nickname || form.username || "—" }}
+            {{ user.nickname || user.username || "—" }}
             <el-tag
               v-for="role in userStore.roles"
               :key="role"
@@ -303,7 +86,7 @@ loadProfile();
               {{ role }}
             </el-tag>
           </div>
-          <span class="banner-username">@{{ form.username }}</span>
+          <span class="banner-username">@{{ user.username }}</span>
         </div>
       </div>
       <div class="cols">
@@ -315,79 +98,7 @@ loadProfile();
             <span class="t">个人信息</span>
           </div>
           <el-skeleton v-if="loading" :rows="8" animated />
-          <template v-else>
-            <el-form
-              ref="profileFormRef"
-              label-position="top"
-              :model="form"
-              :rules="profileRules"
-            >
-              <el-form-item label="头像">
-                <ReAvatarUpload v-model="form.avatar" />
-              </el-form-item>
-              <el-form-item label="昵称" prop="nickname">
-                <el-input
-                  v-model="form.nickname"
-                  clearable
-                  placeholder="请输入昵称"
-                />
-              </el-form-item>
-              <el-form-item label="性别">
-                <DictSelect
-                  v-model="form.gender"
-                  dict-code="gender"
-                  placeholder="请选择性别"
-                  class="w-full"
-                  clearable
-                />
-              </el-form-item>
-              <el-form-item label="邮箱" prop="email">
-                <el-autocomplete
-                  v-model="form.email"
-                  :fetch-suggestions="queryEmail"
-                  :trigger-on-focus="false"
-                  clearable
-                  placeholder="请输入邮箱"
-                  class="w-full"
-                />
-              </el-form-item>
-              <el-form-item label="QQ号">
-                <el-input
-                  v-model="form.qq"
-                  clearable
-                  placeholder="请输入QQ号"
-                />
-              </el-form-item>
-              <el-form-item label="简介" prop="remark">
-                <el-input
-                  v-model="form.remark"
-                  type="textarea"
-                  :autosize="{ minRows: 4, maxRows: 8 }"
-                  maxlength="56"
-                  show-word-limit
-                  placeholder="介绍一下自己吧"
-                />
-              </el-form-item>
-              <!-- 内联保存操作:作为表单末项参与纵向均布,间距与其他表单项一致,宽屏下与右侧“确认修改”水平对齐 -->
-              <el-form-item class="profile-actions">
-                <span v-if="isDirty" class="dirty-hint">
-                  <IconifyIconOffline :icon="warningFilledIcon" />
-                  个人信息有未保存的更改
-                </span>
-                <el-button :disabled="!isDirty" @click="resetProfile">
-                  放弃
-                </el-button>
-                <el-button
-                  type="primary"
-                  :disabled="!isDirty"
-                  :loading="profileLoading"
-                  @click="saveProfile"
-                >
-                  保存更改
-                </el-button>
-              </el-form-item>
-            </el-form>
-          </template>
+          <ProfileForm v-else :user="user" @saved="onProfileSaved" />
         </div>
         <div class="col">
           <div class="col-title">
@@ -396,112 +107,8 @@ loadProfile();
             </span>
             <span class="t">账号安全</span>
           </div>
-          <div class="sec-card">
-            <div class="sec-card-head">
-              <span class="sec-icon">
-                <IconifyIconOffline :icon="editPenIcon" />
-              </span>
-              <div class="sec-card-t">
-                <span class="t">修改用户名</span>
-                <span class="d">
-                  用户名为登录凭证,修改成功后将退出登录,需使用新用户名重新登录。
-                </span>
-              </div>
-            </div>
-            <el-form
-              ref="nameFormRef"
-              label-position="top"
-              :model="nameForm"
-              :rules="nameRules"
-            >
-              <el-form-item label="用户名" prop="username">
-                <el-input
-                  v-model="nameForm.username"
-                  maxlength="128"
-                  clearable
-                  placeholder="请输入新的用户名"
-                />
-              </el-form-item>
-              <el-form-item class="sec-actions">
-                <el-button
-                  type="primary"
-                  :disabled="!nameDirty"
-                  :loading="nameLoading"
-                  @click="saveName"
-                >
-                  保存更改
-                </el-button>
-              </el-form-item>
-            </el-form>
-          </div>
-          <div class="sec-card">
-            <div class="sec-card-head">
-              <span class="sec-icon">
-                <IconifyIconOffline :icon="keyIcon" />
-              </span>
-              <div class="sec-card-t">
-                <span class="t">修改密码</span>
-                <span class="d">
-                  修改密码成功后将退出登录,需使用新密码重新登录,请确认当前密码已牢记。
-                </span>
-              </div>
-            </div>
-            <el-form
-              ref="pwdFormRef"
-              label-position="top"
-              :model="pwdForm"
-              :rules="pwdRules"
-            >
-              <el-form-item label="原密码" prop="oldPwd">
-                <el-input
-                  v-model="pwdForm.oldPwd"
-                  type="password"
-                  show-password
-                  clearable
-                  placeholder="请输入原密码"
-                />
-              </el-form-item>
-              <el-form-item label="新密码" prop="newPwd">
-                <el-input
-                  v-model="pwdForm.newPwd"
-                  type="password"
-                  show-password
-                  clearable
-                  placeholder="请输入新密码"
-                />
-              </el-form-item>
-              <el-form-item label="确认密码" prop="confirmPwd">
-                <el-input
-                  v-model="pwdForm.confirmPwd"
-                  type="password"
-                  show-password
-                  clearable
-                  placeholder="请再次输入新密码"
-                />
-              </el-form-item>
-              <div v-if="pwdForm.newPwd" class="mb-4">
-                <el-progress
-                  :percentage="strengthPercentage"
-                  :color="strengthColor"
-                  :stroke-width="10"
-                  striped
-                  striped-flow
-                  :show-text="false"
-                />
-                <p class="strength-txt">密码强度:{{ strengthText }}</p>
-              </div>
-              <el-form-item class="sec-actions">
-                <el-button
-                  type="primary"
-                  :disabled="!pwdDirty"
-                  :loading="pwdLoading"
-                  @click="savePassword"
-                >
-                  确认修改
-                </el-button>
-              </el-form-item>
-            </el-form>
-          </div>
+          <RenameCard v-if="!loading" :username="user.username" />
+          <PasswordCard />
         </div>
       </div>
     </el-card>
@@ -598,24 +205,6 @@ loadProfile();
   /* 双栏内容按自然高度排布,不做纵向拉伸分摊,行距保持一致 */
 }
 
-/* 保存操作行:提示文案 margin-right:auto 把按钮推到行尾,与右栏操作按钮对齐 */
-.profile-actions :deep(.el-form-item__content) {
-  justify-content: flex-end;
-}
-
-.dirty-hint {
-  display: inline-flex;
-  gap: 6px;
-  align-items: center;
-  padding: 4px 10px;
-  margin-right: auto;
-  font-size: 13px;
-  color: var(--el-color-primary);
-  background: var(--el-color-primary-light-9);
-  border: 1px solid var(--el-color-primary-light-8);
-  border-radius: 4px;
-}
-
 /* 概要横幅:头像预览 + 身份信息,浅主色底与页面主色呼应 */
 .profile-banner {
   display: flex;
@@ -651,55 +240,6 @@ loadProfile();
   color: var(--el-text-color-secondary);
 }
 
-/* 账号安全卡片:图标 + 标题 + 说明 + 内联表单,内容自然高度 */
-.sec-card {
-  padding: 16px;
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: 8px;
-}
-
-.sec-card-head {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.sec-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  font-size: 16px;
-  color: var(--el-color-primary);
-  background: var(--el-color-primary-light-9);
-  border-radius: 8px;
-}
-
-.sec-card-t {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.sec-card-t .t {
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--el-text-color-primary);
-}
-
-.sec-card-t .d {
-  font-size: 12px;
-  line-height: 18px;
-  color: var(--el-text-color-secondary);
-}
-
-/* 卡片内操作行:按钮靠右,与左栏操作行方向一致 */
-.sec-actions :deep(.el-form-item__content) {
-  justify-content: flex-end;
-}
-
 /* 对齐表格页:底部 margin 归零,底部留白由 .profile-page 自行声明 */
 .main-content {
   margin: 24px 24px 0 !important;
@@ -714,13 +254,8 @@ loadProfile();
   padding-bottom: 36px;
 }
 
-.strength-txt {
-  margin-top: 6px;
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-}
-
-/* 表单主次:小号次级色标签 + 聚焦主色光环 */
+/* 表单主次:小号次级色标签 + 聚焦主色光环(子组件根元素继承本组件作用域,
+   :deep 规则可贯穿至三个子组件的表单内部) */
 :deep(.el-form-item__label) {
   margin-bottom: 6px;
   font-size: 13px;
