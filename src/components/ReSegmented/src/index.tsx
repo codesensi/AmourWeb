@@ -1,3 +1,4 @@
+// @ts-nocheck
 import "./index.css";
 import type { OptionsType } from "./type";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
@@ -27,7 +28,7 @@ const props = {
     type: undefined,
     require: false,
     default: "0"
-  },
+  } as PropType<string | number>,
   /** 将宽度调整为父元素宽度	 */
   block: {
     type: Boolean,

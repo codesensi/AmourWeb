@@ -177,7 +177,7 @@ function onFullscreen() {
               type="primary"
               :size="size"
               :icon="useRenderIcon(AddFill)"
-              @click="openDialog('新增', { pid: row.id } as any)"
+              @click="openDialog('新增', { pid: row.id })"
             >
               新增
             </el-button>

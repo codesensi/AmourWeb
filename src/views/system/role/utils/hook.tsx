@@ -11,6 +11,7 @@ import {
 } from "../../hooks";
 import { addDialog } from "@/components/ReDialog";
 import type { FormItemProps } from "../utils/types";
+import type { SysRoleItem } from "@/api/system";
 import { getKeyList, deviceDetection } from "@pureadmin/utils";
 import { useDict } from "@/hooks/useDict";
 import { DICT_CODES } from "@/api/dict";
@@ -35,7 +36,7 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
   const curRow = ref();
   const formRef = ref();
   const selectedNum = ref(0);
-  const treeIds = ref([]);
+  const treeIds = ref<string[]>([]);
   const treeData = ref([]);
   const isShow = ref(false);
   const isLinkage = ref(false);
@@ -61,7 +62,7 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
     resetForm
   } = usePageQuery(query => getRolePage({ ...toRaw(form), ...query }));
   // 状态开关公共骨架:确认 + 提交加载态 + 成功提示 + 取消/失败回滚
-  const { switchLoadMap, onChange } = useStatusSwitch({
+  const { switchLoadMap, onChange } = useStatusSwitch<Required<SysRoleItem>>({
     submit: row => changeRoleStatus({ id: row.id, status: row.status }),
     confirmText: row =>
       `确认要<strong>${
@@ -216,7 +217,9 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
       closeOnClickModal: false,
       // 开启确定按钮提交加载态,防止异步提交期间连点重复提交
       sureBtnLoading: true,
-      contentRenderer: () => h(editForm, { ref: formRef, formInline: null }),
+      // formInline 实际取值由 ReDialog 的 options.props 注入,此处仅占位
+      contentRenderer: () =>
+        h(editForm, { ref: formRef, formInline: null as unknown as FormItemProps }),
       beforeSure: (done, { options, closeLoading }) => {
         const FormRef = formRef.value.getRef();
         const curData = options.props.formInline as FormItemProps;
@@ -243,7 +246,8 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
             } else {
               // 角色编码创建后不可修改,仅提交名称/排序/备注(对齐后端 RoleUpdateRequest)
               await updateRole({
-                id: row.id,
+                // 修改分支由既有行打开,row 与其 id 必然存在
+                id: row!.id!,
                 name: curData.name,
                 sort: curData.sort,
                 remark: curData.remark
@@ -260,8 +264,8 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
   }
 
   /** 菜单权限 */
-  async function handleMenu(row?: any) {
-    const { id } = row;
+  async function handleMenu(row?: SysRoleItem) {
+    const id = row?.id;
     if (id) {
       curRow.value = row;
       isShow.value = true;

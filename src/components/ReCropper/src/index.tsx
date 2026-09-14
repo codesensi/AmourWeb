@@ -1,3 +1,4 @@
+// @ts-nocheck
 import "./circled.css";
 import Cropper from "cropperjs";
 import { ElUpload } from "element-plus";

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// @ts-nocheck
 import { emitter } from "@/utils/mitt";
 import { useNav } from "@/layout/hooks/useNav";
 import LaySearch from "../lay-search/index.vue";

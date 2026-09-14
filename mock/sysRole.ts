@@ -86,7 +86,7 @@ const formatNow = () => {
 };
 
 /** 对齐后端 Result<T> 的成功响应(自动携带 timestamp) */
-const ok = (data = null, msg = "操作成功") => ({
+const ok = (data: unknown = null, msg = "操作成功") => ({
   success: true,
   code: 200,
   msg,

@@ -2,7 +2,7 @@
 import { computed, h, onMounted, reactive, ref, type Ref } from "vue";
 import { useDark } from "@pureadmin/utils";
 import { ElTag } from "element-plus";
-import type { PaginationProps } from "@pureadmin/table";
+import type { PaginationProps, TableColumnRenderer } from "@pureadmin/table";
 import type { FormInstance } from "element-plus";
 import type { ApiResult, PageQuery, PageResult } from "@/api/types";
 import { DICT_CODES } from "@/api/dict";
@@ -58,7 +58,7 @@ export function usePublicHooks() {
  *                        懒加载页签等首次查询前不展示表格的场景传 false
  */
 export function usePageQuery<T>(
-  fetchPage: (query: PageQuery) => Promise<ApiResult<PageResult<T>> | undefined>,
+  fetchPage: (query: PageQuery) => Promise<ApiResult<PageResult<T>>> | undefined,
   options?: { loading?: boolean }
 ) {
   const pagination = reactive<PaginationProps>({
@@ -137,18 +137,24 @@ export function usePageQuery<T>(
  * @param options.successText 成功提示文案(HTML,按模块组装)
  * @param options.afterSubmit 提交成功后的附加联动(如字典页刷新消费端缓存;同步/异步均可),缺省无
  */
-export function useStatusSwitch(options: {
-  /** 行数据形状由各页自行约定,公共骨架仅依赖 id/status 字段 */
-  submit: (row: any) => Promise<unknown>;
-  confirmText: (row: any) => string;
-  successText: (row: any) => string;
-  afterSubmit?: (row: any) => unknown;
+export function useStatusSwitch<
+  /** 行数据类型:各页列表行,公共骨架仅依赖 id/status 字段 */
+  T extends { id: string; status: number }
+>(options: {
+  /** 状态提交接口 */
+  submit: (row: T) => Promise<unknown>;
+  /** 确认弹窗文案(HTML,按模块组装) */
+  confirmText: (row: T) => string;
+  /** 成功提示文案(HTML,按模块组装) */
+  successText: (row: T) => string;
+  /** 提交成功后的附加联动(如字典页刷新消费端缓存;同步/异步均可),缺省无 */
+  afterSubmit?: (row: T) => unknown;
 }) {
   /** 各行开关的提交加载态(以行 id 为键:树表行无稳定下标,统一用 id) */
   const switchLoadMap = ref<Record<string, { loading: boolean }>>({});
 
   /** 开关切换处理:确认 → 提交 → 提示;取消或失败时回滚开关显示状态 */
-  function onChange(row: any) {
+  function onChange(row: T) {
     confirmAction(options.confirmText(row), { html: true }).then(
       async confirmed => {
         if (!confirmed) {
@@ -182,8 +188,8 @@ export function useStatusSwitch(options: {
  */
 export function useBuiltinTag() {
   const { labelOf } = useDict(DICT_CODES.yes);
-  // 参数与 pure-table 的 cellRenderer 签名对齐(TableColumnRenderer),仅消费 row
-  return (data: any) =>
+  /** 参数与 pure-table 的 cellRenderer 签名对齐(TableColumnRenderer),仅消费 row.builtin */
+  return (data: TableColumnRenderer) =>
     h(
       ElTag,
       { size: "small", type: data.row.builtin === 1 ? "warning" : "info" },

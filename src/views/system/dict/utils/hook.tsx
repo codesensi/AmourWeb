@@ -22,7 +22,7 @@ import { useDict } from "@/hooks/useDict";
 import { DICT_CODES } from "@/api/dict";
 import { deviceDetection, getKeyList } from "@pureadmin/utils";
 import { h, ref, toRaw, reactive, computed, onMounted } from "vue";
-import type { SysDictTypeItem } from "@/api/dict";
+import type { SysDictPageItem, SysDictTypeItem } from "@/api/dict";
 
 export function useDictPage() {
   // ===== 左侧:字典类型列表 =====
@@ -101,7 +101,7 @@ export function useDictPage() {
     });
   });
   // 状态开关公共骨架:确认 + 提交加载态 + 成功提示 + 取消/失败回滚
-  const { switchLoadMap, onChange } = useStatusSwitch({
+  const { switchLoadMap, onChange } = useStatusSwitch<Required<SysDictPageItem>>({
     submit: row => changeDictStatus({ id: row.id, status: row.status }),
     confirmText: row =>
       `确认要<strong>${
@@ -253,7 +253,7 @@ export function useDictPage() {
   }
 
   /** 新增/修改弹窗(字典编码固定为当前选中类型) */
-  function openDialog(title: string, row?: any) {
+  function openDialog(title: string, row?: SysDictPageItem) {
     addDialog({
       title: `${title}字典条目`,
       props: {
@@ -278,7 +278,9 @@ export function useDictPage() {
       closeOnClickModal: false,
       // 开启确定按钮提交加载态,防止异步提交期间连点重复提交
       sureBtnLoading: true,
-      contentRenderer: () => h(editForm, { ref: formRef, formInline: null }),
+      // formInline 实际取值由 ReDialog 的 options.props 注入,此处仅占位
+      contentRenderer: () =>
+        h(editForm, { ref: formRef, formInline: null as unknown as FormItemProps }),
       beforeSure: (done, { options, closeLoading }) => {
         const FormRef = formRef.value.getRef();
         const curData = options.props.formInline as FormItemProps;
@@ -325,7 +327,7 @@ export function useDictPage() {
   }
 
   /** 修改条目 */
-  function openEdit(row: any) {
+  function openEdit(row: SysDictPageItem) {
     openDialog("修改", row);
   }
 

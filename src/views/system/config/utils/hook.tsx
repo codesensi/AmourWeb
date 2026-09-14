@@ -127,7 +127,9 @@ export function useConfigPage() {
       closeOnClickModal: false,
       // 开启确定按钮提交加载态,防止异步提交期间连点重复提交
       sureBtnLoading: true,
-      contentRenderer: () => h(editForm, { ref: formRef, formInline: null }),
+      // formInline 实际取值由 ReDialog 的 options.props 注入,此处仅占位
+      contentRenderer: () =>
+        h(editForm, { ref: formRef, formInline: null as unknown as FormItemProps }),
       beforeSure: (done, { options, closeLoading }) => {
         const FormRef = formRef.value.getRef();
         const curData = options.props.formInline as FormItemProps;
@@ -139,7 +141,8 @@ export function useConfigPage() {
           }
           try {
             await updateConfig({
-              id: curData.id,
+              // 编辑弹窗由既有行打开,id 必然存在
+              id: curData.id!,
               configValue: curData.configValue
             });
             message(`已修改配置${curData.configKey}，新值即时生效`, {

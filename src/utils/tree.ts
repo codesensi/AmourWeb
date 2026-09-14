@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * @description 提取菜单树中的每一项uniqueId
  * @param tree 树

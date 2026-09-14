@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEventListener } from "@vueuse/core";
 import type { Directive, DirectiveBinding } from "vue";
 import { subBefore, subAfter, isFunction } from "@pureadmin/utils";

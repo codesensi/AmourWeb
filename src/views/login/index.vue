@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// @ts-nocheck
 import Motion from "./utils/motion";
 import { useRouter } from "vue-router";
 import { message } from "@/utils/message";

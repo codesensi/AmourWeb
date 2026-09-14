@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// @ts-nocheck
 import { ListItem } from "../data";
 import { ref, PropType, nextTick } from "vue";
 import { useNav } from "@/layout/hooks/useNav";

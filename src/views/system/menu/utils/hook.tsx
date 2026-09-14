@@ -36,7 +36,7 @@ export function useMenu() {
   const loading = ref(true);
   /** 树表展开/折叠全部:展开时回填全部节点 id(el-table 的 expand-row-keys 响应式生效) */
   const isExpandAll = ref(false);
-  const expandRowKeys = ref([]);
+  const expandRowKeys = ref<string[]>([]);
   const { switchStyle } = usePublicHooks();
   // 启停状态字典:开关文案与确认弹窗统一由 sys_dict(enable) 驱动
   const { labelOf: enableLabelOf } = useDict(DICT_CODES.enable);
@@ -45,7 +45,7 @@ export function useMenu() {
   // 菜单类型字典:类型列文案由 sys_dict(menu-type) 驱动
   const { labelOf: menuTypeLabelOf } = useDict(DICT_CODES.menuType);
   // 状态开关公共骨架:确认 + 提交加载态 + 成功提示 + 取消/失败回滚(加载态以行 id 为键)
-  const { switchLoadMap, onChange } = useStatusSwitch({
+  const { switchLoadMap, onChange } = useStatusSwitch<MenuItem>({
     submit: row => changeMenuStatus({ id: row.id, status: row.status }),
     confirmText: row =>
       `确认要<strong>${
@@ -59,7 +59,7 @@ export function useMenu() {
   // 「是否内置」列统一渲染(字典 yes 驱动)
   const builtinTagCell = useBuiltinTag();
 
-  const getMenuType = (type, text = false) => {
+  const getMenuType = (type: MenuItem["type"], text = false) => {
     switch (type) {
       case "D":
         return text ? menuTypeLabelOf(type) : "primary";
@@ -94,7 +94,7 @@ export function useMenu() {
       cellRenderer: ({ row, props }) => (
         <el-tag
           size={props.size}
-          type={getMenuType(row.type) as any}
+          type={getMenuType(row.type) as "primary" | "success" | "info"}
           effect="plain"
         >
           {getMenuType(row.type, true)}
@@ -195,7 +195,7 @@ export function useMenu() {
     );
     const keepIds = new Set(matched.map(item => item.id));
     for (const item of matched) {
-      let parentId = item.pid;
+      let parentId: string | undefined = item.pid;
       while (parentId && parentId !== "0" && !keepIds.has(parentId)) {
         keepIds.add(parentId);
         parentId = idMap.get(parentId)?.pid;
@@ -225,7 +225,7 @@ export function useMenu() {
 
   /** 收集树形数据的全部节点 id(展开全部时回填 expand-row-keys) */
   function collectAllIds(nodes) {
-    const ids = [];
+    const ids: string[] = [];
     const walk = list => {
       for (const node of list) {
         ids.push(String(node.id));
@@ -246,7 +246,7 @@ export function useMenu() {
 
   /** 从菜单树中剔除 excludeId 对应节点及其整棵子树(修改时避免将自身/下级选为上级菜单导致成环) */
   function excludeSubTree(treeList, excludeId) {
-    const result = [];
+    const result: any[] = [];
     for (const node of treeList) {
       if (node.id === excludeId) continue;
       if (node.children?.length) {
@@ -262,7 +262,7 @@ export function useMenu() {
     return result;
   }
 
-  function openDialog(title = "新增", row?: FormItemProps) {
+  function openDialog(title = "新增", row?: Partial<FormItemProps>) {
     const higherMenuOptions = row?.id
       ? excludeSubTree(fullTree.value, row.id)
       : fullTree.value;
@@ -293,7 +293,9 @@ export function useMenu() {
       closeOnClickModal: false,
       // 开启确定按钮提交加载态,防止异步提交期间连点重复提交
       sureBtnLoading: true,
-      contentRenderer: () => h(editForm, { ref: formRef, formInline: null }),
+      // formInline 实际取值由 ReDialog 的 options.props 注入,此处仅占位
+      contentRenderer: () =>
+        h(editForm, { ref: formRef, formInline: null as unknown as FormItemProps }),
       beforeSure: (done, { options, closeLoading }) => {
         const FormRef = formRef.value.getRef();
         const curData = options.props.formInline as FormItemProps;

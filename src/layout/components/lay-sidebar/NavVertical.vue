@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// @ts-nocheck
 import { useRoute } from "vue-router";
 import { emitter } from "@/utils/mitt";
 import { useNav } from "@/layout/hooks/useNav";

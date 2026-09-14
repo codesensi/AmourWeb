@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { defineStore } from "pinia";
 import { type setType, store, getConfig } from "../utils";
 

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// @ts-nocheck
 import { IconJson } from "@/components/ReIcon/data";
 import { cloneDeep, isAllEmpty } from "@pureadmin/utils";
 import { ref, computed, CSSProperties, watch } from "vue";

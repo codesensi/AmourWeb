@@ -14,7 +14,7 @@ import {
 import { addDialog } from "@/components/ReDialog";
 import type { FormItemProps, RoleFormItemProps } from "../utils/types";
 import { getKeyList, deviceDetection } from "@pureadmin/utils";
-import type { SysRoleOption } from "@/api/system";
+import type { SysRoleOption, SysUserItem } from "@/api/system";
 import { useDict } from "@/hooks/useDict";
 import { DICT_CODES } from "@/api/dict";
 import {
@@ -55,7 +55,7 @@ export function useUser(tableRef: Ref) {
     resetForm
   } = usePageQuery(query => getUserPage({ ...toRaw(form), ...query }));
   // 状态开关公共骨架:确认 + 提交加载态 + 成功提示 + 取消/失败回滚
-  const { switchLoadMap, onChange } = useStatusSwitch({
+  const { switchLoadMap, onChange } = useStatusSwitch<Required<SysUserItem>>({
     submit: row => changeUserStatus({ id: row.id, status: row.status }),
     confirmText: row =>
       `确认要<strong>${
@@ -269,7 +269,9 @@ export function useUser(tableRef: Ref) {
       closeOnClickModal: false,
       // 开启确定按钮提交加载态,防止异步提交期间连点重复提交
       sureBtnLoading: true,
-      contentRenderer: () => h(editForm, { ref: formRef, formInline: null }),
+      // formInline 实际取值由 ReDialog 的 options.props 注入,此处仅占位
+      contentRenderer: () =>
+        h(editForm, { ref: formRef, formInline: null as unknown as FormItemProps }),
       beforeSure: (done, { options, closeLoading }) => {
         const FormRef = formRef.value.getRef();
         const curData = options.props.formInline as FormItemProps;
@@ -307,7 +309,8 @@ export function useUser(tableRef: Ref) {
             } else {
               // 修改:仅提交后端 UserUpdateRequest 接收的资料字段(id 定位,用户名/状态禁改)
               await updateUser({
-                id: curData.id,
+                // 修改分支由既有行打开,id 必然存在
+                id: curData.id!,
                 nickname: curData.nickname,
                 avatar: curData.avatar,
                 qq: curData.qq,

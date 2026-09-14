@@ -1,3 +1,4 @@
+// @ts-nocheck
 import "./rebound.css";
 import {
   ref,

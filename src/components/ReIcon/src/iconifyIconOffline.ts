@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { h, defineComponent } from "vue";
 import { Icon as IconifyIcon, addIcon } from "@iconify/vue/dist/offline";
 

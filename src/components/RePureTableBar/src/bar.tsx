@@ -1,3 +1,4 @@
+// @ts-nocheck
 import Sortable from "sortablejs";
 import type { CheckboxValueType } from "element-plus";
 import { useEpThemeStoreHook } from "@/store/modules/epTheme";

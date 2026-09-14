@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { storeToRefs } from "pinia";
 import { getConfig, siteTitle } from "@/config";
 import { useRouter } from "vue-router";

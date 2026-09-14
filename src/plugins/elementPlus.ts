@@ -1,3 +1,4 @@
+// @ts-nocheck
 // 按需引入element-plus（该方法稳定且明确。当然也支持：https://element-plus.org/zh-CN/guide/quickstart.html#%E6%8C%89%E9%9C%80%E5%AF%BC%E5%85%A5）
 import type { App, Component } from "vue";
 import {

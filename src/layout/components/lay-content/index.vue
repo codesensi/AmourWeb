@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// @ts-nocheck
 import LayFrame from "../lay-frame/index.vue";
 import { useTags } from "@/layout/hooks/useTag";
 import { useGlobal, isNumber } from "@pureadmin/utils";

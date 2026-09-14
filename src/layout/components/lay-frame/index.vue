@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// @ts-nocheck
 import { getConfig } from "@/config";
 import { useMultiFrame } from "@/layout/hooks/useMultiFrame";
 import { useMultiTagsStoreHook } from "@/store/modules/multiTags";

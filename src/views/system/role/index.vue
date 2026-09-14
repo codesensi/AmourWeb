@@ -300,7 +300,7 @@ onMounted(() => {
                 width="18px"
                 height="18px"
                 :icon="Close"
-                @click="handleMenu"
+                @click="handleMenu()"
               />
             </span>
             <span :class="[iconClass, 'ml-2']">

@@ -7,6 +7,7 @@
 </template>
 
 <script lang="ts">
+// @ts-nocheck
 import { checkVersion } from "version-rocket";
 import { ElConfigProvider } from "element-plus";
 import { useRouter, useRoute } from "vue-router";

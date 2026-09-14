@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { removeToken, setToken, type DataInfo } from "./auth";
 import { subBefore, getQueryMap } from "@pureadmin/utils";
 

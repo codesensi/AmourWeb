@@ -77,10 +77,10 @@ class PureHttp {
         if (whiteList.includes(config.url ?? "")) {
           return Promise.resolve(config);
         }
-        /** 其余接口统一注入`Authorization` */
+        /** 其余接口统一注入`Authorization`(请求拦截阶段 axios 必已初始化 headers) */
         const data = getToken();
         if (data?.accessToken) {
-          config.headers["Authorization"] = formatToken(data.accessToken);
+          config.headers!["Authorization"] = formatToken(data.accessToken);
         }
         return Promise.resolve(config);
       },
