@@ -1,5 +1,4 @@
 // @ts-nocheck
-import "@/utils/sso";
 import Cookies from "js-cookie";
 import { siteTitle } from "@/config";
 import NProgress from "@/utils/progress";
