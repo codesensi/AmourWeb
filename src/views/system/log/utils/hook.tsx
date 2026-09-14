@@ -31,8 +31,6 @@ export function useLogPage(tab: LogTab) {
     status: "",
     logTypes: []
   });
-  const dataList = ref([]);
-  const loading = ref(false);
   const { tagStyle } = usePublicHooks();
   // 登录/操作状态字典:列文案统一由 sys_dict(success) 驱动
   const { labelOf: successLabelOf } = useDict(DICT_CODES.success);
@@ -47,14 +45,20 @@ export function useLogPage(tab: LogTab) {
       .map(item => ({ value: Number(item.dictValue), label: item.dictLabel }))
   );
 
-  // 分页查询公共骨架:分页状态 + 分页事件写回 + 查询结果回填 + 搜索表单重置
+  // 分页查询公共骨架:分页状态 + 结果列表 + 加载态 + 序号守卫搜索 + 分页事件写回 + 表单重置
   const {
     pagination,
-    applyPageResult,
+    dataList,
+    loading,
+    search,
     handleSizeChange,
     handleCurrentChange,
     resetForm
-  } = usePageQuery(onSearch);
+  } = usePageQuery(
+    query => getLogPage(tab, { ...toRaw(form), ...query }),
+    // 懒加载页签:首次查询在页签激活时触发,激活前不展示加载态
+    { loading: false }
+  );
 
   /** 登录日志列:用户名/IP/归属地/状态/描述/时间/操作 */
   const loginColumns: TableColumnList = [
@@ -157,22 +161,6 @@ export function useLogPage(tab: LogTab) {
 
   const columns = tab === "login" ? loginColumns : operateColumns;
 
-  async function onSearch() {
-    loading.value = true;
-    try {
-      const { success, data } = await getLogPage(tab, {
-        ...toRaw(form),
-        pageNumber: pagination.currentPage,
-        pageSize: pagination.pageSize
-      });
-      if (success) {
-        dataList.value = applyPageResult(data);
-      }
-    } finally {
-      loading.value = false;
-    }
-  }
-
   // 返回普通对象:解构使用时 ref 保持响应式;
   // 若包一层 reactive,解构出的 ref 会被拆箱成当时的值快照,模板将永远不更新
   return {
@@ -182,7 +170,7 @@ export function useLogPage(tab: LogTab) {
     dataList,
     pagination,
     logTypeOptions,
-    onSearch,
+    onSearch: search,
     resetForm,
     handleSizeChange,
     handleCurrentChange

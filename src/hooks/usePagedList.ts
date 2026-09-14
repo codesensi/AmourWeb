@@ -29,15 +29,21 @@ export function usePagedList<T>(
   /** 是否还有更多数据(到底后隐藏「加载更多」) */
   const hasMore = computed(() => items.value.length < totalRow.value);
 
+  /** 请求序号守卫:仅最新一次请求的结果允许写入,防止 reset 重建后旧响应晚到写入新列表 */
+  let requestSeq = 0;
+
   /** 加载下一页并追加到 items 尾部;请求失败(如后端接口未就绪)静默降级为空态,不向调用方抛出异常 */
   async function loadMore() {
     if (loading.value) return;
     loading.value = true;
+    const seq = ++requestSeq;
     try {
       const { success, data } = await fetcher({
         pageNumber: pageNumber.value + 1,
         pageSize
       });
+      // 过期响应:reset 重建后仍在途的旧请求,丢弃结果且不复位 loading(由最新请求收尾)
+      if (seq !== requestSeq) return;
       if (success) {
         const startIndex = items.value.length;
         items.value.push(...data.records);
@@ -48,15 +54,18 @@ export function usePagedList<T>(
     } catch {
       // 静默降级:门户列表页以「加载更多」按钮触发,失败保持当前列表内容
     } finally {
-      loading.value = false;
+      // 仅最新请求有权复位 loading:过期请求的收尾不得干扰新请求的在途状态
+      if (seq === requestSeq) loading.value = false;
     }
   }
 
   /** 清空重建:回到第一页重新加载(提交留言等重载场景) */
   function reset() {
+    requestSeq++; // 使在途旧请求全部失效
     items.value = [];
     totalRow.value = 0;
     pageNumber.value = 0;
+    loading.value = false; // 释放防重入,避免重建加载被在途旧请求阻塞
     loadMore();
   }
 

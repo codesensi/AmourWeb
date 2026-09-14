@@ -18,20 +18,28 @@ export function useConfigPage() {
   /** 当前激活的分组页签(config-group 字典值;字典就绪后默认选中第一个分组) */
   const activeTab = ref("");
   const formRef = ref();
-  const dataList = ref<Array<SysConfigPageItem>>([]);
-  const loading = ref(true);
 
   /** 分组页签数据源(响应式;字典到达后页签自动渲染,新增分组免改前端) */
   const { options: groupOptions } = useDict(DICT_CODES.configGroup);
 
-  // 分页查询公共骨架:分页状态 + 分页事件写回 + 查询结果回填 + 搜索表单重置
+  // 分页查询公共骨架:分页状态 + 结果列表 + 加载态 + 序号守卫搜索 + 分页事件写回 + 表单重置
   const {
     pagination,
-    applyPageResult,
+    dataList,
+    loading,
+    search,
     handleSizeChange,
     handleCurrentChange,
     resetForm
-  } = usePageQuery(onSearch);
+  } = usePageQuery<SysConfigPageItem>(query => {
+    // 页签未就绪(分组字典尚未加载)时不查询,避免回落为跨组平铺列表
+    if (!activeTab.value) return undefined;
+    return getConfigPage({
+      ...toRaw(form),
+      configGroup: activeTab.value,
+      ...query
+    });
+  });
 
   const columns: TableColumnList = [
     {
@@ -90,30 +98,11 @@ export function useConfigPage() {
     }
   ];
 
-  async function onSearch() {
-    // 页签未就绪(分组字典尚未加载)时不查询,避免回落为跨组平铺列表
-    if (!activeTab.value) return;
-    loading.value = true;
-    try {
-      const { success, data } = await getConfigPage({
-        ...toRaw(form),
-        configGroup: activeTab.value,
-        pageNumber: pagination.currentPage,
-        pageSize: pagination.pageSize
-      });
-      if (success) {
-        dataList.value = applyPageResult(data);
-      }
-    } finally {
-      loading.value = false;
-    }
-  }
-
   /** 页签切换:复位到第 1 页后按新分组重查(激活页签已由 v-model 写回 activeTab) */
   function handleTabChange(name: string | number) {
     if (!name) return;
     pagination.currentPage = 1;
-    onSearch();
+    search();
   }
 
   /** 修改配置弹窗(仅配置值可改;保存后后端失效 config 缓存,新值即时生效) */
@@ -156,7 +145,7 @@ export function useConfigPage() {
             message(`已修改配置${curData.configKey}，新值即时生效`, {
               type: "success"
             });
-            onSearch();
+            search();
             closeLoading(); // 复位确定按钮加载态(弹窗即将关闭)
             done(); // 关闭弹框
           } catch {
@@ -174,7 +163,7 @@ export function useConfigPage() {
     options => {
       if (!activeTab.value && options.length) {
         activeTab.value = options[0].dictValue;
-        onSearch();
+        search();
       }
     },
     { immediate: true }
@@ -188,7 +177,7 @@ export function useConfigPage() {
     columns,
     dataList,
     pagination,
-    onSearch,
+    onSearch: search,
     handleTabChange,
     resetForm,
     openEdit,

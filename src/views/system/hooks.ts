@@ -1,10 +1,10 @@
 // 抽离可公用的工具函数等用于系统管理页面逻辑
-import { computed, h, onMounted, reactive, ref } from "vue";
+import { computed, h, onMounted, reactive, ref, type Ref } from "vue";
 import { useDark } from "@pureadmin/utils";
 import { ElTag } from "element-plus";
 import type { PaginationProps } from "@pureadmin/table";
 import type { FormInstance } from "element-plus";
-import type { PageResult } from "@/api/types";
+import type { ApiResult, PageQuery, PageResult } from "@/api/types";
 import { DICT_CODES } from "@/api/dict";
 import { useDict } from "@/hooks/useDict";
 import { confirmAction, message } from "@/utils/message";
@@ -48,12 +48,19 @@ export function usePublicHooks() {
 /**
  * 系统管理分页列表公共骨架 —— 收敛各管理页重复的分页状态机。
  * <p>
- * 包含分页响应状态(pagination)、pure-table 分页事件写回(handleSizeChange/handleCurrentChange)、
- * 查询结果回填(applyPageResult)与搜索表单重置(resetForm);调用方仅保留差异化的查询参数构造。
+ * 包含分页响应状态(pagination)、结果列表(dataList)、加载态(loading)、
+ * pure-table 分页事件写回(handleSizeChange/handleCurrentChange)与搜索表单重置(resetForm)。
+ * 搜索执行内置请求序号守卫:快速连点搜索/翻页时,仅最新一次搜索的结果允许写入。
  *
- * @param onSearch 查询执行函数(分页事件写回后由本骨架回调)
+ * @param fetchPage 分页接口:入参为骨架统一的分页参数(query),返回统一响应契约;
+ *                  返回 undefined 表示当前不满足查询条件(如页签未就绪),跳过本次查询
+ * @param options.loading loading 初始值,默认 true(首屏转圈,由首次查询收尾复位);
+ *                        懒加载页签等首次查询前不展示表格的场景传 false
  */
-export function usePageQuery(onSearch: () => Promise<void> | void) {
+export function usePageQuery<T>(
+  fetchPage: (query: PageQuery) => Promise<ApiResult<PageResult<T>> | undefined>,
+  options?: { loading?: boolean }
+) {
   const pagination = reactive<PaginationProps>({
     total: 0,
     pageSize: 20,
@@ -61,35 +68,58 @@ export function usePageQuery(onSearch: () => Promise<void> | void) {
     background: true
   });
 
-  /** 将分页接口响应回填到分页状态,返回当前页记录供调用方写入 dataList */
-  function applyPageResult<T>(data: PageResult<T>) {
-    pagination.total = data.totalRow;
-    pagination.pageSize = data.pageSize;
-    pagination.currentPage = data.pageNumber;
-    return data.records;
+  /** 结果列表与加载态由骨架统一持有:守卫写入与加载态复位不再依赖各页自律 */
+  const dataList = ref([]) as Ref<T[]>;
+  const loading = ref(options?.loading ?? true);
+
+  /** 搜索请求序号守卫:快速连点搜索/翻页时,仅最新一次搜索的结果允许写入 */
+  let searchSeq = 0;
+
+  /** 搜索执行器:统一承载 loading 置位与复位、请求序号守卫与查询结果回填 */
+  async function search() {
+    loading.value = true;
+    const seq = ++searchSeq;
+    try {
+      const result = await fetchPage({
+        pageNumber: pagination.currentPage,
+        pageSize: pagination.pageSize
+      });
+      // 过期响应(新查询已发起)或未满足查询条件(undefined)时丢弃,不回填列表与分页状态
+      if (seq === searchSeq && result && result.success && result.data) {
+        pagination.total = result.data.totalRow;
+        pagination.pageSize = result.data.pageSize;
+        pagination.currentPage = result.data.pageNumber;
+        dataList.value = result.data.records;
+      }
+    } finally {
+      // 过期请求的收尾不得复位 loading,避免干扰新查询的在途状态
+      if (seq === searchSeq) loading.value = false;
+    }
   }
 
   /** pure-table 的分页事件只携带新值(写在其内部分页副本上),需在此写回分页状态后再查询 */
   function handleSizeChange(val: number) {
     pagination.pageSize = val;
-    onSearch();
+    search();
   }
 
   function handleCurrentChange(val: number) {
     pagination.currentPage = val;
-    onSearch();
+    search();
   }
 
   /** 搜索表单重置:清空校验与表单项后重新查询 */
   function resetForm(formEl: FormInstance | undefined) {
     if (!formEl) return;
     formEl.resetFields();
-    onSearch();
+    search();
   }
 
   return {
     pagination,
-    applyPageResult,
+    dataList,
+    loading,
+    search,
     handleSizeChange,
     handleCurrentChange,
     resetForm

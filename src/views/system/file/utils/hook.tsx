@@ -48,17 +48,26 @@ export function useFilePage(mode: FilePageMode = "active") {
     creatorName: "",
     timeRange: []
   });
-  const dataList = ref<FileItem[]>([]);
-  const loading = ref(true);
 
-  // 分页查询公共骨架:分页状态 + 分页事件写回 + 查询结果回填 + 搜索表单重置
+  // 分页查询公共骨架:分页状态 + 结果列表 + 加载态 + 序号守卫搜索 + 分页事件写回 + 表单重置
   const {
     pagination,
-    applyPageResult,
+    dataList,
+    loading,
+    search,
     handleSizeChange,
     handleCurrentChange,
     resetForm
-  } = usePageQuery(onSearch);
+  } = usePageQuery<FileItem>(query => {
+    const { timeRange, ...rest } = toRaw(form);
+    return getFilePage({
+      ...rest,
+      delFlag: mode === "recycle" ? 1 : 0,
+      beginTime: timeRange?.[0],
+      endTime: timeRange?.[1],
+      ...query
+    });
+  });
 
   const columns: TableColumnList = [
     {
@@ -137,27 +146,6 @@ export function useFilePage(mode: FilePageMode = "active") {
     }
   ];
 
-  async function onSearch() {
-    loading.value = true;
-    try {
-      const { timeRange, ...rest } = toRaw(form);
-      const { success, data } = await getFilePage({
-        ...rest,
-        delFlag: mode === "recycle" ? 1 : 0,
-        beginTime: timeRange?.[0],
-        endTime: timeRange?.[1],
-        pageNumber: pagination.currentPage,
-        pageSize: pagination.pageSize
-      });
-      if (success) {
-        dataList.value = applyPageResult(data);
-      }
-    } finally {
-      // 请求失败(业务失败被拦截器 reject)时也复位加载态,避免表格永久转圈
-      loading.value = false;
-    }
-  }
-
   /** 删除文件到回收站:仅逻辑删除,物理文件保留,可在回收站恢复或彻底删除 */
   async function handleDelete(row: FileItem) {
     // 文件名按纯文本渲染,不走 HTML 片段,避免业务数据被当作 HTML 解析;
@@ -177,7 +165,7 @@ export function useFilePage(mode: FilePageMode = "active") {
     const { success } = await deleteFile(row.id);
     if (success) {
       message("删除成功", { type: "success" });
-      onSearch();
+      search();
     }
   }
 
@@ -197,7 +185,7 @@ export function useFilePage(mode: FilePageMode = "active") {
           { type: "info" }
         );
       }
-      onSearch();
+      search();
     }
   }
 
@@ -225,7 +213,7 @@ export function useFilePage(mode: FilePageMode = "active") {
       if (dataList.value.length === 1 && pagination.currentPage > 1) {
         pagination.currentPage -= 1;
       }
-      onSearch();
+      search();
     }
   }
   /** 下载文件:二进制流原样透传,按原始文件名触发另存为 */
@@ -254,7 +242,7 @@ export function useFilePage(mode: FilePageMode = "active") {
     columns,
     dataList,
     pagination,
-    onSearch,
+    onSearch: search,
     resetForm,
     handleSizeChange,
     handleCurrentChange,

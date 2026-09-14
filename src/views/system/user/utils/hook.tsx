@@ -40,20 +40,20 @@ export function useUser(tableRef: Ref) {
     status: ""
   });
   const formRef = ref();
-  const dataList = ref([]);
-  const loading = ref(true);
   const { switchStyle } = usePublicHooks();
   // 启停状态字典:开关文案与确认弹窗统一由 sys_dict(enable) 驱动
   const { labelOf: enableLabelOf } = useDict(DICT_CODES.enable);
   const selectedNum = ref(0);
-  // 分页查询公共骨架:分页状态 + 分页事件写回 + 查询结果回填 + 搜索表单重置
+  // 分页查询公共骨架:分页状态 + 结果列表 + 加载态 + 序号守卫搜索 + 分页事件写回 + 表单重置
   const {
     pagination,
-    applyPageResult,
+    dataList,
+    loading,
+    search,
     handleSizeChange,
     handleCurrentChange,
     resetForm
-  } = usePageQuery(onSearch);
+  } = usePageQuery(query => getUserPage({ ...toRaw(form), ...query }));
   // 状态开关公共骨架:确认 + 提交加载态 + 成功提示 + 取消/失败回滚
   const { switchLoadMap, onChange } = useStatusSwitch({
     submit: row => changeUserStatus({ id: row.id, status: row.status }),
@@ -202,7 +202,7 @@ export function useUser(tableRef: Ref) {
       `成功删除<strong style='color:var(--el-color-primary)'>${row.username}</strong>用户`,
       { type: "success", dangerouslyUseHTMLString: true }
     );
-    onSearch();
+    search();
   }
 
   /** 当CheckBox选择项发生变化时会触发该事件 */
@@ -242,24 +242,7 @@ export function useUser(tableRef: Ref) {
       { type: "success", dangerouslyUseHTMLString: true }
     );
     tableRef.value.getTableRef().clearSelection();
-    onSearch();
-  }
-
-  async function onSearch() {
-    loading.value = true;
-    try {
-      const { success, data } = await getUserPage({
-        ...toRaw(form),
-        pageNumber: pagination.currentPage,
-        pageSize: pagination.pageSize
-      });
-      if (success) {
-        dataList.value = applyPageResult(data);
-      }
-    } finally {
-      // 请求失败(业务失败被拦截器 reject)时也复位加载态,避免表格永久转圈
-      loading.value = false;
-    }
+    search();
   }
 
   function openDialog(title = "新增", row?: FormItemProps) {
@@ -309,7 +292,7 @@ export function useUser(tableRef: Ref) {
           }
           closeLoading(); // 复位确定按钮加载态(弹窗即将关闭)
           done(); // 关闭弹框
-          onSearch(); // 刷新表格数据
+          search(); // 刷新表格数据
         }
         FormRef.validate(async valid => {
           if (!valid) {
@@ -402,7 +385,7 @@ export function useUser(tableRef: Ref) {
   }
 
   onMounted(async () => {
-    onSearch();
+    search();
 
     // 角色列表(失败提示由拦截器统一弹出:失败时保持空列表,不阻塞首屏)
     try {
@@ -421,7 +404,7 @@ export function useUser(tableRef: Ref) {
     pagination,
     buttonClass,
     deviceDetection,
-    onSearch,
+    onSearch: search,
     resetForm,
     onbatchDel,
     openDialog,

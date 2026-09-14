@@ -34,12 +34,10 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
   });
   const curRow = ref();
   const formRef = ref();
-  const dataList = ref([]);
   const selectedNum = ref(0);
   const treeIds = ref([]);
   const treeData = ref([]);
   const isShow = ref(false);
-  const loading = ref(true);
   const isLinkage = ref(false);
   const treeSearchValue = ref();
   const isExpandAll = ref(false);
@@ -52,14 +50,16 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
     label: "title",
     children: "children"
   };
-  // 分页查询公共骨架:分页状态 + 分页事件写回 + 查询结果回填 + 搜索表单重置
+  // 分页查询公共骨架:分页状态 + 结果列表 + 加载态 + 序号守卫搜索 + 分页事件写回 + 表单重置
   const {
     pagination,
-    applyPageResult,
+    dataList,
+    loading,
+    search,
     handleSizeChange,
     handleCurrentChange,
     resetForm
-  } = usePageQuery(onSearch);
+  } = usePageQuery(query => getRolePage({ ...toRaw(form), ...query }));
   // 状态开关公共骨架:确认 + 提交加载态 + 成功提示 + 取消/失败回滚
   const { switchLoadMap, onChange } = useStatusSwitch({
     submit: row => changeRoleStatus({ id: row.id, status: row.status }),
@@ -154,7 +154,7 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
       `成功删除<strong style='color:var(--el-color-primary)'>${row.name}</strong>角色`,
       { type: "success", dangerouslyUseHTMLString: true }
     );
-    onSearch();
+    search();
   }
 
   /** 批量删除(复用删除接口,ID 逗号拼接,后端整批校验) */
@@ -180,7 +180,7 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
       { type: "success", dangerouslyUseHTMLString: true }
     );
     tableRef.value.getTableRef().clearSelection();
-    onSearch();
+    search();
   }
 
   /** 当CheckBox选择项发生变化时会触发该事件 */
@@ -195,22 +195,6 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
     selectedNum.value = 0;
     // 用于多选表格，清空用户的选择
     tableRef.value.getTableRef().clearSelection();
-  }
-
-  async function onSearch() {
-    loading.value = true;
-    try {
-      const { success, data } = await getRolePage({
-        ...toRaw(form),
-        pageNumber: pagination.currentPage,
-        pageSize: pagination.pageSize
-      });
-      if (success) {
-        dataList.value = applyPageResult(data);
-      }
-    } finally {
-      loading.value = false;
-    }
   }
 
   function openDialog(title = "新增", row?: FormItemProps) {
@@ -244,7 +228,7 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
           );
           closeLoading(); // 复位确定按钮加载态(弹窗即将关闭)
           done(); // 关闭弹框
-          onSearch(); // 刷新表格数据
+          search(); // 刷新表格数据
         }
         FormRef.validate(async valid => {
           if (!valid) {
@@ -328,7 +312,7 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
   };
 
   onMounted(async () => {
-    onSearch();
+    search();
     // 复用菜单列表接口:返回全量菜单的一维扁平数组（id + pid）,前端按此键组树
     const { success, data } = await getMenuList();
     if (success) {
@@ -366,7 +350,7 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
     treeSearchValue,
     selectedNum,
     onSelectionCancel,
-    onSearch,
+    onSearch: search,
     resetForm,
     openDialog,
     handleMenu,

@@ -68,7 +68,7 @@ export function useDictPage() {
     form.dictValue = "";
     form.status = "";
     pagination.currentPage = 1;
-    onSearch();
+    search();
   }
 
   // ===== 右侧:选中类型下的字典数据 =====
@@ -77,21 +77,29 @@ export function useDictPage() {
     status: ""
   });
   const formRef = ref();
-  const dataList = ref([]);
-  const loading = ref(true);
   const tableRef = ref();
   const selectedNum = ref(0);
   const { switchStyle } = usePublicHooks();
   // 启停状态字典:开关文案与确认弹窗统一由 sys_dict(enable) 驱动
   const { labelOf: enableLabelOf } = useDict(DICT_CODES.enable);
-  // 分页查询公共骨架:分页状态 + 分页事件写回 + 查询结果回填 + 搜索表单重置
+  // 分页查询公共骨架:分页状态 + 结果列表 + 加载态 + 序号守卫搜索 + 分页事件写回 + 表单重置
   const {
     pagination,
-    applyPageResult,
+    dataList,
+    loading,
+    search,
     handleSizeChange,
     handleCurrentChange,
     resetForm
-  } = usePageQuery(onSearch);
+  } = usePageQuery(query => {
+    // 未选中类型时右侧无数据:跳过本次查询,不回填列表与分页状态
+    if (!selectedCode.value) return undefined;
+    return getDictPage({
+      dictCode: selectedCode.value,
+      ...toRaw(form),
+      ...query
+    });
+  });
   // 状态开关公共骨架:确认 + 提交加载态 + 成功提示 + 取消/失败回滚
   const { switchLoadMap, onChange } = useStatusSwitch({
     submit: row => changeDictStatus({ id: row.id, status: row.status }),
@@ -198,7 +206,7 @@ export function useDictPage() {
     );
     await useDictStoreHook().refresh(row.dictCode);
     await loadTypes();
-    onSearch();
+    search();
   }
 
   /** 当CheckBox选择项发生变化时会触发该事件 */
@@ -241,30 +249,7 @@ export function useDictPage() {
     );
     tableRef.value.getTableRef().clearSelection();
     await loadTypes();
-    onSearch();
-  }
-
-  async function onSearch() {
-    // 未选中类型时右侧无数据
-    if (!selectedCode.value) {
-      dataList.value = [];
-      pagination.total = 0;
-      return;
-    }
-    loading.value = true;
-    try {
-      const { success, data } = await getDictPage({
-        dictCode: selectedCode.value,
-        ...toRaw(form),
-        pageNumber: pagination.currentPage,
-        pageSize: pagination.pageSize
-      });
-      if (success) {
-        dataList.value = applyPageResult(data);
-      }
-    } finally {
-      loading.value = false;
-    }
+    search();
   }
 
   /** 新增/修改弹窗(字典编码固定为当前选中类型) */
@@ -314,7 +299,7 @@ export function useDictPage() {
             // 写后联动:刷新消费端字典缓存 + 左侧类型计数 + 右侧表格
             await useDictStoreHook().refresh(curData.dictCode);
             await loadTypes();
-            onSearch();
+            search();
             message(
               `${title === "新增" ? "成功新增" : "成功修改"}<strong style='color:var(--el-color-primary)'>${curData.dictLabel}</strong>字典条目`,
               { type: "success", dangerouslyUseHTMLString: true }
@@ -346,7 +331,7 @@ export function useDictPage() {
 
   onMounted(async () => {
     await loadTypes();
-    onSearch();
+    search();
   });
 
   return {
@@ -366,7 +351,7 @@ export function useDictPage() {
     pagination,
     tableRef,
     selectedNum,
-    onSearch,
+    onSearch: search,
     resetForm,
     openCreate,
     openEdit,
