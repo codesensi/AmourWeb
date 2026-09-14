@@ -114,8 +114,10 @@ class PureHttp {
         // 业务失败：统一提示并拒绝
         if (!res.success) {
           if (res.code === Code.UNAUTHORIZED) {
-            // 与错误分支同口径:1 秒窗口去重,避免并发请求重复 logOut/跳转
+            // 登录态失效:仅触发一次登出跳转(内部 1 秒窗口去重),不再逐条弹错误提示——
+            // 首屏并发请求同时失效时,跳转登录页已是足够反馈,逐条弹窗会造成提示风暴
             handleUnauthorized();
+            return Promise.reject(res);
           }
           // 遗留兼容通道(HTTP 200 + 失败体):业务错误保持提示纯净
           message(res.msg || "请求失败", { type: "error" });
@@ -131,7 +133,9 @@ class PureHttp {
         if (res && typeof res.success === "boolean") {
           // 业务失败(4xx/5xx + Result 体):与业务码通道行为一致,统一提示并按需登出
           if (res.code === Code.UNAUTHORIZED) {
+            // 登录态失效:同业务码通道,不再逐条弹窗,避免 401 并发失效时提示刷屏
             handleUnauthorized();
+            return Promise.reject(res);
           }
           // 仅系统级错误(5xx)附 8 位短错误码;4xx 业务错误用户可自救,保持提示纯净
           const isServerError = (error.response?.status ?? 0) >= 500;
