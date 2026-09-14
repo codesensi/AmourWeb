@@ -58,13 +58,18 @@ export function useUser(tableRef: Ref) {
   const { switchLoadMap, onChange } = useStatusSwitch<Required<SysUserItem>>({
     submit: row => changeUserStatus({ id: row.id, status: row.status }),
     confirmText: row =>
-      `确认要<strong>${
-        row.status === 0 ? enableLabelOf(0) : enableLabelOf(1)
-      }</strong><strong style='color:var(--el-color-primary)'>${
-        row.username
-      }</strong>用户吗?`,
+      h("span", [
+        "确认要",
+        h("strong", row.status === 0 ? enableLabelOf(0) : enableLabelOf(1)),
+        h("strong", { style: "color: var(--el-color-primary)" }, row.username),
+        "用户吗?"
+      ]),
     successText: row =>
-      `已${enableLabelOf(row.status)}<strong style='color:var(--el-color-primary)'>${row.username}</strong>用户`
+      h("span", [
+        `已${enableLabelOf(row.status)}`,
+        h("strong", { style: "color: var(--el-color-primary)" }, row.username),
+        "用户"
+      ])
   });
   // 「是否内置」列统一渲染(字典 yes 驱动)
   const builtinTagCell = useBuiltinTag();
@@ -188,8 +193,11 @@ export function useUser(tableRef: Ref) {
   async function handleDelete(row: SysUserItem) {
     // 确认弹窗与状态开关/修改新增弹窗风格一致;用户名样式加粗 + 主题主色
     const confirmed = await confirmAction(
-      `确认要删除<strong style='color:var(--el-color-primary)'>${row.username}</strong>用户吗?`,
-      { html: true }
+      h("span", [
+        "确认要删除",
+        h("strong", { style: "color: var(--el-color-primary)" }, row.username),
+        "用户吗?"
+      ])
     );
     if (!confirmed) return;
     try {
@@ -199,8 +207,12 @@ export function useUser(tableRef: Ref) {
       return;
     }
     message(
-      `成功删除<strong style='color:var(--el-color-primary)'>${row.username}</strong>用户`,
-      { type: "success", dangerouslyUseHTMLString: true }
+      h("span", [
+        "成功删除",
+        h("strong", { style: "color: var(--el-color-primary)" }, row.username),
+        "用户"
+      ]),
+      { type: "success" }
     );
     search();
   }
@@ -232,14 +244,21 @@ export function useUser(tableRef: Ref) {
         : names.join("、");
     // 确认弹窗与单条删除/状态开关风格一致;用户名加粗 + 主题主色
     const confirmed = await confirmAction(
-      `确认要删除<strong style='color:var(--el-color-primary)'>${displayNames}</strong>用户吗?`,
-      { html: true }
+      h("span", [
+        "确认要删除",
+        h("strong", { style: "color: var(--el-color-primary)" }, displayNames),
+        "用户吗?"
+      ])
     );
     if (!confirmed) return;
     await deleteUser(ids.join(","));
     message(
-      `成功删除<strong style='color:var(--el-color-primary)'>${displayNames}</strong>用户`,
-      { type: "success", dangerouslyUseHTMLString: true }
+      h("span", [
+        "成功删除",
+        h("strong", { style: "color: var(--el-color-primary)" }, displayNames),
+        "用户"
+      ]),
+      { type: "success" }
     );
     tableRef.value.getTableRef().clearSelection();
     search();
@@ -279,17 +298,30 @@ export function useUser(tableRef: Ref) {
           if (title === "修改") {
             // 用户名样式与状态开关确认弹窗对齐(加粗 + 主题主色)
             message(
-              `成功修改<strong style='color:var(--el-color-primary)'>${curData.username}</strong>用户信息`,
-              {
-                type: "success",
-                dangerouslyUseHTMLString: true
-              }
+              h("span", [
+                "成功修改",
+                h(
+                  "strong",
+                  { style: "color: var(--el-color-primary)" },
+                  curData.username
+                ),
+                "用户信息"
+              ]),
+              { type: "success" }
             );
           } else {
             // 用户名样式与状态开关确认弹窗对齐(加粗 + 主题主色)
             message(
-              `成功新增<strong style='color:var(--el-color-primary)'>${curData.username}</strong>用户`,
-              { type: "success", dangerouslyUseHTMLString: true }
+              h("span", [
+                "成功新增",
+                h(
+                  "strong",
+                  { style: "color: var(--el-color-primary)" },
+                  curData.username
+                ),
+                "用户"
+              ]),
+              { type: "success" }
             );
           }
           closeLoading(); // 复位确定按钮加载态(弹窗即将关闭)
@@ -332,8 +364,11 @@ export function useUser(tableRef: Ref) {
   /** 重置密码(重置为系统默认密码) */
   async function handleReset(row: SysUserItem) {
     const confirmed = await confirmAction(
-      `确认要将<strong style='color:var(--el-color-primary)'>${row.username}</strong>用户的密码重置为系统默认密码吗?`,
-      { html: true }
+      h("span", [
+        "确认要将",
+        h("strong", { style: "color: var(--el-color-primary)" }, row.username),
+        "用户的密码重置为系统默认密码吗?"
+      ])
     );
     if (!confirmed) return;
     try {

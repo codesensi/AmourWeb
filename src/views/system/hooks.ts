@@ -1,5 +1,5 @@
 // 抽离可公用的工具函数等用于系统管理页面逻辑
-import { computed, h, onMounted, reactive, ref, type Ref } from "vue";
+import { computed, h, onMounted, reactive, ref, type Ref, type VNode } from "vue";
 import { useDark } from "@pureadmin/utils";
 import { ElTag } from "element-plus";
 import type { PaginationProps, TableColumnRenderer } from "@pureadmin/table";
@@ -133,8 +133,8 @@ export function usePageQuery<T>(
  * 成功提示与取消/失败回滚(开关显示状态复位)。
  *
  * @param options.submit 状态提交接口
- * @param options.confirmText 确认弹窗文案(HTML,按模块组装)
- * @param options.successText 成功提示文案(HTML,按模块组装)
+ * @param options.confirmText 确认弹窗内容(VNode 或纯文本,按模块组装;含业务数据的富文本一律走 VNode,由 Vue 转义防注入)
+ * @param options.successText 成功提示内容(VNode 或纯文本,按模块组装)
  * @param options.afterSubmit 提交成功后的附加联动(如字典页刷新消费端缓存;同步/异步均可),缺省无
  */
 export function useStatusSwitch<
@@ -143,10 +143,10 @@ export function useStatusSwitch<
 >(options: {
   /** 状态提交接口 */
   submit: (row: T) => Promise<unknown>;
-  /** 确认弹窗文案(HTML,按模块组装) */
-  confirmText: (row: T) => string;
-  /** 成功提示文案(HTML,按模块组装) */
-  successText: (row: T) => string;
+  /** 确认弹窗内容(VNode 或纯文本,按模块组装) */
+  confirmText: (row: T) => VNode | string;
+  /** 成功提示内容(VNode 或纯文本,按模块组装) */
+  successText: (row: T) => VNode | string;
   /** 提交成功后的附加联动(如字典页刷新消费端缓存;同步/异步均可),缺省无 */
   afterSubmit?: (row: T) => unknown;
 }) {
@@ -155,29 +155,24 @@ export function useStatusSwitch<
 
   /** 开关切换处理:确认 → 提交 → 提示;取消或失败时回滚开关显示状态 */
   function onChange(row: T) {
-    confirmAction(options.confirmText(row), { html: true }).then(
-      async confirmed => {
-        if (!confirmed) {
-          // 取消:回滚开关显示状态
-          row.status = row.status === 0 ? 1 : 0;
-          return;
-        }
-        switchLoadMap.value[row.id] = { loading: true };
-        try {
-          await options.submit(row);
-          await options.afterSubmit?.(row);
-          message(options.successText(row), {
-            type: "success",
-            dangerouslyUseHTMLString: true
-          });
-        } catch {
-          // 接口失败回滚开关,与取消回滚共用同一处理
-          row.status = row.status === 0 ? 1 : 0;
-        } finally {
-          switchLoadMap.value[row.id] = { loading: false };
-        }
+    confirmAction(options.confirmText(row)).then(async confirmed => {
+      if (!confirmed) {
+        // 取消:回滚开关显示状态
+        row.status = row.status === 0 ? 1 : 0;
+        return;
       }
-    );
+      switchLoadMap.value[row.id] = { loading: true };
+      try {
+        await options.submit(row);
+        await options.afterSubmit?.(row);
+        message(options.successText(row), { type: "success" });
+      } catch {
+        // 接口失败回滚开关,与取消回滚共用同一处理
+        row.status = row.status === 0 ? 1 : 0;
+      } finally {
+        switchLoadMap.value[row.id] = { loading: false };
+      }
+    });
   }
 
   return { switchLoadMap, onChange };

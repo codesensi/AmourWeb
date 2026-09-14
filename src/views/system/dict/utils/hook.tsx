@@ -104,13 +104,19 @@ export function useDictPage() {
   const { switchLoadMap, onChange } = useStatusSwitch<Required<SysDictPageItem>>({
     submit: row => changeDictStatus({ id: row.id, status: row.status }),
     confirmText: row =>
-      `确认要<strong>${
-        row.status === 0 ? enableLabelOf(0) : enableLabelOf(1)
-      }</strong>字典标签为<strong style='color:var(--el-color-primary)'>${
-        row.dictLabel
-      }</strong>的条目吗?`,
+      h("span", [
+        "确认要",
+        h("strong", row.status === 0 ? enableLabelOf(0) : enableLabelOf(1)),
+        "字典标签为",
+        h("strong", { style: "color: var(--el-color-primary)" }, row.dictLabel),
+        "的条目吗?"
+      ]),
     successText: row =>
-      `已${enableLabelOf(row.status)}<strong style='color:var(--el-color-primary)'>${row.dictLabel}</strong>字典条目`,
+      h("span", [
+        `已${enableLabelOf(row.status)}`,
+        h("strong", { style: "color: var(--el-color-primary)" }, row.dictLabel),
+        "字典条目"
+      ]),
     // 状态影响消费端的 list-by-codes 结果,提交成功后同步刷新字典缓存
     afterSubmit: row => useDictStoreHook().refresh(row.dictCode)
   });
@@ -190,8 +196,11 @@ export function useDictPage() {
   async function handleDelete(row: SysDictPageItem) {
     // 确认弹窗与状态开关/修改新增弹窗风格一致;字典标签样式加粗 + 主题主色
     const confirmed = await confirmAction(
-      `确认要删除<strong style='color:var(--el-color-primary)'>${row.dictLabel}</strong>字典条目吗?`,
-      { html: true }
+      h("span", [
+        "确认要删除",
+        h("strong", { style: "color: var(--el-color-primary)" }, row.dictLabel),
+        "字典条目吗?"
+      ])
     );
     if (!confirmed) return;
     try {
@@ -201,8 +210,12 @@ export function useDictPage() {
       return;
     }
     message(
-      `成功删除<strong style='color:var(--el-color-primary)'>${row.dictLabel}</strong>字典条目`,
-      { type: "success", dangerouslyUseHTMLString: true }
+      h("span", [
+        "成功删除",
+        h("strong", { style: "color: var(--el-color-primary)" }, row.dictLabel),
+        "字典条目"
+      ]),
+      { type: "success" }
     );
     await useDictStoreHook().refresh(row.dictCode);
     await loadTypes();
@@ -234,8 +247,15 @@ export function useDictPage() {
         : names.join("、");
     // 确认弹窗与单条删除/状态开关风格一致;字典标签加粗 + 主题主色
     const confirmed = await confirmAction(
-      `确认要删除<strong style='color:var(--el-color-primary)'>${displayNames}</strong>字典条目吗?`,
-      { html: true }
+      h("span", [
+        "确认要删除",
+        h(
+          "strong",
+          { style: "color: var(--el-color-primary)" },
+          displayNames
+        ),
+        "字典条目吗?"
+      ])
     );
     if (!confirmed) return;
     await deleteDict(ids.join(","));
@@ -244,8 +264,12 @@ export function useDictPage() {
       await useDictStoreHook().refresh(code);
     }
     message(
-      `成功删除<strong style='color:var(--el-color-primary)'>${displayNames}</strong>字典条目`,
-      { type: "success", dangerouslyUseHTMLString: true }
+      h("span", [
+        "成功删除",
+        h("strong", { style: "color: var(--el-color-primary)" }, displayNames),
+        "字典条目"
+      ]),
+      { type: "success" }
     );
     tableRef.value.getTableRef().clearSelection();
     await loadTypes();
@@ -303,8 +327,16 @@ export function useDictPage() {
             await loadTypes();
             search();
             message(
-              `${title === "新增" ? "成功新增" : "成功修改"}<strong style='color:var(--el-color-primary)'>${curData.dictLabel}</strong>字典条目`,
-              { type: "success", dangerouslyUseHTMLString: true }
+              h("span", [
+                `${title === "新增" ? "成功新增" : "成功修改"}`,
+                h(
+                  "strong",
+                  { style: "color: var(--el-color-primary)" },
+                  curData.dictLabel
+                ),
+                "字典条目"
+              ]),
+              { type: "success" }
             );
             closeLoading(); // 复位确定按钮加载态(弹窗即将关闭)
             done(); // 关闭弹框

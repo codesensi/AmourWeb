@@ -52,13 +52,18 @@ export function useMenu() {
   const { switchLoadMap, onChange } = useStatusSwitch<MenuItem>({
     submit: row => changeMenuStatus({ id: row.id, status: row.status }),
     confirmText: row =>
-      `确认要<strong>${
-        row.status === 0 ? enableLabelOf(0) : enableLabelOf(1)
-      }</strong><strong style='color:var(--el-color-primary)'>${
-        row.title
-      }</strong>菜单吗?`,
+      h("span", [
+        "确认要",
+        h("strong", row.status === 0 ? enableLabelOf(0) : enableLabelOf(1)),
+        h("strong", { style: "color: var(--el-color-primary)" }, row.title),
+        "菜单吗?"
+      ]),
     successText: row =>
-      `已${enableLabelOf(row.status)}<strong style='color:var(--el-color-primary)'>${row.title}</strong>菜单`
+      h("span", [
+        `已${enableLabelOf(row.status)}`,
+        h("strong", { style: "color: var(--el-color-primary)" }, row.title),
+        "菜单"
+      ])
   });
   // 「是否内置」列统一渲染(字典 yes 驱动)
   const builtinTagCell = useBuiltinTag();
@@ -340,18 +345,24 @@ export function useMenu() {
   async function handleDelete(row: MenuTreeItem) {
     // 确认弹窗与状态开关/修改新增弹窗风格一致;菜单名样式加粗 + 主题主色
     const confirmed = await confirmAction(
-      `确认要删除<strong style='color:var(--el-color-primary)'>${row.title}</strong>菜单吗?${
+      h("span", [
+        "确认要删除",
+        h("strong", { style: "color: var(--el-color-primary)" }, row.title),
+        "菜单吗?",
         (row?.children?.length ?? 0) > 0
-          ? "<br/>注意其下级菜单也会一并删除，请谨慎操作"
+          ? [h("br"), "注意其下级菜单也会一并删除，请谨慎操作"]
           : ""
-      }`,
-      { html: true }
+      ])
     );
     if (!confirmed) return;
     await deleteMenu(row.id);
     message(
-      `成功删除<strong style='color:var(--el-color-primary)'>${row.title}</strong>菜单`,
-      { type: "success", dangerouslyUseHTMLString: true }
+      h("span", [
+        "成功删除",
+        h("strong", { style: "color: var(--el-color-primary)" }, row.title),
+        "菜单"
+      ]),
+      { type: "success" }
     );
     onSearch();
   }

@@ -65,13 +65,18 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
   const { switchLoadMap, onChange } = useStatusSwitch<Required<SysRoleItem>>({
     submit: row => changeRoleStatus({ id: row.id, status: row.status }),
     confirmText: row =>
-      `确认要<strong>${
-        row.status === 0 ? enableLabelOf(0) : enableLabelOf(1)
-      }</strong><strong style='color:var(--el-color-primary)'>${
-        row.name
-      }</strong>吗?`,
+      h("span", [
+        "确认要",
+        h("strong", row.status === 0 ? enableLabelOf(0) : enableLabelOf(1)),
+        h("strong", { style: "color: var(--el-color-primary)" }, row.name),
+        "吗?"
+      ]),
     successText: row =>
-      `已${enableLabelOf(row.status)}<strong style='color:var(--el-color-primary)'>${row.name}</strong>角色`
+      h("span", [
+        `已${enableLabelOf(row.status)}`,
+        h("strong", { style: "color: var(--el-color-primary)" }, row.name),
+        "角色"
+      ])
   });
   // 「是否内置」列统一渲染(字典 yes 驱动)
   const builtinTagCell = useBuiltinTag();
@@ -141,8 +146,11 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
   async function handleDelete(row: SysRoleItem) {
     // 确认弹窗与用户管理风格一致;角色名样式加粗 + 主题主色
     const confirmed = await confirmAction(
-      `确认要删除<strong style='color:var(--el-color-primary)'>${row.name}</strong>角色吗?`,
-      { html: true }
+      h("span", [
+        "确认要删除",
+        h("strong", { style: "color: var(--el-color-primary)" }, row.name),
+        "角色吗?"
+      ])
     );
     if (!confirmed) return;
     try {
@@ -152,8 +160,12 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
       return;
     }
     message(
-      `成功删除<strong style='color:var(--el-color-primary)'>${row.name}</strong>角色`,
-      { type: "success", dangerouslyUseHTMLString: true }
+      h("span", [
+        "成功删除",
+        h("strong", { style: "color: var(--el-color-primary)" }, row.name),
+        "角色"
+      ]),
+      { type: "success" }
     );
     search();
   }
@@ -171,14 +183,21 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
         : names.join("、");
     // 确认弹窗与单条删除/状态开关风格一致;角色名加粗 + 主题主色
     const confirmed = await confirmAction(
-      `确认要删除<strong style='color:var(--el-color-primary)'>${displayNames}</strong>角色吗?`,
-      { html: true }
+      h("span", [
+        "确认要删除",
+        h("strong", { style: "color: var(--el-color-primary)" }, displayNames),
+        "角色吗?"
+      ])
     );
     if (!confirmed) return;
     await deleteRole(ids.join(","));
     message(
-      `成功删除<strong style='color:var(--el-color-primary)'>${displayNames}</strong>角色`,
-      { type: "success", dangerouslyUseHTMLString: true }
+      h("span", [
+        "成功删除",
+        h("strong", { style: "color: var(--el-color-primary)" }, displayNames),
+        "角色"
+      ]),
+      { type: "success" }
     );
     tableRef.value.getTableRef().clearSelection();
     search();
@@ -226,8 +245,16 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
         function chores() {
           // 提示风格与用户管理统一(角色名样式加粗 + 主题主色)
           message(
-            `${title === "新增" ? "成功新增" : "成功修改"}<strong style='color:var(--el-color-primary)'>${curData.name}</strong>角色`,
-            { type: "success", dangerouslyUseHTMLString: true }
+            h("span", [
+              `${title === "新增" ? "成功新增" : "成功修改"}`,
+              h(
+                "strong",
+                { style: "color: var(--el-color-primary)" },
+                curData.name
+              ),
+              "角色"
+            ]),
+            { type: "success" }
           );
           closeLoading(); // 复位确定按钮加载态(弹窗即将关闭)
           done(); // 关闭弹框

@@ -97,20 +97,21 @@ const closeAllMessage = (): void => ElMessage.closeAll();
  * <p>
  * 收敛各管理页删除/状态切换等确认弹窗的重复配置;取消或关闭时返回 `false`。
  *
- * @param message 确认内容
- * @param options.html 内容是否按 HTML 片段渲染(含加粗主色样式的文案传 `true`;
- * 纯文本内容(如文件名)勿传,避免业务数据被当作 HTML 解析)
+ * @param message 确认内容:纯文本直接传字符串;含加粗/主色等样式的富文本传 VNode
+ *                (`h("span", [...])` 构造,文本子节点由 Vue 按纯文本转义,杜绝 HTML 注入)。
+ *                不再支持 HTML 字符串 + `dangerouslyUseHTMLString` 的拼接方式
  * @param options.confirmButtonText 确认按钮文案,缺省「确定」
  */
 const confirmAction = (
-  message: string,
-  options?: { html?: boolean; confirmButtonText?: string }
+  message: string | VNode,
+  options?: { confirmButtonText?: string }
 ): Promise<boolean> => {
   return ElMessageBox.confirm(message, "系统提示", {
     confirmButtonText: options?.confirmButtonText ?? "确定",
     cancelButtonText: "取消",
     type: "warning",
-    dangerouslyUseHTMLString: options?.html ?? false,
+    // 内容恒以纯文本/VNode 挂载:VNode 的文本子节点由 Vue 转义,HTML 注入面归零
+    dangerouslyUseHTMLString: false,
     draggable: true
   })
     .then(() => true)
