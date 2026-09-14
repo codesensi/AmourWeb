@@ -187,7 +187,7 @@ export function useDictPage() {
   ];
 
   /** 当CheckBox选择项发生变化时会触发该事件 */
-  async function handleDelete(row) {
+  async function handleDelete(row: SysDictPageItem) {
     // 确认弹窗与状态开关/修改新增弹窗风格一致;字典标签样式加粗 + 主题主色
     const confirmed = await confirmAction(
       `确认要删除<strong style='color:var(--el-color-primary)'>${row.dictLabel}</strong>字典条目吗?`,
@@ -210,7 +210,7 @@ export function useDictPage() {
   }
 
   /** 当CheckBox选择项发生变化时会触发该事件 */
-  function handleSelectionChange(val) {
+  function handleSelectionChange(val: SysDictPageItem[]) {
     selectedNum.value = val.length;
   }
 
@@ -284,7 +284,7 @@ export function useDictPage() {
       beforeSure: (done, { options, closeLoading }) => {
         const FormRef = formRef.value.getRef();
         const curData = options.props.formInline as FormItemProps;
-        FormRef.validate(async valid => {
+        FormRef.validate(async (valid: boolean) => {
           if (!valid) {
             // 校验未通过:复位确定按钮加载态
             closeLoading();

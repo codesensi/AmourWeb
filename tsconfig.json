@@ -3,7 +3,7 @@
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "strict": false,
+    "strict": true,
     "strictNullChecks": true,
     "strictFunctionTypes": false,
     "noImplicitThis": true,

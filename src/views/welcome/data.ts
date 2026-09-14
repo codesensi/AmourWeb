@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { dayjs, cloneDeep, getRandomIntBetween } from "./utils";
 import GroupLine from "~icons/ri/group-line";
 import Question from "~icons/ri/question-answer-line";

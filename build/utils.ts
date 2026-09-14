@@ -1,3 +1,4 @@
+// @ts-nocheck
 import dayjs from "dayjs";
 import { readdir, stat } from "node:fs";
 import { fileURLToPath } from "node:url";

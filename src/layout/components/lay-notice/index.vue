@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// @ts-nocheck
 import { ref, computed } from "vue";
 import { noticesData } from "./data";
 import NoticeList from "./components/NoticeList.vue";

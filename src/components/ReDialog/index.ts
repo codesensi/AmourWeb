@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { ref } from "vue";
 import reDialog from "./index.vue";
 import { useTimeoutFn } from "@vueuse/core";

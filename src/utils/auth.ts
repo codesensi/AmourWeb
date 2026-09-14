@@ -69,19 +69,25 @@ export function setToken(data: DataInfo<number>) {
     Cookies.set(multipleTabsKey, "true");
   }
 
-  function setUserKey({ avatar, username, nickname, roles, permissions }) {
-    useUserStoreHook().SET_AVATAR(avatar);
-    useUserStoreHook().SET_USERNAME(username);
-    useUserStoreHook().SET_NICKNAME(nickname);
-    useUserStoreHook().SET_ROLES(roles);
-    useUserStoreHook().SET_PERMS(permissions);
+  function setUserKey(data: {
+    avatar: string;
+    username: string;
+    nickname: string;
+    roles: string[];
+    permissions: string[];
+  }) {
+    useUserStoreHook().SET_AVATAR(data.avatar);
+    useUserStoreHook().SET_USERNAME(data.username);
+    useUserStoreHook().SET_NICKNAME(data.nickname);
+    useUserStoreHook().SET_ROLES(data.roles);
+    useUserStoreHook().SET_PERMS(data.permissions);
     storageLocal().setItem(userKey, {
       expires,
-      avatar,
-      username,
-      nickname,
-      roles,
-      permissions,
+      avatar: data.avatar,
+      username: data.username,
+      nickname: data.nickname,
+      roles: data.roles,
+      permissions: data.permissions,
       // 「记住密码」标记:勾选时 true,配合路由守卫实现长期免登录
       remembered: isRemembered
     });

@@ -185,7 +185,7 @@ export function useUser(tableRef: Ref) {
   });
   const roleOptions = ref<SysRoleOption[]>([]);
 
-  async function handleDelete(row) {
+  async function handleDelete(row: SysUserItem) {
     // 确认弹窗与状态开关/修改新增弹窗风格一致;用户名样式加粗 + 主题主色
     const confirmed = await confirmAction(
       `确认要删除<strong style='color:var(--el-color-primary)'>${row.username}</strong>用户吗?`,
@@ -206,7 +206,7 @@ export function useUser(tableRef: Ref) {
   }
 
   /** 当CheckBox选择项发生变化时会触发该事件 */
-  function handleSelectionChange(val) {
+  function handleSelectionChange(val: SysUserItem[]) {
     selectedNum.value = val.length;
     // 重置表格高度
     tableRef.value.setAdaptive();
@@ -296,7 +296,7 @@ export function useUser(tableRef: Ref) {
           done(); // 关闭弹框
           search(); // 刷新表格数据
         }
-        FormRef.validate(async valid => {
+        FormRef.validate(async (valid: boolean) => {
           if (!valid) {
             // 校验未通过:复位确定按钮加载态
             closeLoading();
@@ -330,7 +330,7 @@ export function useUser(tableRef: Ref) {
   }
 
   /** 重置密码(重置为系统默认密码) */
-  async function handleReset(row) {
+  async function handleReset(row: SysUserItem) {
     const confirmed = await confirmAction(
       `确认要将<strong style='color:var(--el-color-primary)'>${row.username}</strong>用户的密码重置为系统默认密码吗?`,
       { html: true }
@@ -348,7 +348,7 @@ export function useUser(tableRef: Ref) {
   }
 
   /** 分配角色 */
-  async function handleRole(row) {
+  async function handleRole(row: SysUserItem) {
     // 选中的角色列表
     const ids = (await getUserRoleIds(row.id)).data ?? [];
     addDialog({

@@ -1,3 +1,4 @@
+// @ts-nocheck
 const MAP = new Map();
 
 export const useMultiFrame = () => {

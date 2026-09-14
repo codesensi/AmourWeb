@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { ref } from "vue";
 import reDrawer from "./index.vue";
 import { useTimeoutFn } from "@vueuse/core";

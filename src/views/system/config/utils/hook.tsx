@@ -133,7 +133,7 @@ export function useConfigPage() {
       beforeSure: (done, { options, closeLoading }) => {
         const FormRef = formRef.value.getRef();
         const curData = options.props.formInline as FormItemProps;
-        FormRef.validate(async valid => {
+        FormRef.validate(async (valid: boolean) => {
           if (!valid) {
             // 校验未通过:复位确定按钮加载态
             closeLoading();

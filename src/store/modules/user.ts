@@ -7,7 +7,7 @@ import {
   routerArrays,
   storageLocal
 } from "../utils";
-import { type LoginResult, login, logout } from "@/api/user";
+import { type LoginRequest, type LoginResult, login, logout } from "@/api/user";
 import { useMultiTagsStoreHook } from "./multiTags";
 import { type DataInfo, setToken, removeToken, userKey } from "@/utils/auth";
 
@@ -59,7 +59,7 @@ export const useUserStore = defineStore("pure-user", {
       this.isRemembered = bool;
     },
     /** 登入 */
-    async loginByUsername(data) {
+    async loginByUsername(data: LoginRequest) {
       return new Promise<LoginResult>((resolve, reject) => {
         login(data)
           .then(res => {

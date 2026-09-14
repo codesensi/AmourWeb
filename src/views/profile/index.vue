@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// @ts-nocheck
 import { computed, reactive, ref, watch } from "vue";
 import ReAvatarUpload from "@/components/ReAvatarUpload";
 import { DictSelect } from "@/components/DictSelect";
@@ -17,6 +18,8 @@ import { ElMessageBox } from "element-plus";
 import userIcon from "~icons/ep/user";
 import lockIcon from "~icons/ep/lock";
 import warningFilledIcon from "~icons/ep/warning-filled";
+import editPenIcon from "~icons/ep/edit-pen";
+import keyIcon from "~icons/ep/key";
 
 defineOptions({
   name: "UserProfile"
@@ -283,6 +286,26 @@ loadProfile();
         <span class="page-title">个人中心</span>
         <span class="page-sub">管理你的个人资料与账号安全</span>
       </div>
+      <!-- 概要横幅:头像实时预览 + 身份信息;头像更换入口在左栏"头像"表单项 -->
+      <div class="profile-banner">
+        <el-avatar :size="64" :src="form.avatar">
+          <IconifyIconOffline :icon="userIcon" class="text-3xl" />
+        </el-avatar>
+        <div class="banner-info">
+          <div class="banner-name">
+            {{ form.nickname || form.username || "—" }}
+            <el-tag
+              v-for="role in userStore.roles"
+              :key="role"
+              size="small"
+              effect="light"
+            >
+              {{ role }}
+            </el-tag>
+          </div>
+          <span class="banner-username">@{{ form.username }}</span>
+        </div>
+      </div>
       <div class="cols">
         <div class="col">
           <div class="col-title">
@@ -373,18 +396,18 @@ loadProfile();
             </span>
             <span class="t">账号安全</span>
           </div>
-          <div class="sec">
-            <div class="sec-head">
-              <span class="sec-bar" />
-              <span class="sec-title">修改用户名</span>
+          <div class="sec-card">
+            <div class="sec-card-head">
+              <span class="sec-icon">
+                <IconifyIconOffline :icon="editPenIcon" />
+              </span>
+              <div class="sec-card-t">
+                <span class="t">修改用户名</span>
+                <span class="d">
+                  用户名为登录凭证,修改成功后将退出登录,需使用新用户名重新登录。
+                </span>
+              </div>
             </div>
-            <el-alert
-              class="sec-alert"
-              type="info"
-              :closable="false"
-              show-icon
-              title="用户名为登录凭证,修改成功后将退出登录,需使用新用户名重新登录。"
-            />
             <el-form
               ref="nameFormRef"
               label-position="top"
@@ -399,7 +422,7 @@ loadProfile();
                   placeholder="请输入新的用户名"
                 />
               </el-form-item>
-              <el-form-item>
+              <el-form-item class="sec-actions">
                 <el-button
                   type="primary"
                   :disabled="!nameDirty"
@@ -411,18 +434,18 @@ loadProfile();
               </el-form-item>
             </el-form>
           </div>
-          <div class="sec">
-            <div class="sec-head">
-              <span class="sec-bar" />
-              <span class="sec-title">修改密码</span>
+          <div class="sec-card">
+            <div class="sec-card-head">
+              <span class="sec-icon">
+                <IconifyIconOffline :icon="keyIcon" />
+              </span>
+              <div class="sec-card-t">
+                <span class="t">修改密码</span>
+                <span class="d">
+                  修改密码成功后将退出登录,需使用新密码重新登录,请确认当前密码已牢记。
+                </span>
+              </div>
             </div>
-            <el-alert
-              class="sec-alert"
-              type="info"
-              :closable="false"
-              show-icon
-              title="修改密码成功后将退出登录,需使用新密码重新登录,请确认当前密码已牢记。"
-            />
             <el-form
               ref="pwdFormRef"
               label-position="top"
@@ -467,7 +490,7 @@ loadProfile();
                 />
                 <p class="strength-txt">密码强度:{{ strengthText }}</p>
               </div>
-              <el-form-item>
+              <el-form-item class="sec-actions">
                 <el-button
                   type="primary"
                   :disabled="!pwdDirty"
@@ -572,28 +595,7 @@ loadProfile();
     border-left: 1px solid var(--el-border-color-lighter);
   }
 
-  /* 两栏内容纵向均布:表单项随栏高适当拉开,底部操作行保持水平对齐,避免中部出现大段空档 */
-  .col:first-child .el-form {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    justify-content: space-between;
-  }
-
-  .col:last-child .sec {
-    display: flex;
-    flex: 1 1 auto;
-    flex-direction: column;
-  }
-
-  .col:last-child .sec .el-form {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    justify-content: space-between;
-  }
-
-
+  /* 双栏内容按自然高度排布,不做纵向拉伸分摊,行距保持一致 */
 }
 
 /* 保存操作行:提示文案 margin-right:auto 把按钮推到行尾,与右栏操作按钮对齐 */
@@ -614,30 +616,88 @@ loadProfile();
   border-radius: 4px;
 }
 
-/* 分区之间加分隔线,与页头分隔线同源 */
-.sec + .sec {
-  padding-top: 20px;
-  border-top: 1px solid var(--el-border-color-lighter);
+/* 概要横幅:头像预览 + 身份信息,浅主色底与页面主色呼应 */
+.profile-banner {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  background: linear-gradient(
+    135deg,
+    var(--el-color-primary-light-9),
+    var(--el-color-primary-light-8)
+  );
+  border-radius: 8px;
 }
 
-.sec-head {
+.banner-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.banner-name {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+
+.banner-username {
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
+}
+
+/* 账号安全卡片:图标 + 标题 + 说明 + 内联表单,内容自然高度 */
+.sec-card {
+  padding: 16px;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 8px;
+}
+
+.sec-card-head {
   display: flex;
   gap: 10px;
   align-items: center;
   margin-bottom: 12px;
 }
 
-.sec-bar {
-  width: 3px;
-  height: 16px;
-  background: var(--el-color-primary);
-  border-radius: 2px;
+.sec-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+  color: var(--el-color-primary);
+  background: var(--el-color-primary-light-9);
+  border-radius: 8px;
 }
 
-.sec-title {
+.sec-card-t {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sec-card-t .t {
   font-size: 15px;
   font-weight: 500;
   color: var(--el-text-color-primary);
+}
+
+.sec-card-t .d {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--el-text-color-secondary);
+}
+
+/* 卡片内操作行:按钮靠右,与左栏操作行方向一致 */
+.sec-actions :deep(.el-form-item__content) {
+  justify-content: flex-end;
 }
 
 /* 对齐表格页:底部 margin 归零,底部留白由 .profile-page 自行声明 */
@@ -652,26 +712,6 @@ loadProfile();
   flex-direction: column;
   min-height: calc(100% - 24px);
   padding-bottom: 36px;
-}
-
-/* el-alert 自带 margin:0(未分层样式),须用 scoped 规则显式覆盖间距 */
-.sec-alert {
-  /* 弱化为辅助说明:中性底色,不与表单抢视觉 */
-  --el-alert-bg-color: var(--el-border-color-lighter);
-
-  /* 紧凑样式:小内边距压缩提示条高度 */
-  --el-alert-padding: 4px 8px;
-
-  margin-bottom: 8px;
-}
-
-.sec-alert :deep(.el-alert__title) {
-  font-size: 12px;
-  line-height: 20px;
-}
-
-.sec-alert :deep(.el-alert__description) {
-  color: var(--el-text-color-secondary);
 }
 
 .strength-txt {

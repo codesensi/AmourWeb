@@ -37,7 +37,11 @@ export default [
   {
     url: "/sys/user/update-password",
     method: "put",
-    response: ({ body }) => {
+    response: ({
+      body
+    }: {
+      body?: { oldPassword?: string; newPassword?: string };
+    }) => {
       if (!body?.oldPassword) return fail("原密码错误");
       if (body?.newPassword === body?.oldPassword) {
         return fail("新密码不能与原密码相同");

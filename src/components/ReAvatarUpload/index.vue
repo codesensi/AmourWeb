@@ -73,7 +73,6 @@ function onAvatarError() {
 
 /* 裁剪上传:选择文件 → 弹窗裁剪 → 确认上传 */
 const uploadRef = ref();
-const cropRef = ref();
 const isShow = ref(false);
 const cropSrc = ref("");
 const cropperPayload = ref();
@@ -111,7 +110,6 @@ function onCropper(payload) {
 }
 
 function handleClose() {
-  cropRef.value?.hidePopover();
   uploadRef.value?.clearFiles();
   isShow.value = false;
 }
@@ -206,7 +204,6 @@ async function confirmUpload() {
       :fullscreen="deviceDetection()"
     >
       <ReCropperPreview
-        ref="cropRef"
         :imgSrc="cropSrc"
         :output-type="rawType"
         @cropper="onCropper"

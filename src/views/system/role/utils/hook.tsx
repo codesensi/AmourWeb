@@ -138,7 +138,7 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
     }
   ];
 
-  async function handleDelete(row) {
+  async function handleDelete(row: SysRoleItem) {
     // 确认弹窗与用户管理风格一致;角色名样式加粗 + 主题主色
     const confirmed = await confirmAction(
       `确认要删除<strong style='color:var(--el-color-primary)'>${row.name}</strong>角色吗?`,
@@ -185,7 +185,7 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
   }
 
   /** 当CheckBox选择项发生变化时会触发该事件 */
-  function handleSelectionChange(val) {
+  function handleSelectionChange(val: SysRoleItem[]) {
     selectedNum.value = val.length;
     // 重置表格高度
     tableRef.value.setAdaptive();
@@ -233,7 +233,7 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
           done(); // 关闭弹框
           search(); // 刷新表格数据
         }
-        FormRef.validate(async valid => {
+        FormRef.validate(async (valid: boolean) => {
           if (!valid) {
             // 校验未通过:复位确定按钮加载态
             closeLoading();
@@ -280,7 +280,7 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
   }
 
   /** 高亮当前权限选中行 */
-  function rowStyle({ row: { id } }) {
+  function rowStyle({ row: { id } }: { row: SysRoleItem }) {
     return {
       cursor: "pointer",
       background: id === curRow.value?.id ? "var(--el-fill-color-light)" : ""
@@ -311,7 +311,7 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
     treeRef.value!.filter(query);
   };
 
-  const filterMethod = (query: string, node) => {
+  const filterMethod = (query: string, node: { title: string }) => {
     return node.title!.includes(query);
   };
 

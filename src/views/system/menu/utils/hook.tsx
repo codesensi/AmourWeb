@@ -19,7 +19,11 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { useDict } from "@/hooks/useDict";
 import { DICT_CODES } from "@/api/dict";
 import { reactive, ref, onMounted, h } from "vue";
+import type { FormInstance } from "element-plus";
 import { cloneDeep, isAllEmpty, deviceDetection } from "@pureadmin/utils";
+
+/** 树形菜单节点:MenuItem 组树后携带 children(handleTree 输出形状) */
+type MenuTreeItem = MenuItem & { children?: MenuTreeItem[] };
 
 export function useMenu() {
   const form = reactive({
@@ -175,7 +179,7 @@ export function useMenu() {
     }
   ];
 
-  function resetForm(formEl) {
+  function resetForm(formEl: FormInstance) {
     if (!formEl) return;
     formEl.resetFields();
     onSearch();
@@ -224,9 +228,9 @@ export function useMenu() {
   }
 
   /** 收集树形数据的全部节点 id(展开全部时回填 expand-row-keys) */
-  function collectAllIds(nodes) {
+  function collectAllIds(nodes: MenuTreeItem[]) {
     const ids: string[] = [];
-    const walk = list => {
+    const walk = (list: MenuTreeItem[]) => {
       for (const node of list) {
         ids.push(String(node.id));
         if (node.children?.length) walk(node.children);
@@ -245,8 +249,8 @@ export function useMenu() {
   }
 
   /** 从菜单树中剔除 excludeId 对应节点及其整棵子树(修改时避免将自身/下级选为上级菜单导致成环) */
-  function excludeSubTree(treeList, excludeId) {
-    const result: any[] = [];
+  function excludeSubTree(treeList: MenuTreeItem[], excludeId: string) {
+    const result: MenuTreeItem[] = [];
     for (const node of treeList) {
       if (node.id === excludeId) continue;
       if (node.children?.length) {
@@ -307,7 +311,7 @@ export function useMenu() {
           done(); // 关闭弹框
           onSearch(); // 刷新表格数据
         }
-        FormRef.validate(async valid => {
+        FormRef.validate(async (valid: boolean) => {
           if (!valid) {
             // 校验未通过:复位确定按钮加载态
             closeLoading();
@@ -333,11 +337,11 @@ export function useMenu() {
     });
   }
 
-  async function handleDelete(row) {
+  async function handleDelete(row: MenuTreeItem) {
     // 确认弹窗与状态开关/修改新增弹窗风格一致;菜单名样式加粗 + 主题主色
     const confirmed = await confirmAction(
       `确认要删除<strong style='color:var(--el-color-primary)'>${row.title}</strong>菜单吗?${
-        row?.children?.length > 0
+        (row?.children?.length ?? 0) > 0
           ? "<br/>注意其下级菜单也会一并删除，请谨慎操作"
           : ""
       }`,
