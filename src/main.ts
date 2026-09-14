@@ -75,8 +75,6 @@ getPlatformConfig(app).then(async config => {
   setupStore(app);
   // 站点标题:出厂值取 platform-config 的 Title,再由后端系统配置覆盖(GET /portal/config/list-by-keys 免登录,失败时保持出厂值)
   siteTitle.value = getConfig().Title ?? siteTitle.value;
-  const { name } = await fetchSysConfig("name");
-  if (name) siteTitle.value = name;
   app.use(router);
   await router.isReady();
   injectResponsiveStorage(app, config);
@@ -90,4 +88,15 @@ getPlatformConfig(app).then(async config => {
     .use(PureDescriptions)
     .use(useEcharts);
   app.mount("#app");
+
+  // 站点名异步刷新:挂载完成后再拉取 sys_config,失败保持出厂标题。
+  // 不可放在 mount 之前 await——该请求失败时(后端不可用/超时/返回失败体)异常会
+  // 中断本回调,导致 app.mount 永远不执行,整站(含登录页)白屏
+  fetchSysConfig("name")
+    .then(({ name }) => {
+      if (name) siteTitle.value = name;
+    })
+    .catch(() => {
+      /* 后端不可用:保持出厂标题 */
+    });
 });
