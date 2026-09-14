@@ -114,7 +114,8 @@ class PureHttp {
         // 业务失败：统一提示并拒绝
         if (!res.success) {
           if (res.code === Code.UNAUTHORIZED) {
-            useUserStoreHook().logOut();
+            // 与错误分支同口径:1 秒窗口去重,避免并发请求重复 logOut/跳转
+            handleUnauthorized();
           }
           // 遗留兼容通道(HTTP 200 + 失败体):业务错误保持提示纯净
           message(res.msg || "请求失败", { type: "error" });
