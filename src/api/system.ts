@@ -266,12 +266,12 @@ export const changeRoleStatus = (data: RoleChangeStatusRequest) => {
 };
 
 /** 角色管理-删除(DELETE /sys/role/delete/{ids},id 支持英文逗号分隔批量删除) */
-export const deleteRole = (id: number | string) => {
+export const deleteRole = (id: string) => {
   return http.request<ApiResult<null>>("delete", `/sys/role/delete/${id}`);
 };
 
 /** 角色管理-获取角色已勾选菜单 id(GET /sys/role/menu-ids/{id}) */
-export const getRoleMenuIds = (id: number | string) => {
+export const getRoleMenuIds = (id: string) => {
   return http.request<ApiResult<Array<string>>>(
     "get",
     `/sys/role/menu-ids/${id}`

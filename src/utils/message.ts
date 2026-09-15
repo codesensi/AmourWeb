@@ -1,4 +1,5 @@
 import { h, type VNode } from "vue";
+import type { Component } from "vue";
 import { isFunction } from "@pureadmin/utils";
 import { type MessageHandler, ElMessage, ElMessageBox } from "element-plus";
 
@@ -12,8 +13,8 @@ interface MessageParams {
   type?: messageTypes;
   /** 是否纯色，默认 `false` */
   plain?: boolean;
-  /** 自定义图标，该属性会覆盖 `type` 的图标 */
-  icon?: any;
+  /** 自定义图标组件，该属性会覆盖 `type` 的图标 */
+  icon?: Component;
   /** 是否将 `message` 属性作为 `HTML` 片段处理，默认 `false` */
   dangerouslyUseHTMLString?: boolean;
   /** 消息风格，可选 `el` 、`antd` ，默认 `antd` */
@@ -33,7 +34,7 @@ interface MessageParams {
   /** 重复次数，类似于 `Badge` 。当和 `grouping` 属性一起使用时作为初始数量使用，默认值 `1` */
   repeatNum?: number;
   /** 关闭时的回调函数, 参数为被关闭的 `message` 实例 */
-  onClose?: Function | null;
+  onClose?: (() => void) | null;
 }
 
 /** 用法非常简单，参考 src/views/components/message/index.vue 文件 */

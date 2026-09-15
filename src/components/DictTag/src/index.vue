@@ -27,6 +27,9 @@ const props = withDefaults(
 );
 
 const store = useDictStoreHook();
+// 仅在 setup 时按初始 dictCode 拉取一次:store 内部有缓存,重复挂载不重复请求。
+// 当前所有调用方的 dictCode 均为静态字面量;若未来需要动态切换编码,
+// 需改为 watch(dictCode, code => store.load([code])) 并处理旧编码缓存
 store.load([props.dictCode]);
 
 /** 反查展示标签;未命中回退为原值 */

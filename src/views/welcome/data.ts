@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { dayjs, cloneDeep, getRandomIntBetween } from "./utils";
 import GroupLine from "~icons/ri/group-line";
 import Question from "~icons/ri/question-answer-line";
@@ -110,7 +109,14 @@ const progressData = [
 ].reverse();
 
 /** 数据统计 */
-const tableData = Array.from({ length: 30 }).map((_, index) => {
+const tableData: Array<{
+  id: number;
+  requiredNumber: number;
+  questionNumber: number;
+  resolveNumber: number;
+  satisfaction: number;
+  date: string;
+}> = Array.from({ length: 30 }).map((_, index) => {
   return {
     id: index + 1,
     requiredNumber: getRandomIntBetween(13500, 19999),
@@ -124,7 +130,7 @@ const tableData = Array.from({ length: 30 }).map((_, index) => {
 /** 最新动态 */
 const latestNewsData = cloneDeep(tableData)
   .slice(0, 14)
-  .map((item, index) => {
+  .map((item: (typeof tableData)[number], index: number) => {
     return Object.assign(item, {
       date: `${dayjs().subtract(index, "day").format("YYYY-MM-DD")} ${
         days[dayjs().subtract(index, "day").day()]

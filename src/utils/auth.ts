@@ -1,6 +1,6 @@
 import Cookies from "js-cookie";
-import { useUserStoreHook } from "@/store/modules/user";
-import { storageLocal, isString, isIncludeAllChildren } from "@pureadmin/utils";
+import {useUserStoreHook} from "@/store/modules/user";
+import {isIncludeAllChildren, isString, storageLocal} from "@pureadmin/utils";
 
 export interface DataInfo<T> {
   /** token */
@@ -154,8 +154,7 @@ export const hasPerms = (value: string | Array<string>): boolean => {
   const { permissions } = useUserStoreHook();
   if (!permissions) return false;
   if (permissions.length === 1 && permissions[0] === allPerms) return true;
-  const isAuths = isString(value)
+  return isString(value)
     ? permissions.includes(value)
     : isIncludeAllChildren(value, permissions);
-  return isAuths ? true : false;
 };

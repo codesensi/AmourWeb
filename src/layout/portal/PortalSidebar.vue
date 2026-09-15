@@ -34,7 +34,14 @@ function goRepo() {
   <!-- 右下角悬浮侧栏:返回顶部 / 小站首页 / 管理后台 / 开源地址 -->
   <div class="lg-sidebar">
     <ul>
-      <li class="lg-sidebar-item" title="返回顶部" @click="scrollToTop">
+      <li
+        class="lg-sidebar-item"
+        title="返回顶部"
+        role="button"
+        tabindex="0"
+        @click="scrollToTop"
+        @keydown.enter.prevent="scrollToTop"
+      >
         <svg
           class="lg-sidebar-icon"
           viewBox="0 0 1024 1024"
@@ -46,7 +53,14 @@ function goRepo() {
           />
         </svg>
       </li>
-      <li class="lg-sidebar-item" title="小站首页" @click="goHome">
+      <li
+        class="lg-sidebar-item"
+        title="小站首页"
+        role="button"
+        tabindex="0"
+        @click="goHome"
+        @keydown.enter.prevent="goHome"
+      >
         <svg
           class="lg-sidebar-icon"
           viewBox="0 0 1024 1024"
@@ -58,7 +72,14 @@ function goRepo() {
           />
         </svg>
       </li>
-      <li class="lg-sidebar-item" title="管理后台" @click="goAdmin">
+      <li
+        class="lg-sidebar-item"
+        title="管理后台"
+        role="button"
+        tabindex="0"
+        @click="goAdmin"
+        @keydown.enter.prevent="goAdmin"
+      >
         <svg
           class="lg-sidebar-icon"
           viewBox="0 0 1024 1024"
@@ -70,7 +91,14 @@ function goRepo() {
           />
         </svg>
       </li>
-      <li class="lg-sidebar-item" title="开源地址" @click="goRepo">
+      <li
+        class="lg-sidebar-item"
+        title="开源地址"
+        role="button"
+        tabindex="0"
+        @click="goRepo"
+        @keydown.enter.prevent="goRepo"
+      >
         <svg
           class="lg-sidebar-icon"
           viewBox="0 0 1024 1024"

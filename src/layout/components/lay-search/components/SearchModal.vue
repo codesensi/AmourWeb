@@ -16,11 +16,11 @@ import SearchIcon from "~icons/ri/search-line";
 
 interface Props {
   /** 弹窗显隐 */
-  value: boolean;
+  modelValue: boolean;
 }
 
 interface Emits {
-  (e: "update:value", val: boolean): void;
+  (e: "update:modelValue", val: boolean): void;
 }
 
 const { device } = useNav();
@@ -53,10 +53,10 @@ const menusData = computed(() => {
 
 const show = computed({
   get() {
-    return props.value;
+    return props.modelValue;
   },
   set(val: boolean) {
-    emit("update:value", val);
+    emit("update:modelValue", val);
   }
 });
 

@@ -1,7 +1,8 @@
 <script setup lang="ts">
-// @ts-nocheck
 import { computed, ref, watch } from "vue";
 import dayjs from "dayjs";
+import type { UploadFile } from "element-plus";
+import type Cropper from "cropperjs";
 import ReCropperPreview from "@/components/ReCropperPreview";
 import { ElMessageBox } from "element-plus";
 import { message } from "@/utils/message";
@@ -9,6 +10,13 @@ import { deviceDetection } from "@pureadmin/utils";
 import uploadLine from "~icons/ri/upload-line";
 import closeLine from "~icons/ri/close-line";
 import { deleteFile, uploadFile } from "@/api/file";
+
+/** 裁剪产物载荷(对齐 ReCropperPreview 的 cropper 事件) */
+interface CropperPayload {
+  base64: string;
+  blob: Blob;
+  info: Cropper.Data & { size: number };
+}
 
 interface Props {
   /** 头像地址(v-model 双向绑定,为空时不渲染预览) */
@@ -30,8 +38,6 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   "update:modelValue": [value: string];
-  /** 裁剪上传成功(返回文件地址),即时保存等副作用由父级处理 */
-  uploaded: [url: string];
 }>();
 
 /** 头像来源:upload-裁剪上传,url-外部链接 */
@@ -123,17 +129,18 @@ async function onClear() {
 const uploadRef = ref();
 const isShow = ref(false);
 const cropSrc = ref("");
-const cropperPayload = ref();
+const cropperPayload = ref<CropperPayload>();
 const avatarLoading = ref(false);
 /** 用户选择的原始文件名(裁剪会重编码,上传时还原用户视角的文件名) */
 const rawFileName = ref("");
 /** 用户选择的源文件类型(裁剪输出对齐它;gif 走原图直传不经裁剪) */
 const rawType = ref("image/png");
 
-function onChange(uploadFile) {
-  const raw = uploadFile.raw;
+function onChange(file: UploadFile) {
+  const raw = file.raw;
+  if (!raw) return;
   // 记录原始文件名与类型,供裁剪上传时提交
-  rawFileName.value = uploadFile.name || "";
+  rawFileName.value = file.name || "";
   rawType.value = raw.type || "image/png";
   // 校验文件类型;大小不在前端拦截,由后端 FileBizTypeEnum 的 maxBytes 校验并提示
   if (!raw.type.startsWith("image/")) {
@@ -150,13 +157,14 @@ function onChange(uploadFile) {
   }
   const reader = new FileReader();
   reader.onload = e => {
+    if (!e.target?.result) return;
     cropSrc.value = e.target.result as string;
     isShow.value = true;
   };
   reader.readAsDataURL(raw);
 }
 
-function onCropper(payload) {
+function onCropper(payload: CropperPayload) {
   cropperPayload.value = payload;
 }
 
@@ -174,7 +182,6 @@ async function doUpload(blob: Blob, name: string) {
     if (res.success) {
       message(`${props.label}上传成功`, { type: "success" });
       emit("update:modelValue", res.data.url);
-      emit("uploaded", res.data.url);
       handleClose();
     }
   } finally {

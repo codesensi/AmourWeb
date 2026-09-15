@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { tableData } from "../../data";
 import { delay } from "@pureadmin/utils";
 import { ref, onMounted, reactive } from "vue";
@@ -8,7 +7,7 @@ import Hearts from "~icons/ri/hearts-line";
 import Empty from "./empty.svg?component";
 
 export function useColumns() {
-  const dataList = ref([]);
+  const dataList = ref<typeof tableData>([]);
   const loading = ref(true);
   const columns: TableColumnList = [
     {

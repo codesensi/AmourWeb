@@ -173,6 +173,6 @@ export const changeDictStatus = (data: DictChangeStatusRequest) => {
 };
 
 /** 字典管理-删除(DELETE /sys/dict/delete/{id},内置条目后端禁删) */
-export const deleteDict = (id: number | string) => {
+export const deleteDict = (id: string) => {
   return http.request<ApiResult<null>>("delete", `/sys/dict/delete/${id}`);
 };

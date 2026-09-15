@@ -192,9 +192,6 @@ export default defineComponent({
             info: { size: blob.size, ...cropper.value.getData() }
           });
         };
-        fileReader.onerror = () => {
-          emit("error");
-        };
       }, props.outputType);
     }
 

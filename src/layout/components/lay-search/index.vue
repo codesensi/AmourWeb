@@ -16,6 +16,6 @@ function handleSearch() {
     >
       <IconifyIconOffline icon="ri/search-line" />
     </div>
-    <SearchModal v-model:value="show" />
+    <SearchModal v-model="show" />
   </div>
 </template>

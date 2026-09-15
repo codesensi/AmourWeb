@@ -184,9 +184,13 @@ async function botMessage(content: string, delay: number) {
 
 /** 分支按钮组:延时后渲染;点选后按钮组移除,所选"提问"以右侧气泡留痕(复刻 botui 行为) */
 function botButtons(options: ChatScriptOption[], delay: number) {
-  return new Promise<ChatScriptOption>(resolve => {
+  // 页面卸载后以 undefined 结算,避免调用方 await 永远挂起
+  return new Promise<ChatScriptOption | undefined>(resolve => {
     setTimeout(() => {
-      if (stopped) return;
+      if (stopped) {
+        resolve(undefined);
+        return;
+      }
       items.value.push({
         kind: "actions",
         options,
@@ -208,7 +212,7 @@ async function play(nodes: ChatScriptNode[]) {
     if (stopped) return;
     if (node.type === "buttons") {
       const chosen = await botButtons(node.options || [], node.delay || 0);
-      if (stopped) return;
+      if (stopped || !chosen) return;
       if (chosen.next && chosen.next.length) {
         await play(chosen.next);
       }

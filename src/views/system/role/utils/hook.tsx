@@ -247,10 +247,15 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
   onMounted(async () => {
     search();
     // 复用菜单列表接口:返回全量菜单的一维扁平数组（id + pid）,前端按此键组树
-    const { success, data } = await getMenuList();
-    if (success) {
-      treeIds.value = getKeyList(data, "id");
-      treeData.value = handleTree(data, "id", "pid");
+    // (失败提示由拦截器统一弹出:失败时保持空树,不阻塞首屏)
+    try {
+      const { success, data } = await getMenuList();
+      if (success) {
+        treeIds.value = getKeyList(data, "id");
+        treeData.value = handleTree(data, "id", "pid");
+      }
+    } catch {
+      // 静默降级
     }
   });
 

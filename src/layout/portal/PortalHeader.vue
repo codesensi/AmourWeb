@@ -68,7 +68,7 @@ onMounted(resolveSaying);
             <!-- 站点 logo 配置(项目/站点logo图片)优先展示,缺失/加载失败统一回落 favicon -->
             <img
               :src="logoSrc"
-              alt="logo"
+              :alt="sysConfig.name || 'logo'"
               class="logo-img"
               @error="logoBroken = true"
             />

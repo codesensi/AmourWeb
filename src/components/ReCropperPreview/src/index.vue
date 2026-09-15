@@ -1,5 +1,6 @@
 <script setup lang="tsx">
 // @ts-nocheck
+import type Cropper from "cropperjs";
 import { ref } from "vue";
 import ReCropper from "@/components/ReCropper";
 import { formatBytes } from "@pureadmin/utils";
@@ -14,17 +15,26 @@ defineProps({
   outputType: { type: String, default: "image/png" }
 });
 
-const emit = defineEmits(["cropper"]);
+/** 裁剪产物载荷:base64 预览图、Blob 二进制、原始图像信息 */
+interface CropperPayload {
+  base64: string;
+  blob: Blob;
+  info: Cropper.Data & { size: number };
+}
+
+const emit = defineEmits<{
+  cropper: [payload: CropperPayload];
+}>();
 
 const infos = ref();
 /** 裁剪器就绪标记:就绪前展示透明 loading 遮罩 */
 const cropperReady = ref(false);
 const cropperImg = ref<string>("");
 
-function onCropper({ base64, blob, info }) {
-  infos.value = info;
-  cropperImg.value = base64;
-  emit("cropper", { base64, blob, info });
+function onCropper(payload: CropperPayload) {
+  infos.value = payload.info;
+  cropperImg.value = payload.base64;
+  emit("cropper", payload);
 }
 
 function onReadied() {

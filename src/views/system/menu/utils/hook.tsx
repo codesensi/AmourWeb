@@ -317,7 +317,12 @@ export function useMenu() {
       ])
     );
     if (!confirmed) return;
-    await deleteMenu(row.id);
+    try {
+      await deleteMenu(row.id);
+    } catch {
+      // 删除失败(失败提示由拦截器统一弹出):静默返回
+      return;
+    }
     message(h("span", ["成功删除", emphasize(row.title), "菜单"]), {
       type: "success"
     });

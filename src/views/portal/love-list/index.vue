@@ -25,6 +25,7 @@ onMounted(() => loadMore());
           <div id="loveListBox" class="love-list-items">
             <!-- 清单项:完成项显成功图标(com)+success 样式+可选照片;未完成项 air 图标+unfinished 置灰 -->
             <ul>
+              <!-- 列表为一次性渲染不重排,index 作 key 可接受;后端补主键后应改用业务 id -->
               <li v-for="(it, i) in items" :key="i" class="item">
                 <i
                   class="iconfont icon-chenggong2"

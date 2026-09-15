@@ -142,7 +142,8 @@ watch(checked, bool => {
 
 <template>
   <div class="select-none">
-    <img :src="bg" class="wave" />
+    <!-- 装饰性背景波浪:对读屏无意义,alt 置空交由辅助技术跳过 -->
+    <img :src="bg" class="wave" alt="" />
     <div class="flex-c absolute right-5 top-3">
       <!-- 主题 -->
       <el-switch
@@ -159,7 +160,12 @@ watch(checked, bool => {
       </div>
       <div class="login-box">
         <div class="login-form">
-          <img :src="siteLogoImg" class="avatar" alt="" @error="onLogoError" />
+          <img
+            :src="siteLogoImg"
+            class="avatar"
+            :alt="title || 'logo'"
+            @error="onLogoError"
+          />
           <Motion>
             <h2 class="outline-hidden">
               <TypeIt

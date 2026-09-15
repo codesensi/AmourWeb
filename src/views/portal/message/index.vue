@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, onMounted, onUnmounted, reactive, ref } from "vue";
 import { getMessage, sendMessage, type MessageItem } from "@/api/portal";
 import { message } from "@/utils/message";
 import { fallbackAvatar, notifyFallbackAvatar } from "@/utils/avatar";
@@ -136,8 +136,8 @@ async function submit() {
     message("留言提交成功！", { type: "success" });
     submitText.value = "留言成功";
     reloadMessages();
-    // 按钮置灰 5 秒后恢复(对齐原站 submitMessage)
-    setTimeout(() => {
+    // 按钮置灰 5 秒后恢复(对齐原站 submitMessage);句柄随卸载清理
+    submitTimer = setTimeout(() => {
       submitting.value = false;
       submitText.value = "提交留言";
     }, 5000);
@@ -146,6 +146,10 @@ async function submit() {
     submitText.value = "提交留言";
   }
 }
+
+/** 防连点恢复定时器:组件卸载时清理,避免卸载后仍写响应式状态 */
+let submitTimer: ReturnType<typeof setTimeout> | undefined;
+onUnmounted(() => clearTimeout(submitTimer));
 
 onMounted(() => loadMore());
 </script>
@@ -168,7 +172,7 @@ onMounted(() => loadMore());
           <div id="messageList">
             <div
               v-for="(m, i) in items"
-              :key="m.date"
+              :key="`${m.date}-${i}`"
               class="message-item animated fadeInUp delay-03s"
             >
               <div class="textinfo">

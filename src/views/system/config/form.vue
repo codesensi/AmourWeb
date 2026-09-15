@@ -51,20 +51,8 @@ const numericProxy = computed<number | undefined>({
   }
 });
 
-/** 布尔值编辑开关按消费侧归一化约定写入字符串 "true"/"false" */
-const booleanProxy = computed<string>({
-  get: () => newFormInline.value.configValue,
-  set: value => (newFormInline.value.configValue = value)
-});
-
-/** 日期时间选择器与字符串值的桥接(清空回落为空串,交由必填校验拦截) */
-const datetimeProxy = computed<string>({
-  get: () => newFormInline.value.configValue,
-  set: value => (newFormInline.value.configValue = value ?? "")
-});
-
-/** 年份选择器与字符串值的桥接(清空回落为空串,交由必填校验拦截) */
-const yearProxy = computed<string>({
+/** 布尔开关/日期时间/年份等控件统一走字符串值桥接(清空回落为空串,交由必填校验拦截) */
+const stringValueProxy = computed<string>({
   get: () => newFormInline.value.configValue,
   set: value => (newFormInline.value.configValue = value ?? "")
 });
@@ -104,10 +92,11 @@ const isYearConfig = computed(() =>
 const formRules = computed(() => ({
   configValue: [
     {
-      // 可选配置允许为空(未配置时由消费侧兜底),其余类型保持必填
+      // 可选配置允许为空(未配置时由消费侧兜底),其余类型保持必填;
+      // change 覆盖开关/上传/选择器类控件(blur 不触发),blur 覆盖文本输入
       required: !isOptionalConfig.value,
       message: "配置值为必填项",
-      trigger: "blur"
+      trigger: ["blur", "change"]
     }
   ]
 }));
@@ -156,7 +145,7 @@ defineExpose({ getRef });
       />
       <el-date-picker
         v-else-if="isYearConfig"
-        v-model="yearProxy"
+        v-model="stringValueProxy"
         type="year"
         value-format="YYYY"
         placeholder="请选择年份"
@@ -164,7 +153,7 @@ defineExpose({ getRef });
       />
       <el-switch
         v-else-if="booleanValue"
-        v-model="booleanProxy"
+        v-model="newFormInline.configValue"
         inline-prompt
         active-value="true"
         inactive-value="false"
@@ -181,7 +170,7 @@ defineExpose({ getRef });
       />
       <el-date-picker
         v-else-if="datetimeValue"
-        v-model="datetimeProxy"
+        v-model="stringValueProxy"
         type="datetime"
         value-format="YYYY-MM-DD HH:mm:ss"
         placeholder="请选择日期时间"

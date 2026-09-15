@@ -6,6 +6,9 @@ import { computed, reactive, ref, toRaw } from "vue";
 
 export type LogTab = "login" | "operate";
 
+/** 操作日志类型字典值下界:0-未知/1-登录/2-登出为保留段,>=3 才是操作日志类型 */
+const MIN_OPERATION_LOG_DICT_VALUE = 3;
+
 /** 操作列(两 Tab 共用,固定右侧,详情弹窗由页面层注入) */
 function operateSlotColumn(): TableColumnList[number] {
   return {
@@ -41,7 +44,7 @@ export function useLogPage(tab: LogTab) {
   // 操作日志类型筛选项:过滤掉 0-未知/1-登录/2-登出,仅保留操作日志类型范围
   const logTypeOptions = computed(() =>
     logTypeDictOptions.value
-      .filter(item => Number(item.dictValue) >= 3)
+      .filter(item => Number(item.dictValue) >= MIN_OPERATION_LOG_DICT_VALUE)
       .map(item => ({ value: Number(item.dictValue), label: item.dictLabel }))
   );
 

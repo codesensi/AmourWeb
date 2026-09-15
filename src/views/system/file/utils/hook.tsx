@@ -236,12 +236,23 @@ export function useFilePage(mode: FilePageMode = "active") {
   }
   /** 下载文件:二进制流原样透传,按原始文件名触发另存为 */
   async function handleDownload(row: FileItem) {
-    const res = await downloadFile(row.id);
-    // 异常以 JSON 形式返回时降级为文本读取后提示(响应契约对齐 ApiResult)
+    let res: Blob;
+    try {
+      res = await downloadFile(row.id);
+    } catch {
+      // 网络层失败(失败提示由拦截器统一弹出):静默返回
+      return;
+    }
+    // 异常以 JSON 形式返回时降级为文本读取后提示(响应契约对齐 ApiResult);
+    // 非 JSON 的错误页(如网关 HTML 错误页)按通用文案提示,不让 JSON.parse 抛异常
     if (res instanceof Blob && res.type.includes("application/json")) {
       const text = await res.text();
-      const result = JSON.parse(text) as ApiResult;
-      message(result.msg || "下载失败", { type: "error" });
+      try {
+        const result = JSON.parse(text) as ApiResult;
+        message(result.msg || "下载失败", { type: "error" });
+      } catch {
+        message("下载失败", { type: "error" });
+      }
       return;
     }
     const url = URL.createObjectURL(res);

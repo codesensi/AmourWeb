@@ -51,14 +51,19 @@ export function useDictPage() {
   /** 拉取左侧类型列表;原选中项失效时回退到第一项 */
   async function loadTypes() {
     typeLoading.value = true;
-    const { success, data } = await getDictTypeList();
-    if (success) {
-      types.value = data;
-      if (!data.some(item => item.dictCode === selectedCode.value)) {
-        selectedCode.value = data[0]?.dictCode ?? "";
+    try {
+      const { success, data } = await getDictTypeList();
+      if (success) {
+        types.value = data;
+        if (!data.some(item => item.dictCode === selectedCode.value)) {
+          selectedCode.value = data[0]?.dictCode ?? "";
+        }
       }
+    } catch {
+      // 拉取失败(失败提示由拦截器统一弹出):保持现有列表
+    } finally {
+      typeLoading.value = false;
     }
-    typeLoading.value = false;
   }
 
   /** 切换左侧选中类型:重置右侧搜索并重新加载数据 */
