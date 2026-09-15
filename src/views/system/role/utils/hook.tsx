@@ -1,18 +1,21 @@
 import dayjs from "dayjs";
 import editForm from "../form.vue";
 import { handleTree } from "@/utils/tree";
-import { confirmAction, emphasize, message } from "@/utils/message";
-import { hasPerms } from "@/utils/auth";
+import { emphasize, message } from "@/utils/message";
+import { getKeyList } from "@pureadmin/utils";
 import {
+  openFormDialog,
+  useBatchDelete,
   useBuiltinTag,
   usePageQuery,
   usePublicHooks,
+  useStatusColumn,
   useStatusSwitch
 } from "../../hooks";
 import { addDialog } from "@/components/ReDialog";
 import type { FormItemProps } from "../utils/types";
 import type { SysRoleItem } from "@/api/system";
-import { getKeyList, deviceDetection } from "@pureadmin/utils";
+import { deviceDetection } from "@pureadmin/utils";
 import { useDict } from "@/hooks/useDict";
 import { DICT_CODES } from "@/api/dict";
 import {
@@ -35,7 +38,6 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
   });
   const curRow = ref();
   const formRef = ref();
-  const selectedNum = ref(0);
   const treeIds = ref<string[]>([]);
   const treeData = ref([]);
   const isShow = ref(false);
@@ -74,6 +76,27 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
     successText: row =>
       h("span", [`已${enableLabelOf(row.status)}`, emphasize(row.name), "角色"])
   });
+  // 状态开关列统一渲染(内置行禁用启停 + 权限门控,加载态来自 useStatusSwitch)
+  const statusColumn = useStatusColumn<Required<SysRoleItem>>({
+    perms: "system:role:update",
+    switchLoadMap,
+    onChange
+  });
+  // 删除/批量删除/多选三件套(确认弹窗、成功提示与刷新联动由骨架统一)
+  const {
+    selectedNum,
+    handleDelete,
+    onbatchDel,
+    handleSelectionChange,
+    onSelectionCancel
+  } = useBatchDelete<SysRoleItem>({
+    tableRef,
+    remove: deleteRole,
+    nameOf: row => row.name,
+    entity: "角色",
+    unit: "个",
+    afterDeleted: () => search()
+  });
   // 「是否内置」列统一渲染(字典 yes 驱动)
   const builtinTagCell = useBuiltinTag();
   const columns: TableColumnList = [
@@ -95,22 +118,7 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
     },
     {
       label: "状态",
-      cellRenderer: scope => (
-        <el-switch
-          size={scope.props.size === "small" ? "small" : "default"}
-          loading={switchLoadMap.value[scope.row.id]?.loading}
-          v-model={scope.row.status}
-          active-value={0}
-          inactive-value={1}
-          active-text={enableLabelOf(0)}
-          inactive-text={enableLabelOf(1)}
-          /** 内置角色禁用启停;无修改权限时同步禁用,与操作列门控对齐 */
-          disabled={scope.row.builtin === 1 || !hasPerms("system:role:update")}
-          inline-prompt
-          style={switchStyle.value}
-          onChange={() => onChange(scope.row)}
-        />
-      ),
+      cellRenderer: statusColumn,
       minWidth: 90
     },
     {
@@ -139,139 +147,47 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
     }
   ];
 
-  async function handleDelete(row: SysRoleItem) {
-    // 确认弹窗与用户管理风格一致;角色名样式加粗 + 主题主色
-    const confirmed = await confirmAction(
-      h("span", ["确认要删除", emphasize(row.name), "角色吗?"])
-    );
-    if (!confirmed) return;
-    try {
-      await deleteRole(row.id);
-    } catch {
-      // 删除失败(失败提示由拦截器统一弹出):静默返回
-      return;
-    }
-    message(h("span", ["成功删除", emphasize(row.name), "角色"]), {
-      type: "success"
-    });
-    search();
-  }
-
-  /** 批量删除(复用删除接口,ID 逗号拼接,后端整批校验) */
-  async function onbatchDel() {
-    // 返回当前选中的行(selectable 已禁用内置角色勾选,选中项不会包含内置角色)
-    const curSelected = tableRef.value.getTableRef().getSelectionRows();
-    const ids = getKeyList(curSelected, "id");
-    const names = getKeyList(curSelected, "name");
-    // 超过 3 个折叠展示,避免弹窗内容过长
-    const displayNames =
-      names.length > 3
-        ? `${names.slice(0, 3).join("、")} 等 ${names.length} 个`
-        : names.join("、");
-    // 确认弹窗与单条删除/状态开关风格一致;角色名加粗 + 主题主色
-    const confirmed = await confirmAction(
-      h("span", ["确认要删除", emphasize(displayNames), "角色吗?"])
-    );
-    if (!confirmed) return;
-    try {
-      await deleteRole(ids.join(","));
-    } catch {
-      // 删除失败(失败提示由拦截器统一弹出):静默返回
-      return;
-    }
-    message(h("span", ["成功删除", emphasize(displayNames), "角色"]), {
-      type: "success"
-    });
-    tableRef.value.getTableRef().clearSelection();
-    search();
-  }
-
-  /** 当CheckBox选择项发生变化时会触发该事件 */
-  function handleSelectionChange(val: SysRoleItem[]) {
-    selectedNum.value = val.length;
-    // 重置表格高度
-    tableRef.value.setAdaptive();
-  }
-
-  /** 取消选择 */
-  function onSelectionCancel() {
-    selectedNum.value = 0;
-    // 用于多选表格，清空用户的选择
-    tableRef.value.getTableRef().clearSelection();
-  }
-
   function openDialog(title = "新增", row?: FormItemProps) {
-    addDialog({
+    openFormDialog({
       title: `${title}角色`,
-      props: {
-        formInline: {
-          title,
-          name: row?.name ?? "",
-          code: row?.code ?? "",
-          sort: row?.sort ?? 1,
-          remark: row?.remark ?? ""
-        }
+      editForm,
+      formRef,
+      formInline: {
+        title,
+        name: row?.name ?? "",
+        code: row?.code ?? "",
+        sort: row?.sort ?? 1,
+        remark: row?.remark ?? ""
       },
       width: "40%",
-      draggable: true,
-      fullscreen: deviceDetection(),
-      fullscreenIcon: true,
-      closeOnClickModal: false,
-      // 开启确定按钮提交加载态,防止异步提交期间连点重复提交
-      sureBtnLoading: true,
-      // formInline 实际取值由 ReDialog 的 options.props 注入,此处仅占位
-      contentRenderer: () =>
-        h(editForm, {
-          ref: formRef,
-          formInline: null as unknown as FormItemProps
-        }),
-      beforeSure: (done, { options, closeLoading }) => {
-        const FormRef = formRef.value.getRef();
-        const curData = options.props.formInline as FormItemProps;
-        function chores() {
-          // 提示风格与用户管理统一(角色名样式加粗 + 主题主色)
-          message(
-            h("span", [
-              `${title === "新增" ? "成功新增" : "成功修改"}`,
-              h(
-                "strong",
-                { style: "color: var(--el-color-primary)" },
-                curData.name
-              ),
-              "角色"
-            ]),
-            { type: "success" }
-          );
-          closeLoading(); // 复位确定按钮加载态(弹窗即将关闭)
-          done(); // 关闭弹框
-          search(); // 刷新表格数据
+      submit: async curData => {
+        // 表单规则校验通过
+        if (title === "新增") {
+          await insertRole(curData);
+        } else {
+          // 角色编码创建后不可修改,仅提交名称/排序/备注(对齐后端 RoleUpdateRequest)
+          await updateRole({
+            // 修改分支由既有行打开,row 与其 id 必然存在
+            id: row!.id!,
+            name: curData.name,
+            sort: curData.sort,
+            remark: curData.remark
+          });
         }
-        FormRef.validate(async (valid: boolean) => {
-          if (!valid) {
-            // 校验未通过:复位确定按钮加载态
-            closeLoading();
-            return;
-          }
-          try {
-            // 表单规则校验通过
-            if (title === "新增") {
-              await insertRole(curData);
-            } else {
-              // 角色编码创建后不可修改,仅提交名称/排序/备注(对齐后端 RoleUpdateRequest)
-              await updateRole({
-                // 修改分支由既有行打开,row 与其 id 必然存在
-                id: row!.id!,
-                name: curData.name,
-                sort: curData.sort,
-                remark: curData.remark
-              });
-            }
-            chores();
-          } catch {
-            // 提交失败(失败提示由拦截器统一弹出):复位加载态,弹窗保持打开
-            closeLoading();
-          }
-        });
+        // 提示风格与用户管理统一(角色名样式加粗 + 主题主色)
+        message(
+          h("span", [
+            `${title === "新增" ? "成功新增" : "成功修改"}`,
+            h(
+              "strong",
+              { style: "color: var(--el-color-primary)" },
+              curData.name
+            ),
+            "角色"
+          ]),
+          { type: "success" }
+        );
+        search(); // 刷新表格数据
       }
     });
   }

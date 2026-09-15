@@ -3,17 +3,19 @@ import dayjs from "dayjs";
 import roleForm from "../form/role.vue";
 import editForm from "../form/index.vue";
 import { confirmAction, emphasize, message } from "@/utils/message";
-import { hasPerms } from "@/utils/auth";
 import { DictTag } from "@/components/DictTag";
 import {
+  openFormDialog,
+  useBatchDelete,
   useBuiltinTag,
   usePageQuery,
   usePublicHooks,
+  useStatusColumn,
   useStatusSwitch
 } from "../../hooks";
 import { addDialog } from "@/components/ReDialog";
 import type { FormItemProps, RoleFormItemProps } from "../utils/types";
-import { getKeyList, deviceDetection } from "@pureadmin/utils";
+import { deviceDetection } from "@pureadmin/utils";
 import type { SysRoleOption, SysUserItem } from "@/api/system";
 import { useDict } from "@/hooks/useDict";
 import { DICT_CODES } from "@/api/dict";
@@ -43,7 +45,6 @@ export function useUser(tableRef: Ref) {
   const { switchStyle } = usePublicHooks();
   // 启停状态字典:开关文案与确认弹窗统一由 sys_dict(enable) 驱动
   const { labelOf: enableLabelOf } = useDict(DICT_CODES.enable);
-  const selectedNum = ref(0);
   // 分页查询公共骨架:分页状态 + 结果列表 + 加载态 + 序号守卫搜索 + 分页事件写回 + 表单重置
   const {
     pagination,
@@ -70,6 +71,27 @@ export function useUser(tableRef: Ref) {
         emphasize(row.username),
         "用户"
       ])
+  });
+  // 状态开关列统一渲染(内置行禁用启停 + 权限门控,加载态来自 useStatusSwitch)
+  const statusColumn = useStatusColumn<Required<SysUserItem>>({
+    perms: "system:user:update",
+    switchLoadMap,
+    onChange
+  });
+  // 删除/批量删除/多选三件套(确认弹窗、成功提示与刷新联动由骨架统一)
+  const {
+    selectedNum,
+    handleDelete,
+    onbatchDel,
+    handleSelectionChange,
+    onSelectionCancel
+  } = useBatchDelete<SysUserItem>({
+    tableRef,
+    remove: deleteUser,
+    nameOf: row => row.username,
+    entity: "用户",
+    unit: "位",
+    afterDeleted: () => search()
   });
   // 「是否内置」列统一渲染(字典 yes 驱动)
   const builtinTagCell = useBuiltinTag();
@@ -142,22 +164,7 @@ export function useUser(tableRef: Ref) {
       label: "状态",
       prop: "status",
       minWidth: 90,
-      cellRenderer: scope => (
-        <el-switch
-          size={scope.props.size === "small" ? "small" : "default"}
-          loading={switchLoadMap.value[scope.row.id]?.loading}
-          v-model={scope.row.status}
-          active-value={0}
-          inactive-value={1}
-          active-text={enableLabelOf(0)}
-          inactive-text={enableLabelOf(1)}
-          /** 内置账号禁用启停;无修改权限时同步禁用,与操作列门控对齐 */
-          disabled={scope.row.builtin === 1 || !hasPerms("system:user:update")}
-          inline-prompt
-          style={switchStyle.value}
-          onChange={() => onChange(scope.row)}
-        />
-      )
+      cellRenderer: statusColumn
     },
     {
       label: "是否内置",
@@ -190,163 +197,54 @@ export function useUser(tableRef: Ref) {
   });
   const roleOptions = ref<SysRoleOption[]>([]);
 
-  async function handleDelete(row: SysUserItem) {
-    // 确认弹窗与状态开关/修改新增弹窗风格一致;用户名样式加粗 + 主题主色
-    const confirmed = await confirmAction(
-      h("span", ["确认要删除", emphasize(row.username), "用户吗?"])
-    );
-    if (!confirmed) return;
-    try {
-      await deleteUser(row.id);
-    } catch {
-      // 删除失败(失败提示由拦截器统一弹出):静默返回
-      return;
-    }
-    message(h("span", ["成功删除", emphasize(row.username), "用户"]), {
-      type: "success"
-    });
-    search();
-  }
-
-  /** 当CheckBox选择项发生变化时会触发该事件 */
-  function handleSelectionChange(val: SysUserItem[]) {
-    selectedNum.value = val.length;
-    // 重置表格高度
-    tableRef.value.setAdaptive();
-  }
-
-  /** 取消选择 */
-  function onSelectionCancel() {
-    selectedNum.value = 0;
-    // 用于多选表格，清空用户的选择
-    tableRef.value.getTableRef().clearSelection();
-  }
-
-  /** 批量删除(复用删除接口,ID 逗号拼接,后端整批校验) */
-  async function onbatchDel() {
-    // 返回当前选中的行(selectable 已禁用内置用户勾选,选中项不会包含内置用户)
-    const curSelected = tableRef.value.getTableRef().getSelectionRows();
-    const ids = getKeyList(curSelected, "id");
-    const names = getKeyList(curSelected, "username");
-    // 超过 3 个折叠展示,避免弹窗内容过长
-    const displayNames =
-      names.length > 3
-        ? `${names.slice(0, 3).join("、")} 等 ${names.length} 位`
-        : names.join("、");
-    // 确认弹窗与单条删除/状态开关风格一致;用户名加粗 + 主题主色
-    const confirmed = await confirmAction(
-      h("span", ["确认要删除", emphasize(displayNames), "用户吗?"])
-    );
-    if (!confirmed) return;
-    try {
-      await deleteUser(ids.join(","));
-    } catch {
-      // 删除失败(失败提示由拦截器统一弹出):静默返回
-      return;
-    }
-    message(h("span", ["成功删除", emphasize(displayNames), "用户"]), {
-      type: "success"
-    });
-    tableRef.value.getTableRef().clearSelection();
-    search();
-  }
-
   function openDialog(title = "新增", row?: FormItemProps) {
-    addDialog({
+    openFormDialog({
       title: `${title}用户`,
-      props: {
-        formInline: {
-          title,
-          id: row?.id ?? "",
-          nickname: row?.nickname ?? "",
-          username: row?.username ?? "",
-          avatar: row?.avatar ?? "",
-          qq: row?.qq ?? "",
-          email: row?.email ?? "",
-          gender: row?.gender || "U",
-          status: row?.status ?? 0,
-          remark: row?.remark ?? ""
-        }
+      editForm,
+      formRef,
+      formInline: {
+        title,
+        id: row?.id ?? "",
+        nickname: row?.nickname ?? "",
+        username: row?.username ?? "",
+        avatar: row?.avatar ?? "",
+        qq: row?.qq ?? "",
+        email: row?.email ?? "",
+        gender: row?.gender || "U",
+        status: row?.status ?? 0,
+        remark: row?.remark ?? ""
       },
-      width: "46%",
-      draggable: true,
-      fullscreen: deviceDetection(),
-      fullscreenIcon: true,
-      closeOnClickModal: false,
-      // 开启确定按钮提交加载态,防止异步提交期间连点重复提交
-      sureBtnLoading: true,
-      // formInline 实际取值由 ReDialog 的 options.props 注入,此处仅占位
-      contentRenderer: () =>
-        h(editForm, {
-          ref: formRef,
-          formInline: null as unknown as FormItemProps
-        }),
-      beforeSure: (done, { options, closeLoading }) => {
-        const FormRef = formRef.value.getRef();
-        const curData = options.props.formInline as FormItemProps;
-        function chores() {
-          if (title === "修改") {
-            // 用户名样式与状态开关确认弹窗对齐(加粗 + 主题主色)
-            message(
-              h("span", [
-                "成功修改",
-                h(
-                  "strong",
-                  { style: "color: var(--el-color-primary)" },
-                  curData.username
-                ),
-                "用户信息"
-              ]),
-              { type: "success" }
-            );
-          } else {
-            // 用户名样式与状态开关确认弹窗对齐(加粗 + 主题主色)
-            message(
-              h("span", [
-                "成功新增",
-                h(
-                  "strong",
-                  { style: "color: var(--el-color-primary)" },
-                  curData.username
-                ),
-                "用户"
-              ]),
-              { type: "success" }
-            );
-          }
-          closeLoading(); // 复位确定按钮加载态(弹窗即将关闭)
-          done(); // 关闭弹框
-          search(); // 刷新表格数据
+      submit: async curData => {
+        // 表单规则校验通过
+        if (title === "新增") {
+          await insertUser(curData);
+        } else {
+          // 修改:仅提交后端 UserUpdateRequest 接收的资料字段(id 定位,用户名/状态禁改)
+          await updateUser({
+            // 修改分支由既有行打开,id 必然存在
+            id: curData.id!,
+            nickname: curData.nickname,
+            avatar: curData.avatar,
+            qq: curData.qq,
+            email: curData.email,
+            gender: curData.gender,
+            remark: curData.remark
+          });
         }
-        FormRef.validate(async (valid: boolean) => {
-          if (!valid) {
-            // 校验未通过:复位确定按钮加载态
-            closeLoading();
-            return;
-          }
-          try {
-            // 表单规则校验通过
-            if (title === "新增") {
-              await insertUser(curData);
-            } else {
-              // 修改:仅提交后端 UserUpdateRequest 接收的资料字段(id 定位,用户名/状态禁改)
-              await updateUser({
-                // 修改分支由既有行打开,id 必然存在
-                id: curData.id!,
-                nickname: curData.nickname,
-                avatar: curData.avatar,
-                qq: curData.qq,
-                email: curData.email,
-                gender: curData.gender,
-                remark: curData.remark
-              });
-            }
-            chores();
-          } catch {
-            // 提交失败(失败提示由拦截器统一弹出):复位加载态,弹窗保持打开
-            closeLoading();
-          }
-        });
+        // 成功提示:用户名样式与状态开关确认弹窗对齐(加粗 + 主题主色)
+        message(
+          h("span", [
+            `成功${title}`,
+            h(
+              "strong",
+              { style: "color: var(--el-color-primary)" },
+              curData.username
+            ),
+            title === "新增" ? "用户" : "用户信息"
+          ]),
+          { type: "success" }
+        );
+        search(); // 刷新表格数据
       }
     });
   }

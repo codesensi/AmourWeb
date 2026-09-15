@@ -1,11 +1,10 @@
 <script setup lang="ts">
 // 修改用户名卡片:用户名为登录凭证,保存成功后退出登录,需使用新用户名重新登录
 import { computed, reactive, ref } from "vue";
-import { message } from "@/utils/message";
+import { confirmAction, message } from "@/utils/message";
 import { useUserStoreHook } from "@/store/modules/user";
 import type { FormInstance, FormRules } from "element-plus";
 import { renameUser } from "@/api/profile";
-import { confirmRelogin } from "../utils/hook";
 import editPenIcon from "~icons/ep/edit-pen";
 
 const props = defineProps<{
@@ -31,7 +30,7 @@ const nameDirty = computed(
 async function saveName() {
   await nameFormRef.value?.validate();
   if (
-    !(await confirmRelogin(
+    !(await confirmAction(
       "修改用户名后将退出登录,需使用新用户名重新登录,是否继续?"
     ))
   ) {

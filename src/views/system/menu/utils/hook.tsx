@@ -2,8 +2,14 @@ import editForm from "../form.vue";
 import dayjs from "dayjs";
 import { handleTree } from "@/utils/tree";
 import { confirmAction, emphasize, message } from "@/utils/message";
-import { useBuiltinTag, useStatusSwitch, usePublicHooks } from "../../hooks";
-import { hasPerms } from "@/utils/auth";
+import {
+  openFormDialog,
+  useBuiltinTag,
+  useFormReset,
+  useStatusColumn,
+  useStatusSwitch,
+  usePublicHooks
+} from "../../hooks";
 import {
   deleteMenu,
   getMenuList,
@@ -12,15 +18,13 @@ import {
   changeMenuStatus
 } from "@/api/system";
 import type { MenuUpsertRequest } from "@/api/system";
-import { addDialog } from "@/components/ReDialog";
 import type { FormItemProps } from "../utils/types";
 import type { MenuItem } from "@/api/user";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { useDict } from "@/hooks/useDict";
 import { DICT_CODES } from "@/api/dict";
 import { reactive, ref, onMounted, h } from "vue";
-import type { FormInstance } from "element-plus";
-import { cloneDeep, isAllEmpty, deviceDetection } from "@pureadmin/utils";
+import { cloneDeep, isAllEmpty } from "@pureadmin/utils";
 
 /** 树形菜单节点:MenuItem 组树后携带 children(handleTree 输出形状) */
 type MenuTreeItem = MenuItem & { children?: MenuTreeItem[] };
@@ -64,6 +68,12 @@ export function useMenu() {
         emphasize(row.title),
         "菜单"
       ])
+  });
+  // 状态开关列统一渲染(内置行禁用启停 + 权限门控,加载态来自 useStatusSwitch)
+  const statusColumn = useStatusColumn<MenuItem>({
+    perms: "system:menu:update",
+    switchLoadMap,
+    onChange
   });
   // 「是否内置」列统一渲染(字典 yes 驱动)
   const builtinTagCell = useBuiltinTag();
@@ -136,22 +146,7 @@ export function useMenu() {
       label: "状态",
       prop: "status",
       width: 100,
-      cellRenderer: scope => (
-        <el-switch
-          size={scope.props.size === "small" ? "small" : "default"}
-          loading={switchLoadMap.value[scope.row.id]?.loading}
-          v-model={scope.row.status}
-          active-value={0}
-          inactive-value={1}
-          active-text={enableLabelOf(0)}
-          inactive-text={enableLabelOf(1)}
-          /** 内置菜单禁用启停;无修改权限时同步禁用,与操作列门控对齐 */
-          disabled={scope.row.builtin === 1 || !hasPerms("system:menu:update")}
-          inline-prompt
-          style={switchStyle.value}
-          onChange={() => onChange(scope.row)}
-        />
-      )
+      cellRenderer: statusColumn
     },
     {
       label: "隐藏",
@@ -184,11 +179,8 @@ export function useMenu() {
     }
   ];
 
-  function resetForm(formEl: FormInstance) {
-    if (!formEl) return;
-    formEl.resetFields();
-    onSearch();
-  }
+  // 搜索表单重置复用公共骨架(清空校验与表单项后按当前条件重查)
+  const resetForm = useFormReset(onSearch);
 
   /** 按搜索条件过滤扁平菜单数据;命中项沿 pid 保留祖先链,避免树形层级断裂 */
   function filterMenus(flat: MenuItem[]) {
@@ -275,72 +267,39 @@ export function useMenu() {
     const higherMenuOptions = row?.id
       ? excludeSubTree(fullTree.value, row.id)
       : fullTree.value;
-    addDialog({
+    openFormDialog({
       title: `${title}菜单`,
-      props: {
-        formInline: {
-          id: row?.id,
-          builtin: row?.builtin ?? 0,
-          type: row?.type ?? "D",
-          higherMenuOptions: higherMenuOptions,
-          pid: row?.pid ?? "0",
-          title: row?.title ?? "",
-          path: row?.path ?? "",
-          component: row?.component ?? "",
-          sort: row?.sort ?? 0,
-          icon: row?.icon ?? "",
-          perms: row?.perms ?? "",
-          status: row?.status ?? 0,
-          hidden: row?.hidden ?? 0,
-          remark: row?.remark ?? ""
-        }
+      editForm,
+      formRef,
+      formInline: {
+        id: row?.id,
+        builtin: row?.builtin ?? 0,
+        type: row?.type ?? "D",
+        higherMenuOptions: higherMenuOptions,
+        pid: row?.pid ?? "0",
+        title: row?.title ?? "",
+        path: row?.path ?? "",
+        component: row?.component ?? "",
+        sort: row?.sort ?? 0,
+        icon: row?.icon ?? "",
+        perms: row?.perms ?? "",
+        status: row?.status ?? 0,
+        hidden: row?.hidden ?? 0,
+        remark: row?.remark ?? ""
       },
       width: "45%",
-      draggable: true,
-      fullscreen: deviceDetection(),
-      fullscreenIcon: true,
-      closeOnClickModal: false,
-      // 开启确定按钮提交加载态,防止异步提交期间连点重复提交
-      sureBtnLoading: true,
-      // formInline 实际取值由 ReDialog 的 options.props 注入,此处仅占位
-      contentRenderer: () =>
-        h(editForm, {
-          ref: formRef,
-          formInline: null as unknown as FormItemProps
-        }),
-      beforeSure: (done, { options, closeLoading }) => {
-        const FormRef = formRef.value.getRef();
-        const curData = options.props.formInline as FormItemProps;
-        function chores() {
-          message(`您${title}了菜单名称为${curData.title}的这条数据`, {
-            type: "success"
-          });
-          closeLoading(); // 复位确定按钮加载态(弹窗即将关闭)
-          done(); // 关闭弹框
-          onSearch(); // 刷新表格数据
+      submit: async curData => {
+        // higherMenuOptions 为 UI 数据,不提交后端
+        const { higherMenuOptions: _higherMenuOptions, ...menuData } = curData;
+        if (title === "新增") {
+          await insertMenu(menuData as MenuUpsertRequest);
+        } else {
+          await updateMenu(menuData as MenuUpsertRequest);
         }
-        FormRef.validate(async (valid: boolean) => {
-          if (!valid) {
-            // 校验未通过:复位确定按钮加载态
-            closeLoading();
-            return;
-          }
-          try {
-            // 表单规则校验通过
-            // higherMenuOptions 为 UI 数据,不提交后端
-            const { higherMenuOptions: _higherMenuOptions, ...menuData } =
-              curData;
-            if (title === "新增") {
-              await insertMenu(menuData as MenuUpsertRequest);
-            } else {
-              await updateMenu(menuData as MenuUpsertRequest);
-            }
-            chores();
-          } catch {
-            // 提交失败(失败提示由拦截器统一弹出):复位加载态,弹窗保持打开
-            closeLoading();
-          }
+        message(`您${title}了菜单名称为${curData.title}的这条数据`, {
+          type: "success"
         });
+        onSearch(); // 刷新表格数据
       }
     });
   }

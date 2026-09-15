@@ -5,17 +5,21 @@ import {
   onMounted,
   reactive,
   ref,
+  type Component,
   type Ref,
   type VNode
 } from "vue";
 import { useDark } from "@pureadmin/utils";
-import { ElTag } from "element-plus";
+import { ElSwitch, ElTag } from "element-plus";
 import type { PaginationProps, TableColumnRenderer } from "@pureadmin/table";
 import type { FormInstance } from "element-plus";
 import type { ApiResult, PageQuery, PageResult } from "@/api/types";
 import { DICT_CODES } from "@/api/dict";
 import { useDict } from "@/hooks/useDict";
-import { confirmAction, message } from "@/utils/message";
+import { hasPerms } from "@/utils/auth";
+import { addDialog } from "@/components/ReDialog";
+import { deviceDetection } from "@pureadmin/utils";
+import { confirmAction, emphasize, message } from "@/utils/message";
 
 export function usePublicHooks() {
   const { isDark } = useDark();
@@ -118,12 +122,8 @@ export function usePageQuery<T>(
     search();
   }
 
-  /** 搜索表单重置:清空校验与表单项后重新查询 */
-  function resetForm(formEl: FormInstance | undefined) {
-    if (!formEl) return;
-    formEl.resetFields();
-    search();
-  }
+  /** 搜索表单重置:清空校验与表单项后重新查询(独立导出为 useFormReset 供非分页页复用) */
+  const resetForm = useFormReset(search);
 
   return {
     pagination,
@@ -134,6 +134,226 @@ export function usePageQuery<T>(
     handleCurrentChange,
     resetForm
   };
+}
+
+/** 搜索表单重置骨架:清空校验与表单项后执行回调重查(非分页页如菜单管理也复用) */
+export function useFormReset(refetch: () => void) {
+  return (formEl: FormInstance | undefined) => {
+    if (!formEl) return;
+    formEl.resetFields();
+    refetch();
+  };
+}
+
+/** 批量展示名折叠:超过 3 个折叠为首 3 项 + 总数,避免确认弹窗内容过长 */
+export function collapseNames(names: string[], unit: string): string {
+  return names.length > 3
+    ? `${names.slice(0, 3).join("、")} 等 ${names.length} ${unit}`
+    : names.join("、");
+}
+
+/**
+ * 状态开关列 cellRenderer —— 收敛用户/角色/菜单/字典四页同构的开关列渲染。
+ * 开关文案由 sys_dict(enable) 驱动;内置行禁用启停,无权限时与操作列门控对齐同步禁用。
+ *
+ * @param options.perms 状态修改权限码(无权限时开关禁用)
+ * @param options.switchLoadMap 各行开关提交加载态(来自 useStatusSwitch)
+ * @param options.onChange 开关切换回调(来自 useStatusSwitch 的 onChange)
+ */
+export function useStatusColumn<
+  /** 行数据类型:各页列表行,公共骨架仅依赖 id/status/builtin 字段 */
+  T extends { id: string; status: number; builtin: number }
+>(options: {
+  perms: string;
+  switchLoadMap: Ref<Record<string, { loading: boolean }>>;
+  onChange: (row: T) => void;
+}) {
+  const { switchStyle } = usePublicHooks();
+  const { labelOf: enableLabelOf } = useDict(DICT_CODES.enable);
+  return (data: TableColumnRenderer) =>
+    h(ElSwitch, {
+      size: data.props.size === "small" ? "small" : "default",
+      loading: options.switchLoadMap.value[data.row.id]?.loading,
+      modelValue: data.row.status,
+      "onUpdate:modelValue": (value: number) => {
+        data.row.status = value;
+      },
+      activeValue: 0,
+      inactiveValue: 1,
+      activeText: enableLabelOf(0),
+      inactiveText: enableLabelOf(1),
+      disabled: data.row.builtin === 1 || !hasPerms(options.perms),
+      inlinePrompt: true,
+      style: switchStyle.value,
+      onChange: () => options.onChange(data.row)
+    });
+}
+
+/**
+ * 删除/批量删除/多选三件套公共骨架 —— 收敛用户/角色/字典三页同构的删除交互。
+ * <p>
+ * 职责:单条删除与批量删除(复用删除接口,ID 逗号拼接)的确认弹窗、提交、
+ * 成功提示、多选状态(selectedNum)与取消选择处理;批量展示名超 3 个自动折叠。
+ *
+ * @param options.remove 删除接口(单条传 id,批量传逗号拼接)
+ * @param options.nameOf 行展示名(确认/成功文案中加粗,批量折叠展示)
+ * @param options.entity 实体名(用户/角色/字典条目)
+ * @param options.unit 批量折叠计数单位(位/个/条)
+ * @param options.afterDeleted 删除成功后的附加联动(如字典页刷新消费端缓存与类型计数),缺省无
+ * @param options.resetAdaptive 多选变化时是否重置表格高度(无多选横幅高度的页传 false)
+ */
+export function useBatchDelete<
+  /** 行数据类型:各页列表行,公共骨架仅依赖 id 字段 */
+  T extends { id: string }
+>(options: {
+  tableRef: Ref<any>;
+  remove: (ids: string) => Promise<unknown>;
+  nameOf: (row: T) => string;
+  entity: string;
+  unit: string;
+  afterDeleted?: (rows: T[]) => unknown;
+  resetAdaptive?: boolean;
+}) {
+  const selectedNum = ref(0);
+
+  /** 当CheckBox选择项发生变化时会触发该事件 */
+  function handleSelectionChange(val: T[]) {
+    selectedNum.value = val.length;
+    // 重置表格高度
+    if (options.resetAdaptive !== false) {
+      options.tableRef.value.setAdaptive();
+    }
+  }
+
+  /** 取消选择 */
+  function onSelectionCancel() {
+    selectedNum.value = 0;
+    // 用于多选表格，清空用户的选择
+    options.tableRef.value.getTableRef().clearSelection();
+  }
+
+  /** 单条删除:确认 → 提交 → 提示 → 附加联动 → 刷新 */
+  async function handleDelete(row: T) {
+    // 确认弹窗与状态开关/修改新增弹窗风格一致;实体名样式加粗 + 主题主色
+    const confirmed = await confirmAction(
+      h("span", [
+        "确认要删除",
+        emphasize(options.nameOf(row)),
+        `${options.entity}吗?`
+      ])
+    );
+    if (!confirmed) return;
+    try {
+      await options.remove(row.id);
+    } catch {
+      // 删除失败(失败提示由拦截器统一弹出):静默返回
+      return;
+    }
+    message(
+      h("span", ["成功删除", emphasize(options.nameOf(row)), options.entity]),
+      { type: "success" }
+    );
+    await options.afterDeleted?.([row]);
+  }
+
+  /** 批量删除(复用删除接口,ID 逗号拼接,后端整批校验) */
+  async function onbatchDel() {
+    // 返回当前选中的行(selectable 已禁用内置行勾选,选中项不会包含内置数据)
+    const curSelected: T[] = options.tableRef.value
+      .getTableRef()
+      .getSelectionRows();
+    const ids = curSelected.map(row => row.id);
+    const displayNames = collapseNames(
+      curSelected.map(options.nameOf),
+      options.unit
+    );
+    // 确认弹窗与单条删除/状态开关风格一致;展示名加粗 + 主题主色
+    const confirmed = await confirmAction(
+      h("span", ["确认要删除", emphasize(displayNames), `${options.entity}吗?`])
+    );
+    if (!confirmed) return;
+    try {
+      await options.remove(ids.join(","));
+    } catch {
+      // 删除失败(失败提示由拦截器统一弹出):静默返回
+      return;
+    }
+    message(h("span", ["成功删除", emphasize(displayNames), options.entity]), {
+      type: "success"
+    });
+    await options.afterDeleted?.(curSelected);
+    options.tableRef.value.getTableRef().clearSelection();
+  }
+
+  return {
+    selectedNum,
+    handleDelete,
+    onbatchDel,
+    handleSelectionChange,
+    onSelectionCancel
+  };
+}
+
+/**
+ * 新增/修改弹窗公共骨架 —— 收敛系统管理五页同构的表单弹窗:
+ * ReDialog 参数(width 可覆盖/拖拽/全屏/遮罩不关/确定按钮加载态)、
+ * 表单校验 → 提交 → 失败保持打开 → 成功关弹窗的完整桥接。
+ * <p>
+ * 成功提示与列表刷新由调用方在 submit 内组装(各页文案与联动不同),骨架
+ * 只负责弹窗骨架、表单校验、提交加载态与异常处理。
+ *
+ * @param options.editForm 弹窗内容表单组件(formInline 由 ReDialog 的 options.props 注入)
+ * @param options.formRef 表单组件 ref(经 getRef() 取内部 FormInstance)
+ * @param options.formInline 弹窗表单初始值(新增传默认值,修改由既有行回填)
+ * @param options.submit 表单校验通过后的提交回调(调接口 + 成功提示 + 刷新列表);
+ *                       抛出异常时保持弹窗打开(失败提示由 http 拦截器统一弹出)
+ */
+export function openFormDialog<T>(options: {
+  title: string;
+  editForm: Component;
+  formRef: Ref<any>;
+  formInline: T;
+  width?: string;
+  submit: (curData: T) => Promise<void>;
+}) {
+  addDialog({
+    title: options.title,
+    props: {
+      formInline: options.formInline
+    },
+    width: options.width ?? "46%",
+    draggable: true,
+    fullscreen: deviceDetection(),
+    fullscreenIcon: true,
+    closeOnClickModal: false,
+    // 开启确定按钮提交加载态,防止异步提交期间连点重复提交
+    sureBtnLoading: true,
+    // formInline 实际取值由 ReDialog 的 options.props 注入,此处仅占位
+    contentRenderer: () =>
+      h(options.editForm, {
+        ref: options.formRef,
+        formInline: null as unknown as T
+      }),
+    beforeSure: (done, { options: dialogOptions, closeLoading }) => {
+      const FormRef = options.formRef.value.getRef();
+      const curData = dialogOptions.props.formInline as T;
+      FormRef.validate(async (valid: boolean) => {
+        if (!valid) {
+          // 校验未通过:复位确定按钮加载态
+          closeLoading();
+          return;
+        }
+        try {
+          await options.submit(curData);
+          closeLoading(); // 复位确定按钮加载态(弹窗即将关闭)
+          done(); // 关闭弹框
+        } catch {
+          // 提交失败(失败提示由拦截器统一弹出):复位加载态,弹窗保持打开
+          closeLoading();
+        }
+      });
+    }
+  });
 }
 
 /**

@@ -6,7 +6,7 @@ import { useUserStoreHook } from "@/store/modules/user";
 import { ZxcvbnFactory } from "@zxcvbn-ts/core";
 import type { FormInstance } from "element-plus";
 import { updatePassword } from "@/api/profile";
-import { confirmRelogin } from "../utils/hook";
+import { confirmAction } from "@/utils/message";
 import keyIcon from "~icons/ep/key";
 
 const userStore = useUserStoreHook();
@@ -77,7 +77,7 @@ const pwdRules = {
 async function savePassword() {
   await pwdFormRef.value?.validate();
   if (
-    !(await confirmRelogin(
+    !(await confirmAction(
       "修改密码后将退出登录,需使用新密码重新登录,是否继续?"
     ))
   ) {

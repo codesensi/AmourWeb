@@ -1,10 +1,11 @@
-import { confirmAction, emphasize, message } from "@/utils/message";
-import { hasPerms } from "@/utils/auth";
-import { addDialog } from "@/components/ReDialog";
+import { emphasize, message } from "@/utils/message";
 import {
+  openFormDialog,
+  useBatchDelete,
   useBuiltinTag,
   usePageQuery,
   usePublicHooks,
+  useStatusColumn,
   useStatusSwitch
 } from "../../hooks";
 import editForm from "../form.vue";
@@ -20,7 +21,6 @@ import {
 import { useDictStoreHook } from "@/store/modules/dict";
 import { useDict } from "@/hooks/useDict";
 import { DICT_CODES } from "@/api/dict";
-import { deviceDetection, getKeyList } from "@pureadmin/utils";
 import { h, ref, toRaw, reactive, computed, onMounted } from "vue";
 import type { SysDictPageItem, SysDictTypeItem } from "@/api/dict";
 
@@ -78,7 +78,6 @@ export function useDictPage() {
   });
   const formRef = ref();
   const tableRef = ref();
-  const selectedNum = ref(0);
   const { switchStyle } = usePublicHooks();
   // 启停状态字典:开关文案与确认弹窗统一由 sys_dict(enable) 驱动
   const { labelOf: enableLabelOf } = useDict(DICT_CODES.enable);
@@ -122,6 +121,36 @@ export function useDictPage() {
     // 状态影响消费端的 list-by-codes 结果,提交成功后同步刷新字典缓存
     afterSubmit: row => useDictStoreHook().refresh(row.dictCode)
   });
+  // 状态开关列统一渲染(内置行禁用启停 + 权限门控,加载态来自 useStatusSwitch)
+  const statusColumn = useStatusColumn<Required<SysDictPageItem>>({
+    perms: "system:dict:update",
+    switchLoadMap,
+    onChange
+  });
+  // 删除/批量删除/多选三件套(确认弹窗、成功提示与刷新联动由骨架统一)
+  const {
+    selectedNum,
+    handleDelete,
+    onbatchDel,
+    handleSelectionChange,
+    onSelectionCancel
+  } = useBatchDelete<SysDictPageItem>({
+    tableRef,
+    remove: deleteDict,
+    nameOf: row => row.dictLabel,
+    entity: "字典条目",
+    unit: "条",
+    // 删除影响消费端的 list-by-codes 结果,同步刷新涉及编码的字典缓存与左侧类型计数
+    afterDeleted: async rows => {
+      for (const code of new Set(rows.map(item => item.dictCode))) {
+        await useDictStoreHook().refresh(code);
+      }
+      await loadTypes();
+      search();
+    },
+    // 多选横幅不重置表格高度(与原页实现一致)
+    resetAdaptive: false
+  });
   // 「是否内置」列统一渲染(字典 yes 驱动)
   const builtinTagCell = useBuiltinTag();
 
@@ -153,22 +182,7 @@ export function useDictPage() {
       label: "状态",
       prop: "status",
       minWidth: 90,
-      cellRenderer: scope => (
-        <el-switch
-          size={scope.props.size === "small" ? "small" : "default"}
-          loading={switchLoadMap.value[scope.row.id]?.loading}
-          v-model={scope.row.status}
-          active-value={0}
-          inactive-value={1}
-          active-text={enableLabelOf(0)}
-          inactive-text={enableLabelOf(1)}
-          /** 内置条目不允许更改状态;无修改权限时同样禁用,与操作列门控对齐 */
-          disabled={scope.row.builtin === 1 || !hasPerms("system:dict:update")}
-          inline-prompt
-          style={switchStyle.value}
-          onChange={() => onChange(scope.row)}
-        />
-      )
+      cellRenderer: statusColumn
     },
     {
       label: "是否内置",
@@ -194,145 +208,49 @@ export function useDictPage() {
     }
   ];
 
-  /** 当CheckBox选择项发生变化时会触发该事件 */
-  async function handleDelete(row: SysDictPageItem) {
-    // 确认弹窗与状态开关/修改新增弹窗风格一致;字典标签样式加粗 + 主题主色
-    const confirmed = await confirmAction(
-      h("span", ["确认要删除", emphasize(row.dictLabel), "字典条目吗?"])
-    );
-    if (!confirmed) return;
-    try {
-      await deleteDict(row.id);
-    } catch {
-      // 删除失败(失败提示由拦截器统一弹出):静默返回
-      return;
-    }
-    message(h("span", ["成功删除", emphasize(row.dictLabel), "字典条目"]), {
-      type: "success"
-    });
-    await useDictStoreHook().refresh(row.dictCode);
-    await loadTypes();
-    search();
-  }
-
-  /** 当CheckBox选择项发生变化时会触发该事件 */
-  function handleSelectionChange(val: SysDictPageItem[]) {
-    selectedNum.value = val.length;
-  }
-
-  /** 取消选择 */
-  function onSelectionCancel() {
-    selectedNum.value = 0;
-    // 用于多选表格，清空用户的选择
-    tableRef.value.getTableRef().clearSelection();
-  }
-
-  /** 批量删除(复用删除接口,ID 逗号拼接,后端整批校验) */
-  async function onbatchDel() {
-    // 返回当前选中的行(selectable 已禁用内置条目勾选,选中项不会包含内置条目)
-    const curSelected = tableRef.value.getTableRef().getSelectionRows();
-    const ids = getKeyList(curSelected, "id");
-    const names = getKeyList(curSelected, "dictLabel");
-    // 超过 3 个折叠展示,避免弹窗内容过长
-    const displayNames =
-      names.length > 3
-        ? `${names.slice(0, 3).join("、")} 等 ${names.length} 条`
-        : names.join("、");
-    // 确认弹窗与单条删除/状态开关风格一致;字典标签加粗 + 主题主色
-    const confirmed = await confirmAction(
-      h("span", ["确认要删除", emphasize(displayNames), "字典条目吗?"])
-    );
-    if (!confirmed) return;
-    try {
-      await deleteDict(ids.join(","));
-    } catch {
-      // 删除失败(失败提示由拦截器统一弹出):静默返回
-      return;
-    }
-    // 批量删除可能涉及多个编码,统一刷新消费端字典缓存
-    for (const code of new Set(getKeyList(curSelected, "dictCode"))) {
-      await useDictStoreHook().refresh(code);
-    }
-    message(h("span", ["成功删除", emphasize(displayNames), "字典条目"]), {
-      type: "success"
-    });
-    tableRef.value.getTableRef().clearSelection();
-    await loadTypes();
-    search();
-  }
-
   /** 新增/修改弹窗(字典编码固定为当前选中类型) */
   function openDialog(title: string, row?: SysDictPageItem) {
-    addDialog({
+    openFormDialog({
       title: `${title}字典条目`,
-      props: {
-        formInline: {
-          title,
-          id: row?.id,
-          dictCode: selectedCode.value,
-          // 新增时"字典名称"即类型名,预填当前类型中文名,避免填入不一致值改写类型名
-          dictName: row?.dictName ?? selectedName.value,
-          dictValue: row?.dictValue ?? "",
-          dictLabel: row?.dictLabel ?? "",
-          sort: row?.sort ?? 1,
-          status: row?.status ?? 0,
-          builtin: row?.builtin ?? 0,
-          remark: row?.remark ?? ""
-        }
+      editForm,
+      formRef,
+      formInline: {
+        title,
+        id: row?.id,
+        dictCode: selectedCode.value,
+        // 新增时"字典名称"即类型名,预填当前类型中文名,避免填入不一致值改写类型名
+        dictName: row?.dictName ?? selectedName.value,
+        dictValue: row?.dictValue ?? "",
+        dictLabel: row?.dictLabel ?? "",
+        sort: row?.sort ?? 1,
+        status: row?.status ?? 0,
+        builtin: row?.builtin ?? 0,
+        remark: row?.remark ?? ""
       },
-      width: "46%",
-      draggable: true,
-      fullscreen: deviceDetection(),
-      fullscreenIcon: true,
-      closeOnClickModal: false,
-      // 开启确定按钮提交加载态,防止异步提交期间连点重复提交
-      sureBtnLoading: true,
-      // formInline 实际取值由 ReDialog 的 options.props 注入,此处仅占位
-      contentRenderer: () =>
-        h(editForm, {
-          ref: formRef,
-          formInline: null as unknown as FormItemProps
-        }),
-      beforeSure: (done, { options, closeLoading }) => {
-        const FormRef = formRef.value.getRef();
-        const curData = options.props.formInline as FormItemProps;
-        FormRef.validate(async (valid: boolean) => {
-          if (!valid) {
-            // 校验未通过:复位确定按钮加载态
-            closeLoading();
-            return;
-          }
-          try {
-            // 表单规则校验通过
-            if (title === "修改") {
-              // 修改场景针对已有行,id 必然存在(非空断言安全)
-              await updateDict({ ...curData, id: curData.id! });
-            } else {
-              await insertDict(curData);
-            }
-            // 写后联动:刷新消费端字典缓存 + 左侧类型计数 + 右侧表格
-            await useDictStoreHook().refresh(curData.dictCode);
-            await loadTypes();
-            search();
-            message(
-              h("span", [
-                `${title === "新增" ? "成功新增" : "成功修改"}`,
-                h(
-                  "strong",
-                  { style: "color: var(--el-color-primary)" },
-                  curData.dictLabel
-                ),
-                "字典条目"
-              ]),
-              { type: "success" }
-            );
-            closeLoading(); // 复位确定按钮加载态(弹窗即将关闭)
-            done(); // 关闭弹框
-          } catch {
-            // 提交失败(失败提示由拦截器统一弹出):复位加载态,弹窗保持打开
-            closeLoading();
-          }
-        });
+      submit: async curData => {
+        // 表单规则校验通过
+        if (title === "修改") {
+          // 修改场景针对已有行,id 必然存在(非空断言安全)
+          await updateDict({ ...curData, id: curData.id! });
+        } else {
+          await insertDict(curData);
+        }
+        // 写后联动:刷新消费端字典缓存 + 左侧类型计数 + 右侧表格
+        await useDictStoreHook().refresh(curData.dictCode);
+        await loadTypes();
+        search();
+        message(
+          h("span", [
+            `${title === "新增" ? "成功新增" : "成功修改"}`,
+            h(
+              "strong",
+              { style: "color: var(--el-color-primary)" },
+              curData.dictLabel
+            ),
+            "字典条目"
+          ]),
+          { type: "success" }
+        );
       }
     });
   }

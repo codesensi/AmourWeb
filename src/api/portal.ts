@@ -2,6 +2,14 @@ import type { ApiResult, PageQuery, PageResult } from "@/api/types";
 import { http } from "@/utils/http";
 import { omitEmpty } from "@/utils/params";
 
+/** 门户分页接口工厂:统一默认分页参数(每页 6 条,与原站一致),单点维护 */
+const portalPage = <T>(url: string) => {
+  return (params?: PageQuery) =>
+    http.request<ApiResult<PageResult<T>>>("get", url, {
+      params: omitEmpty({ pageNumber: 1, pageSize: 6, ...params })
+    });
+};
+
 /** 点点滴滴-文章项 */
 export type MomentsItem = {
   id: number;
@@ -11,15 +19,7 @@ export type MomentsItem = {
 };
 
 /** 点点滴滴-文章分页(GET /portal/moments,每页 6 条) */
-export const getMoments = (params?: PageQuery) => {
-  return http.request<ApiResult<PageResult<MomentsItem>>>(
-    "get",
-    "/portal/moments",
-    {
-      params: omitEmpty({ pageNumber: 1, pageSize: 6, ...params })
-    }
-  );
-};
+export const getMoments = portalPage<MomentsItem>("/portal/moments");
 
 /** 恋爱相册-照片项 */
 export type LovePhotoItem = {
@@ -32,15 +32,7 @@ export type LovePhotoItem = {
 };
 
 /** 恋爱相册分页(GET /portal/love-photo,每页 6 张) */
-export const getLovePhoto = (params?: PageQuery) => {
-  return http.request<ApiResult<PageResult<LovePhotoItem>>>(
-    "get",
-    "/portal/love-photo",
-    {
-      params: omitEmpty({ pageNumber: 1, pageSize: 6, ...params })
-    }
-  );
-};
+export const getLovePhoto = portalPage<LovePhotoItem>("/portal/love-photo");
 
 /** 恋爱清单-清单项 */
 export type LoveListItem = {
@@ -53,15 +45,7 @@ export type LoveListItem = {
 };
 
 /** 恋爱清单分页(GET /portal/love-list,每页 6 条) */
-export const getLoveList = (params?: PageQuery) => {
-  return http.request<ApiResult<PageResult<LoveListItem>>>(
-    "get",
-    "/portal/love-list",
-    {
-      params: omitEmpty({ pageNumber: 1, pageSize: 6, ...params })
-    }
-  );
-};
+export const getLoveList = portalPage<LoveListItem>("/portal/love-list");
 
 /** 留言-留言项 */
 export type MessageItem = {
@@ -74,13 +58,7 @@ export type MessageItem = {
 };
 
 /** 留言分页(GET /portal/message) */
-export const getMessage = (params?: PageQuery) => {
-  return http.request<ApiResult<PageResult<MessageItem>>>(
-    "get",
-    "/portal/message",
-    { params: omitEmpty({ pageNumber: 1, pageSize: 6, ...params }) }
-  );
-};
+export const getMessage = portalPage<MessageItem>("/portal/message");
 
 /** 提交留言(POST /portal/message,字段 {qq, name, text}) */
 export const sendMessage = (data: {
