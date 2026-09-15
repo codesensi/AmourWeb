@@ -26,27 +26,60 @@ export type SysConfig = {
     : string;
 };
 
+/** 会话级配置缓存(field → 归一化值):同键跨调用点复用,不再重复请求 */
+const configCache = new Map<SysConfigField, unknown>();
+
+/** 进行中的拉取任务(field → Promise):相同字段的并发调用共享同一次请求 */
+const pendingTasks = new Map<SysConfigField, Promise<void>>();
+
 /**
  * 按需拉取站点公共配置并归一化为 camelCase 字段对象。
- * 后端 config 缓存兜底,可放心在多处调用。
+ * 内置会话缓存与并发去重(登录页/门户/管理端布局各自拉取时,同键仅首次发起请求),
+ * 内部吞掉网络异常返回已拿到的部分结果(消费侧均有兜底),可放心在多处调用。
  *
  * @param fields 需要下发的配置字段名
- * @returns 仅含请求字段的归一化数据(键停用/缺失时字段不出现)
+ * @returns 仅含请求字段的归一化数据(键停用/缺失/拉取失败时字段不出现)
  */
 export async function fetchSysConfig<F extends SysConfigField>(
   ...fields: F[]
 ): Promise<Pick<SysConfig, F>> {
-  const res = await getSysConfig(
-    fields.map(field => SYS_CONFIG_KEYS[field].key)
-  );
+  // 缓存已持有的字段直接复用,仅对缺失字段发起请求
+  const missed = fields.filter(field => !configCache.has(field));
+  if (missed.length) {
+    const task = getSysConfig(missed.map(field => SYS_CONFIG_KEYS[field].key))
+      .then(res => {
+        for (const item of res.data ?? []) {
+          const field = missed.find(
+            f => SYS_CONFIG_KEYS[f].key === item.configKey
+          );
+          if (!field || item.configValue == null) continue;
+          configCache.set(
+            field,
+            SYS_CONFIG_KEYS[field].boolean
+              ? item.configValue === "true"
+              : item.configValue
+          );
+        }
+        // 请求成功的字段统一入缓存(含后端未下发的键,以 undefined 占位),
+        // 区分"成功但未配置"与"拉取失败",前者不再重试、后者允许重试
+        for (const field of missed) {
+          if (!configCache.has(field)) configCache.set(field, undefined);
+        }
+      })
+      .catch(() => {
+        // 网络异常:静默降级为空配置(消费侧回退兜底),不写缓存以便后续重试
+      });
+    for (const field of missed) pendingTasks.set(field, task);
+    try {
+      await task;
+    } finally {
+      for (const field of missed) pendingTasks.delete(field);
+    }
+  }
   const data = {} as Pick<SysConfig, F>;
-  if (res.success) {
-    for (const item of res.data) {
-      const field = fields.find(f => SYS_CONFIG_KEYS[f].key === item.configKey);
-      if (!field || item.configValue == null) continue;
-      (data as Record<string, unknown>)[field] = SYS_CONFIG_KEYS[field].boolean
-        ? item.configValue === "true"
-        : item.configValue;
+  for (const field of fields) {
+    if (configCache.has(field)) {
+      (data as Record<string, unknown>)[field] = configCache.get(field);
     }
   }
   return data;
@@ -61,20 +94,24 @@ export const siteLogo = ref("");
 /** 进行中的初始化 Promise(幂等去重:多个组件同时调用仅发起一次请求) */
 let siteLogoTask: Promise<void> | null = null;
 
+/** 回填站点 Logo 全局状态(供登录页/门户等批量拉取配置的调用点复用,避免单独再拉 logo) */
+export function applySiteLogo(value: string | undefined) {
+  siteLogo.value = value ?? "";
+}
+
 /**
  * 初始化站点 Logo(经免登录配置下发接口,登录前后均可调用)。
  * 配置为空或拉取失败时置空,由消费侧回退默认静态图;
  * 失败后清空去重标记,允许下次进入时重新触发拉取。
  */
 export function initSiteLogo(): Promise<void> {
-  if (!siteLogoTask) {
-    siteLogoTask = fetchSysConfig("logo")
-      .then(({ logo }) => {
-        siteLogo.value = logo ?? "";
-      })
-      .catch(() => {
-        siteLogoTask = null;
-      });
-  }
+  if (siteLogoTask) return siteLogoTask;
+  siteLogoTask = fetchSysConfig("logo").then(({ logo }) => {
+    siteLogo.value = logo ?? "";
+  });
+  void siteLogoTask.finally(() => {
+    // 拉取失败(logo 未写入缓存)时清空去重标记,允许后续重试
+    if (!configCache.has("logo")) siteLogoTask = null;
+  });
   return siteLogoTask;
 }

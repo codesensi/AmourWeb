@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { computed, inject, onBeforeUnmount, ref, type Ref } from "vue";
+import { computed, onBeforeUnmount, ref } from "vue";
 import { RouterLink } from "vue-router";
 import cardMoments from "@/assets/portal/img/card/card-moments.svg?url";
 import cardMessage from "@/assets/portal/img/card/card-message.svg?url";
 import cardAbout from "@/assets/portal/img/card/card-about.svg?url";
 import cardLovePhoto from "@/assets/portal/img/card/card-love-photo.svg?url";
 import cardLoveList from "@/assets/portal/img/card/card-love-list.svg?url";
-import type { SysConfig } from "@/utils/sysConfig";
+import { usePortalSysConfig } from "@/layout/portal/usePortalSysConfig";
 import { parseDateTime } from "@/utils/date";
 
 defineOptions({ name: "PortalHome" });
 
-/** 站点展示配置:由 PortalLayout provide */
-const sysConfig = inject<Ref<Partial<SysConfig>>>("portalSysConfig", ref({}));
+/** 站点展示配置:由 PortalLayout provide(带类型约束的注入入口) */
+const sysConfig = usePortalSysConfig();
 
 /** 功能卡片:文案与结构照搬原站 */
 const cards = [

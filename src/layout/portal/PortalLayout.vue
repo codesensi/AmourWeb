@@ -1,10 +1,15 @@
 <script setup lang="ts">
-import { onMounted, provide, ref } from "vue";
+import { onMounted, ref } from "vue";
 import PortalHeader from "./PortalHeader.vue";
 import PortalHero from "./PortalHero.vue";
 import PortalSidebar from "./PortalSidebar.vue";
 import PortalFooter from "./PortalFooter.vue";
-import { fetchSysConfig, type SysConfig } from "@/utils/sysConfig";
+import { providePortalSysConfig } from "./usePortalSysConfig";
+import {
+  applySiteLogo,
+  fetchSysConfig,
+  type SysConfig
+} from "@/utils/sysConfig";
 import "animate.css";
 // 门户样式入口(base 元素级重置已内聚到 portal/css/base.css,不再依赖 layui)
 import "@/assets/portal/index.css";
@@ -15,18 +20,24 @@ defineOptions({ name: "PortalLayout" });
 /** 站点公共配置:按需拉取门户所需键(后端 config 缓存兜底),经 provide 下发子组件 */
 const sysConfig = ref<Partial<SysConfig>>({});
 onMounted(async () => {
-  Object.assign(
-    sysConfig.value,
-    await fetchSysConfig("name", "icp", "copyrightYear", "siteLoveStartDate", "logo")
+  const config = await fetchSysConfig(
+    "name",
+    "icp",
+    "copyrightYear",
+    "siteLoveStartDate",
+    "logo"
   );
+  // logo 顺手回填全局状态,管理端/登录页共享,门户内不再单独拉取
+  applySiteLogo(config.logo);
+  Object.assign(sysConfig.value, config);
 });
-provide("portalSysConfig", sysConfig);
+providePortalSysConfig(sysConfig);
 </script>
 
 <template>
   <!-- 门户样式作用域根容器:门户 CSS(layui/portal)经 postcss 统一加 .portal 前缀,避免全局泄漏污染管理端 -->
   <div class="portal">
-    <PortalHeader :sys-config="sysConfig" />
+    <PortalHeader />
     <PortalHero />
     <!-- 内容区:各门户页面经 RouterView 注入;淡入过渡消除路由切换硬切 -->
     <div class="portal-content">
@@ -37,7 +48,7 @@ provide("portalSysConfig", sysConfig);
       </RouterView>
     </div>
     <PortalSidebar />
-    <PortalFooter :sys-config="sysConfig" />
+    <PortalFooter />
   </div>
 </template>
 

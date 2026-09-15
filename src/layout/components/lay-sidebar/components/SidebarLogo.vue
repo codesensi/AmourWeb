@@ -1,12 +1,17 @@
 <script setup lang="ts">
+import { onMounted } from "vue";
 import { getTopMenu } from "@/router/utils";
 import { useNav } from "@/layout/hooks/useNav";
+import { initSiteLogo } from "@/utils/sysConfig";
 
 defineProps({
   collapse: Boolean
 });
 
 const { title, getLogo, onLogoError } = useNav();
+
+// 管理端布局挂载时拉取站点 logo(会话缓存去重,与登录页/门户的拉取不重复)
+onMounted(() => initSiteLogo());
 </script>
 
 <template>

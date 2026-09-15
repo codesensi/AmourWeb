@@ -2,24 +2,25 @@
 import { computed } from "vue";
 import { RouterLink } from "vue-router";
 import icpSvg from "@/assets/portal/img/icp.svg?url";
-import type { SysConfig } from "@/utils/sysConfig";
+import { usePortalSysConfig } from "./usePortalSysConfig";
 
 defineOptions({ name: "PortalFooter" });
 
-const props = defineProps<{ sysConfig: Partial<SysConfig> }>();
+/** 站点公共配置:由 PortalLayout 经 providePortalSysConfig 注入(替代 props 双通道) */
+const sysConfig = usePortalSysConfig();
 
 /** 版权年份:配置起始年份早于当前年份时显示「起始-当前」区间;
  * 配置缺失、非法或恰为当前年份(防御性:配置晚于当前年份同理)时仅显示当前年份 */
 const copyrightYears = computed(() => {
   const nowYear = new Date().getFullYear();
-  const startYear = Number.parseInt(props.sysConfig.copyrightYear ?? "", 10);
+  const startYear = Number.parseInt(sysConfig.value.copyrightYear ?? "", 10);
   const start =
     Number.isInteger(startYear) && startYear < nowYear ? startYear : null;
   return start ? `${start}-${nowYear}` : String(nowYear);
 });
 
 /** ICP 备案文案:未配置(缺失或纯空白)时整个 ICP 块不展示 */
-const icpText = computed(() => props.sysConfig.icp?.trim() ?? "");
+const icpText = computed(() => sysConfig.value.icp?.trim() ?? "");
 </script>
 
 <template>

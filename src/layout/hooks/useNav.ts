@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { storeToRefs } from "pinia";
 import { getConfig, siteTitle } from "@/config";
-import { initSiteLogo, LOGO_FALLBACK, siteLogo } from "@/utils/sysConfig";
+import { LOGO_FALLBACK, siteLogo } from "@/utils/sysConfig";
 import { useRouter } from "vue-router";
 import { emitter } from "@/utils/mitt";
 import { fallbackAvatar, notifyFallbackAvatar } from "@/utils/avatar";
@@ -9,7 +9,7 @@ import { getTopMenu } from "@/router/utils";
 import { useFullscreen } from "@vueuse/core";
 import type { routeMetaType } from "../types";
 import { router, remainingPaths } from "@/router";
-import { computed, type CSSProperties } from "vue";
+import { computed, ref, type CSSProperties } from "vue";
 import { useAppStoreHook } from "@/store/modules/app";
 import { useUserStoreHook } from "@/store/modules/user";
 import { useGlobal, isAllEmpty } from "@pureadmin/utils";
@@ -103,12 +103,16 @@ export function useNav() {
 
   /** 退出登录 */
   async function logout() {
-    const confirmed = await ElMessageBox.confirm("确定要退出登录吗?", "系统提示", {
-      confirmButtonText: "确定",
-      cancelButtonText: "取消",
-      type: "warning",
-      draggable: true
-    })
+    const confirmed = await ElMessageBox.confirm(
+      "确定要退出登录吗?",
+      "系统提示",
+      {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+        draggable: true
+      }
+    )
       .then(() => true)
       .catch(() => false);
     if (confirmed) {
@@ -158,18 +162,19 @@ export function useNav() {
     return remainingPaths.includes(path);
   }
 
-  /** 获取`logo`(统一走站点 logo 配置,未配置时回退本地兜底图;读取响应式状态,配置变更自动生效) */
+  /** logo 加载失败标记(useNav 每次调用独立):任一消费点图片失效仅自身回退,
+   *  不再置空全局配置态——否则一次瞬时抖动会导致整个会话 logo 永久丢失 */
+  const logoBroken = ref(false);
+
+  /** 获取`logo`(统一走站点 logo 配置,未配置/加载失败时回退本地兜底图;配置变更自动生效) */
   function getLogo() {
-    return siteLogo.value || LOGO_FALLBACK;
+    return logoBroken.value ? LOGO_FALLBACK : siteLogo.value || LOGO_FALLBACK;
   }
 
-  /** logo 图片加载失败:清空配置态(与配置为空同路径),统一回落本地兜底图 */
+  /** logo 图片加载失败:仅当前消费点回退兜底图 */
   function onLogoError() {
-    siteLogo.value = "";
+    logoBroken.value = true;
   }
-
-  /** 站点 Logo 惰性初始化(模块级去重,仅首次调用发起请求) */
-  initSiteLogo();
 
   return {
     title,

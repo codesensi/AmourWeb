@@ -12,7 +12,12 @@ import type { FormInstance } from "element-plus";
 import { useLayout } from "@/layout/hooks/useLayout";
 import { useUserStoreHook } from "@/store/modules/user";
 import { getCaptchaImage } from "@/api/captcha";
-import { fetchSysConfig, LOGO_FALLBACK, siteLogo } from "@/utils/sysConfig";
+import {
+  applySiteLogo,
+  fetchSysConfig,
+  LOGO_FALLBACK,
+  siteLogo
+} from "@/utils/sysConfig";
 import { initRouter, getTopMenu } from "@/router/utils";
 import { bg, illustration } from "./utils/static";
 import { ref, toRaw, reactive, watch, computed, onMounted } from "vue";
@@ -67,9 +72,14 @@ const getCaptcha = async () => {
   }
 };
 
-/** 拉取站点公共配置:验证码开关开启时才拉取验证码 */
+/** 拉取站点公共配置:一次合并拉取 logo 与验证码开关(logo 经 applySiteLogo 回填全局状态,
+ *  避免与 useNav 内 initSiteLogo 各拉一次);验证码开关开启时才拉取验证码 */
 const loadSiteConfig = async () => {
-  const { captchaEnabled: enabled } = await fetchSysConfig("captchaEnabled");
+  const { logo, captchaEnabled: enabled } = await fetchSysConfig(
+    "logo",
+    "captchaEnabled"
+  );
+  applySiteLogo(logo);
   captchaEnabled.value = enabled ?? false;
   if (captchaEnabled.value) await getCaptcha();
 };
@@ -149,12 +159,7 @@ watch(checked, bool => {
       </div>
       <div class="login-box">
         <div class="login-form">
-          <img
-            :src="siteLogoImg"
-            class="avatar"
-            alt=""
-            @error="onLogoError"
-          />
+          <img :src="siteLogoImg" class="avatar" alt="" @error="onLogoError" />
           <Motion>
             <h2 class="outline-hidden">
               <TypeIt

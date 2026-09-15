@@ -2,6 +2,7 @@
 // @ts-nocheck
 import { emitter } from "@/utils/mitt";
 import { useNav } from "@/layout/hooks/useNav";
+import { initSiteLogo } from "@/utils/sysConfig";
 import LaySearch from "../lay-search/index.vue";
 import LayNotice from "../lay-notice/index.vue";
 import { responsiveStorageNameSpace } from "@/config";
@@ -50,6 +51,8 @@ onMounted(() => {
   emitter.on("logoChange", key => {
     showLogo.value = key;
   });
+  // 管理端布局挂载时拉取站点 logo(会话缓存去重,与登录页/门户的拉取不重复)
+  initSiteLogo();
 });
 
 // 组件随布局切换反复挂载,必须对称解绑,避免 mitt 监听器累积

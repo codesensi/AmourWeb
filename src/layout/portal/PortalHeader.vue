@@ -1,20 +1,21 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref } from "vue";
-import type { SysConfig } from "@/utils/sysConfig";
 import { LOGO_FALLBACK } from "@/utils/sysConfig";
+import { usePortalSysConfig } from "./usePortalSysConfig";
 import { getPortalSaying, type SayingData } from "@/api/portal";
 import { RouterLink } from "vue-router";
 
 defineOptions({ name: "PortalHeader" });
 
-const props = defineProps<{ sysConfig: Partial<SysConfig> }>();
+/** 站点公共配置:由 PortalLayout 经 providePortalSysConfig 注入(替代 props 双通道) */
+const sysConfig = usePortalSysConfig();
 
 /** logo 加载失败降级标记:降级目标为本地 favicon(必可达,不会二次触发) */
 const logoBroken = ref(false);
 
 /** 站点 logo 展示地址:配置优先,未配置/加载失败统一回退 favicon.ico */
 const logoSrc = computed(() =>
-  logoBroken.value ? LOGO_FALLBACK : (props.sysConfig.logo ?? LOGO_FALLBACK)
+  logoBroken.value ? LOGO_FALLBACK : (sysConfig.value.logo ?? LOGO_FALLBACK)
 );
 
 /** 一言(随机优先,失败降级 uapi-saying):content 为空或请求失败时整个角标不展示 */
@@ -65,7 +66,12 @@ onMounted(resolveSaying);
         <h1>
           <RouterLink class="alogo" to="/">
             <!-- 站点 logo 配置(项目/站点logo图片)优先展示,缺失/加载失败统一回落 favicon -->
-            <img :src="logoSrc" alt="logo" class="logo-img" @error="logoBroken = true" />
+            <img
+              :src="logoSrc"
+              alt="logo"
+              class="logo-img"
+              @error="logoBroken = true"
+            />
             {{ sysConfig.name }}
           </RouterLink>
         </h1>
