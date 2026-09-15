@@ -105,7 +105,7 @@
 .central.bg .row .card .input-box input {
   border: none;
   padding: 1rem 1.5rem;
-  border: 1px solid transition !important;
+  border: 1px solid transparent !important;
   box-shadow: 0 2px 10px 0 rgb(148 147 147 / 15%);
   border-radius: 0.5rem;
   width: 40%;

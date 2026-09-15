@@ -28,7 +28,8 @@
   transition: all 0.23s linear;
 }
 
-.img-card:hover.love_img img {
+/* 悬停上移:.love_img 是 .img-card 的子元素,须用后代选择器(同元素复合写法永不命中) */
+.img-card:hover .love_img img {
   transform: translateY(-5px);
 }
 
