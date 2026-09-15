@@ -7,13 +7,11 @@ import { emitter } from "@/utils/mitt";
 import { fallbackAvatar, notifyFallbackAvatar } from "@/utils/avatar";
 import { getTopMenu } from "@/router/utils";
 import { useFullscreen } from "@vueuse/core";
-import type { routeMetaType } from "../types";
 import { router, remainingPaths } from "@/router";
 import { computed, ref, type CSSProperties } from "vue";
 import { useAppStoreHook } from "@/store/modules/app";
 import { useUserStoreHook } from "@/store/modules/user";
 import { useGlobal, isAllEmpty } from "@pureadmin/utils";
-import { useEpThemeStoreHook } from "@/store/modules/epTheme";
 import { usePermissionStoreHook } from "@/store/modules/permission";
 import { ElMessageBox } from "element-plus";
 import ExitFullscreen from "~icons/ri/fullscreen-exit-fill";
@@ -60,22 +58,6 @@ export function useNav() {
       : useUserStoreHook()?.nickname;
   });
 
-  /** 设置国际化选中后的样式 */
-  const getDropdownItemStyle = computed(() => {
-    return (locale, t) => {
-      return {
-        background: locale === t ? useEpThemeStoreHook().epThemeColor : "",
-        color: locale === t ? "#f4f4f5" : "#000"
-      };
-    };
-  });
-
-  const getDropdownItemClass = computed(() => {
-    return (locale, t) => {
-      return locale === t ? "" : "dark:hover:text-primary!";
-    };
-  });
-
   const avatarsStyle = computed(() => {
     return username.value ? { marginRight: "10px" } : "";
   });
@@ -94,12 +76,6 @@ export function useNav() {
   });
 
   const title = computed(() => siteTitle.value);
-
-  /** 动态title */
-  function changeTitle(meta: routeMetaType) {
-    if (siteTitle.value) document.title = `${meta.title} | ${siteTitle.value}`;
-    else document.title = meta.title;
-  }
 
   /** 退出登录 */
   async function logout() {
@@ -135,10 +111,6 @@ export function useNav() {
 
   function toggleSideBar() {
     pureApp.toggleSideBar();
-  }
-
-  function handleResize(menuRef) {
-    menuRef?.handleResize();
   }
 
   function resolvePath(route) {
@@ -190,10 +162,8 @@ export function useNav() {
     backTopMenu,
     onPanel,
     getDivStyle,
-    changeTitle,
     toggleSideBar,
     menuSelect,
-    handleResize,
     resolvePath,
     getLogo,
     onLogoError,
@@ -204,8 +174,6 @@ export function useNav() {
     onUserAvatarError,
     avatarsStyle,
     tooltipEffect,
-    toProfile,
-    getDropdownItemStyle,
-    getDropdownItemClass
+    toProfile
   };
 }

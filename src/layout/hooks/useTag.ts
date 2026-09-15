@@ -4,7 +4,6 @@ import {
   unref,
   computed,
   reactive,
-  onMounted,
   type CSSProperties,
   getCurrentInstance
 } from "vue";
@@ -50,13 +49,12 @@ export function useTags() {
       `${responsiveStorageNameSpace()}configure`
     )?.tagsStyle || "chrome"
   );
-  /** 是否隐藏标签页，默认显示 */
-  const showTags =
-    ref(
-      storageLocal().getItem<StorageConfigs>(
-        `${responsiveStorageNameSpace()}configure`
-      ).hideTabs
-    ) ?? ref("false");
+  /** 是否隐藏标签页,默认显示(存储缺失时兜底 false) */
+  const showTags = ref(
+    storageLocal().getItem<StorageConfigs>(
+      `${responsiveStorageNameSpace()}configure`
+    )?.hideTabs ?? false
+  );
   const multiTags: any = computed(() => {
     return useMultiTagsStoreHook().multiTags;
   });
@@ -208,19 +206,6 @@ export function useTags() {
       : pureSetting.changeSetting({ key: "hiddenSideBar", value: true });
   }
 
-  onMounted(() => {
-    if (!tagsStyle.value) {
-      const configure = storageLocal().getItem<StorageConfigs>(
-        `${responsiveStorageNameSpace()}configure`
-      );
-      configure.tagsStyle = "card";
-      storageLocal().setItem(
-        `${responsiveStorageNameSpace()}configure`,
-        configure
-      );
-    }
-  });
-
   return {
     Close,
     route,
@@ -245,7 +230,6 @@ export function useTags() {
     scheduleIsActive,
     getContextMenuStyle,
     closeMenu,
-    onMounted,
     onMouseenter,
     onMouseleave,
     onContentFullScreen

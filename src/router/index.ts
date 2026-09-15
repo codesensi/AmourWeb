@@ -124,12 +124,12 @@ router.beforeEach((to: ToRouteType, _from) => {
   /** 浏览器标题:门户与管理端共用 —— 取路由链上最深的非空 meta.title,拼接站点名(sys_config name) */
   const externalLink = isUrl(to?.name as string);
   if (!externalLink) {
-    to.matched.some(item => {
-      if (!item.meta.title) return "";
-      if (siteTitle.value)
-        document.title = `${item.meta.title} | ${siteTitle.value}`;
-      else document.title = item.meta.title;
-    });
+    const deepest = to.matched.findLast(item => item.meta.title);
+    if (deepest) {
+      document.title = siteTitle.value
+        ? `${deepest.meta.title} | ${siteTitle.value}`
+        : deepest.meta.title;
+    }
   }
   /** 门户公开路由(meta.public):免登录直接放行,不进入登录校验分支(第二期门户) */
   if (to.meta?.public) {

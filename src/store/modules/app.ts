@@ -42,9 +42,6 @@ export const useAppStore = defineStore("pure-app", {
     },
     getViewportWidth(state) {
       return state.viewportSize.width;
-    },
-    getViewportHeight(state) {
-      return state.viewportSize.height;
     }
   },
   actions: {

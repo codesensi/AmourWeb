@@ -17,7 +17,6 @@ defineProps({
 const emit = defineEmits(["cropper"]);
 
 const infos = ref();
-const refCropper = ref();
 /** 裁剪器就绪标记:就绪前展示透明 loading 遮罩 */
 const cropperReady = ref(false);
 const cropperImg = ref<string>("");
@@ -38,7 +37,6 @@ function onReadied() {
     <div class="flex items-start gap-3">
       <div class="w-[18vw]">
         <ReCropper
-          ref="refCropper"
           :src="imgSrc"
           :output-type="outputType"
           circled

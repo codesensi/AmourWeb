@@ -178,24 +178,6 @@ class PureHttp {
 
     return PureHttp.axiosInstance.request(config) as Promise<T>;
   }
-
-  /** 单独抽离的`post`工具函数 */
-  public post<T, P>(
-    url: string,
-    params?: AxiosRequestConfig<P>,
-    config?: PureHttpRequestConfig
-  ): Promise<T> {
-    return this.request<T>("post", url, params, config);
-  }
-
-  /** 单独抽离的`get`工具函数 */
-  public get<T, P>(
-    url: string,
-    params?: AxiosRequestConfig<P>,
-    config?: PureHttpRequestConfig
-  ): Promise<T> {
-    return this.request<T>("get", url, params, config);
-  }
 }
 
 export const http = new PureHttp();

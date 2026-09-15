@@ -8,17 +8,6 @@ export const useSettingStore = defineStore("pure-setting", {
     fixedHeader: getConfig().FixedHeader,
     hiddenSideBar: getConfig().HiddenSideBar
   }),
-  getters: {
-    getTitle(state) {
-      return state.title;
-    },
-    getFixedHeader(state) {
-      return state.fixedHeader;
-    },
-    getHiddenSideBar(state) {
-      return state.hiddenSideBar;
-    }
-  },
   actions: {
     CHANGE_SETTING({ key, value }) {
       if (Reflect.has(this, key)) {

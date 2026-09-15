@@ -17,19 +17,6 @@ export const useEpThemeStore = defineStore("pure-epTheme", {
         `${responsiveStorageNameSpace()}layout`
       )?.theme ?? getConfig().Theme
   }),
-  getters: {
-    getEpThemeColor(state) {
-      return state.epThemeColor;
-    },
-    /** 用于mix菜单布局下hamburger-svg的fill属性 */
-    fill(state) {
-      if (state.epTheme === "light") {
-        return "#409eff";
-      } else {
-        return "#fff";
-      }
-    }
-  },
   actions: {
     setEpThemeColor(newColor: string): void {
       const layout = storageLocal().getItem<StorageConfigs>(

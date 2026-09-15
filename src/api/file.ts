@@ -35,11 +35,6 @@ export const uploadFile = (
   });
 };
 
-/** 上传头像(内容为裁剪产物或 gif 原图;文件名传用户原始文件名,缺失时由调用方生成时间戳兜底名) */
-export const uploadAvatar = (blob: Blob, originalName?: string) => {
-  return uploadFile("avatar", blob, originalName);
-};
-
 /** 文件行数据(后端 sys_file 下发,仅展示字段) */
 export type FileItem = {
   /** 文件ID(后端序列化为字符串,避免 JS 精度丢失) */

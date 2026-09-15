@@ -88,11 +88,6 @@ const message = (
 };
 
 /**
- * 关闭所有 `Message` 消息提示函数
- */
-const closeAllMessage = (): void => ElMessage.closeAll();
-
-/**
  * 危险操作确认框(系统提示 + 警告图标 + 可拖拽)。
  * <p>
  * 收敛各管理页删除/状态切换等确认弹窗的重复配置;取消或关闭时返回 `false`。
@@ -129,4 +124,4 @@ const confirmAction = (
 export const emphasize = (content: string) =>
   h("strong", { style: "color: var(--el-color-primary)" }, content);
 
-export { message, closeAllMessage, confirmAction };
+export { message, confirmAction };

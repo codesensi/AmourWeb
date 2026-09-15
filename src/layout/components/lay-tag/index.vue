@@ -11,7 +11,15 @@ import { handleAliveRoute, getTopMenu } from "@/router/utils";
 import { useSettingStoreHook } from "@/store/modules/settings";
 import { useMultiTagsStoreHook } from "@/store/modules/multiTags";
 import { usePermissionStoreHook } from "@/store/modules/permission";
-import { ref, watch, unref, toRaw, nextTick, onBeforeUnmount } from "vue";
+import {
+  ref,
+  watch,
+  unref,
+  toRaw,
+  nextTick,
+  onMounted,
+  onBeforeUnmount
+} from "vue";
 import {
   delay,
   isEqual,
@@ -49,7 +57,6 @@ const {
   scheduleIsActive,
   getContextMenuStyle,
   closeMenu,
-  onMounted,
   onMouseenter,
   onMouseleave,
   onContentFullScreen
@@ -522,7 +529,6 @@ function tagOnClick(item) {
   } else {
     router.push({ path });
   }
-  emitter.emit("tagOnClick", item);
 }
 
 onClickOutside(contextmenuRef, closeMenu, {
