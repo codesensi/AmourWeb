@@ -41,10 +41,6 @@
   width: 100%;
   line-height: 3rem;
 }
-.row .card .love-list-texts .love-list-items .open {
-  border-bottom: 1px solid rgba(208, 206, 206, 0.6) !important;
-  cursor: pointer;
-}
 .row .card .love-list-texts i {
   font-style: normal;
   margin-right: 0.8rem;
@@ -66,15 +62,6 @@
   color: #aeaeae;
 }
 
-.open img {
-  width: 100%;
-  height: 100%;
-  border-radius: 1rem;
-  box-shadow: 0 2px 12px #ebedf07a;
-  border: 1px solid rgba(208, 206, 206, 0.6) !important;
-  margin: 1.5rem 0;
-}
-
 /* ---------- 以下为原 list.html 页面内联样式，Thymeleaf 片段化时移入 ---------- */
 /* 完成项与待完成项文字（照搬原站样式语义） */
 .love-list-items .unfinished {
@@ -92,10 +79,4 @@
 .love-list-items li.item {
   border-bottom: 1px solid #ddd;
   padding: 1rem 0;
-}
-.love-list-items .icon-todo {
-  color: #ccc;
-}
-.love-list-items .icon-done {
-  color: #f16b4f;
 }

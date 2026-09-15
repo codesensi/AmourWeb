@@ -11,18 +11,7 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-.icon-chenggong:before {
-  content: "\e62a";
-}
-
-.icon-chenggong1:before {
-  content: "\e61c";
-}
-
+/* 字体类仅 love-list 页的 icon-chenggong2 在用,其余码位规则已随死代码清理移除 */
 .icon-chenggong2:before {
   content: "\e605";
-}
-
-.icon-tijiaochenggong:before {
-  content: "\e72e";
 }

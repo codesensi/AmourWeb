@@ -240,11 +240,6 @@ loadProfile();
   color: var(--el-text-color-secondary);
 }
 
-/* 对齐表格页:底部 margin 归零,底部留白由 .profile-page 自行声明 */
-.main-content {
-  margin: 24px 24px 0 !important;
-}
-
 /* 页面容器:卡片撑满视口余高(最小高度扣除顶部 24px margin,避免溢出滚动),
    底部保留 36px 灰色区域,与表格页(自适应 offsetBottom 补偿后的 36px 视觉留白)一致 */
 .profile-page {

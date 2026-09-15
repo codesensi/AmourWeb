@@ -278,13 +278,6 @@ const optionsBasis: Array<OptionsType> = [
   padding-left: 0;
 }
 
-.main-content {
-  padding-bottom: 18px;
-
-  /* 底部留白:自身 18px + 末行卡片 card-gap 18px = 36px,对齐表格页视觉留白 */
-  margin: 24px 24px 0 !important;
-}
-
 /* 卡片行距:mb-4.5 为小数间距类,当前 Tailwind 版本不生成,改用 scoped 规则实现 18px */
 .card-gap {
   margin-bottom: 18px;

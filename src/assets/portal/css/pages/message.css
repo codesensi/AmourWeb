@@ -103,13 +103,11 @@
 }
 
 .central.bg .row .card .input-box input {
-  border: none;
   padding: 1rem 1.5rem;
   border: 1px solid transparent !important;
   box-shadow: 0 2px 10px 0 rgb(148 147 147 / 15%);
   border-radius: 0.5rem;
   width: 40%;
-  background: #f3f4f6;
   font-family: "Noto Serif SC", serif;
   font-weight: 400;
   background: #e8e8e8;
@@ -134,10 +132,6 @@
 
 .central.bg .row .card .input-box .input-qq {
   margin-right: 1rem;
-}
-
-input#QQ {
-  margin-bottom: 0;
 }
 
 .central.bg .row .card #messageInput {
@@ -197,11 +191,6 @@ input#QQ {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-}
-
-.central.bg .row .card .message-item .textinfo .time {
-  text-align: right;
-  display: inherit;
 }
 
 .central.bg .row .card .message-item .textinfo .text {

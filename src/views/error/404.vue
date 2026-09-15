@@ -75,9 +75,3 @@ function backHome() {
     </div>
   </div>
 </template>
-
-<style scoped>
-.main-content {
-  margin: 0 !important;
-}
-</style>

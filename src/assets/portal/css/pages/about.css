@@ -143,7 +143,7 @@
    选择器使用关于页独有的内容类（.text-ce / .central-600）：
    本文件被所有页面无条件加载，且 pjax 导航只替换容器内部内容，
    不能依赖容器上的页面标识类，否则整页打开命中而 pjax 进入时不命中 */
-#pjax-container .text-ce,
-#pjax-container .central-600 {
+.text-ce,
+.central-600 {
   padding: 0;
 }

@@ -316,11 +316,6 @@ const policyTiles = computed(() => [
 </template>
 
 <style lang="scss" scoped>
-/* 对齐表格页:底部 margin 归零,底部留白由自适应表格 offsetBottom 决定 */
-.main-content {
-  margin: 24px 24px 0 !important;
-}
-
 .cache-item {
   border-left: 3px solid transparent;
 

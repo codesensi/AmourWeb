@@ -49,6 +49,8 @@ a {
 
 a:hover {
   color: #10bbff;
+  /* 原站全局约定:链接悬停手型光标 */
+  cursor: pointer;
 }
 
 :root {
@@ -67,6 +69,32 @@ h6 {
 input,
 textarea {
   outline: none;
+}
+
+/* 全局滚动条外观(原 content.css 迁移):窄圆角灰滑块 */
+::-webkit-scrollbar-thumb {
+  background-color: rgb(201 201 201);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-corner {
+  background: unset;
+}
+
+/* 12 列栅格(原 content.css 迁移):门户列表页的通用布局底座 */
+.row {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 2rem;
+}
+
+.mt-2rem {
+  margin-top: 2rem;
 }
 
 /* 页面渐变背景：取主题四色（紫 #986fee / 蓝紫 #8695e6 / 蓝 #68b7dd / 青 #18d7d3）
