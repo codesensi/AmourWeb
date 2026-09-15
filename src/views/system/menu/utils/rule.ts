@@ -3,6 +3,8 @@ import type { FormRules } from "element-plus";
 
 /** 自定义表单规则校验（path/perms 随菜单类型条件渲染，仅渲染时校验） */
 export const formRules = reactive(<FormRules>{
+  // pid 兜底语义:顶级菜单为 "0",清空 cascader 后拦截提交,避免后端 @NotNull 400
+  pid: [{ required: true, message: "上级菜单为必填项", trigger: "change" }],
   title: [{ required: true, message: "菜单名称为必填项", trigger: "blur" }],
   path: [
     { required: true, message: "路由路径为必填项", trigger: "blur" },

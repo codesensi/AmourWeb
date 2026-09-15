@@ -60,7 +60,7 @@ defineExpose({ getRef });
       </re-col>
 
       <re-col>
-        <el-form-item label="上级菜单">
+        <el-form-item label="上级菜单" prop="pid">
           <el-cascader
             v-model="newFormInline.pid"
             class="w-full"

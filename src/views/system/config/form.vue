@@ -40,7 +40,10 @@ const datetimeValue = computed(
 /** 数字输入框与字符串值的桥接(清空回落为空串,交由必填校验拦截) */
 const numericProxy = computed<number | undefined>({
   get: () => {
-    const num = Number(newFormInline.value.configValue);
+    const raw = newFormInline.value.configValue;
+    // 空值先短路:Number("") === 0,直接转换会导致清空后立即回显 0
+    if (raw == null || raw === "") return undefined;
+    const num = Number(raw);
     return Number.isFinite(num) ? num : undefined;
   },
   set: value => {

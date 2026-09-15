@@ -40,11 +40,23 @@ export function getStoredUserInfo(): DataInfo<number> | null {
  * */
 export const multipleTabsKey = "multiple-tabs";
 
-/** 获取`token` */
-export function getToken(): DataInfo<number> {
+/**
+ * 获取`token`。
+ * cookie 缺失、内容被篡改(JSON 解析失败)或本地快照不存在时返回 `null`,
+ * 调用方(请求拦截器等)按未登录态降级,避免脏数据导致全部请求连锁失败
+ */
+export function getToken(): DataInfo<number> | null {
   // 此处与`TokenKey`相同，此写法解决初始化时`Cookies`中不存在`TokenKey`报错
   const token = Cookies.get(TokenKey);
-  return token ? JSON.parse(token) : storageLocal().getItem(userKey);
+  if (token) {
+    try {
+      return JSON.parse(token);
+    } catch {
+      // cookie 格式异常时移除脏数据,回落 localStorage 快照(通常同样为空,即未登录态)
+      Cookies.remove(TokenKey);
+    }
+  }
+  return storageLocal().getItem<DataInfo<number>>(userKey);
 }
 
 /**

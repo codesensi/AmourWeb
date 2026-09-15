@@ -5,7 +5,7 @@ import { useNav } from "@/layout/hooks/useNav";
 import LaySearch from "../lay-search/index.vue";
 import LayNotice from "../lay-notice/index.vue";
 import { responsiveStorageNameSpace } from "@/config";
-import { ref, nextTick, computed, onMounted } from "vue";
+import { ref, nextTick, computed, onMounted, onBeforeUnmount } from "vue";
 import { storageLocal, isAllEmpty } from "@pureadmin/utils";
 import { useRoute } from "vue-router";
 import { usePermissionStoreHook } from "@/store/modules/permission";
@@ -50,6 +50,11 @@ onMounted(() => {
   emitter.on("logoChange", key => {
     showLogo.value = key;
   });
+});
+
+// 组件随布局切换反复挂载,必须对称解绑,避免 mitt 监听器累积
+onBeforeUnmount(() => {
+  emitter.off("logoChange");
 });
 </script>
 

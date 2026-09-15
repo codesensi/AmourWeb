@@ -3,6 +3,7 @@ import { onMounted } from "vue";
 import { getLoveList, type LoveListItem } from "@/api/portal";
 import { usePagedList } from "@/hooks/usePagedList";
 import PortalLoadMore from "@/components/PortalLoadMore/index.vue";
+import picture from "~icons/ri/image-line";
 
 defineOptions({ name: "PortalLoveList" });
 
@@ -32,9 +33,13 @@ onMounted(() => loadMore());
                 <span :class="it.done ? 'success' : 'unfinished'">
                   {{ it.text }}
                 </span>
-                <svg v-if="it.done" class="icon" aria-hidden="true">
-                  <use xlink:href="#icon-tupian" />
-                </svg>
+                <!-- 完成项照片标识:iconfont sprite 无对应 symbol,改用 ri 图标集 -->
+                <IconifyIconOffline
+                  v-if="it.done"
+                  :icon="picture"
+                  class="icon"
+                  style="color: #f16b4f; width: 1em; height: 1em"
+                />
                 <ul>
                   <li>
                     <img

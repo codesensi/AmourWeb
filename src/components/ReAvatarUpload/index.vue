@@ -129,6 +129,9 @@ function onChange(uploadFile) {
   // 校验文件类型;大小不在前端拦截,由后端 FileBizTypeEnum 的 maxBytes 校验并提示
   if (!raw.type.startsWith("image/")) {
     message("仅支持图片格式", { type: "warning" });
+    // 清除已入列的文件:fileList 已占满 limit=1,不清除会导致后续选文件
+    // 只触发 on-exceed(无人监听),上传按钮静默失效
+    uploadRef.value?.clearFiles();
     return;
   }
   // 动图(gif)不参与裁剪:canvas 裁剪只能产出静态帧,直接上传原图保留动图
