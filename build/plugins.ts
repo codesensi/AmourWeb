@@ -60,10 +60,7 @@ export async function getPluginsList(
     // external:第三方生成的 iconfont 脚本含 `console && console.log(t)`,
     // 剥除后会产生非法代码 `console && ;`,故整文件排除
     removeConsole({
-      external: [
-        "src/assets/iconfont/iconfont.js",
-        "src/assets/portal/icons/iconfont-sprite.js"
-      ]
+      external: ["src/assets/iconfont/iconfont.js"]
     }),
     // 打包分析
     lifecycle === "report"

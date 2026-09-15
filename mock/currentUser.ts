@@ -20,8 +20,9 @@ interface MenuItem {
   createTime?: string;
 }
 
+/** 与后端 sys_menu 种子同源(init_dml.sql;37 项 D/M/B,增删改仅落地内存) */
 export const menus: MenuItem[] = [
-  // 系统管理
+  // 系统管理(目录)
   {
     id: "1000",
     pid: "0",
@@ -34,6 +35,76 @@ export const menus: MenuItem[] = [
     hidden: 0,
     builtin: 1
   },
+  // 系统配置
+  {
+    id: "1100",
+    pid: "1000",
+    title: "系统配置",
+    type: "M",
+    path: "/admin/system/config",
+    component: "system/config/index",
+    sort: 1,
+    icon: "ep:tools",
+    status: 0,
+    hidden: 0,
+    builtin: 1
+  },
+  {
+    id: "1101",
+    pid: "1100",
+    title: "分页查询",
+    type: "B",
+    perms: "system:config:page",
+    sort: 1,
+    status: 0,
+    hidden: 0,
+    builtin: 1
+  },
+  {
+    id: "1102",
+    pid: "1100",
+    title: "详情",
+    type: "B",
+    perms: "system:config:detail",
+    sort: 2,
+    status: 0,
+    hidden: 0,
+    builtin: 1
+  },
+  {
+    id: "1103",
+    pid: "1100",
+    title: "修改",
+    type: "B",
+    perms: "system:config:update",
+    sort: 3,
+    status: 0,
+    hidden: 0,
+    builtin: 1
+  },
+  {
+    id: "1104",
+    pid: "1100",
+    title: "增加",
+    type: "B",
+    perms: "system:config:insert",
+    sort: 4,
+    status: 0,
+    hidden: 0,
+    builtin: 1
+  },
+  {
+    id: "1105",
+    pid: "1100",
+    title: "删除",
+    type: "B",
+    perms: "system:config:delete",
+    sort: 5,
+    status: 0,
+    hidden: 0,
+    builtin: 1
+  },
+  // 用户管理
   {
     id: "1200",
     pid: "1000",
@@ -41,7 +112,7 @@ export const menus: MenuItem[] = [
     type: "M",
     path: "/admin/system/user",
     component: "system/user/index",
-    sort: 1,
+    sort: 2,
     icon: "ep:user",
     status: 0,
     hidden: 0,
@@ -102,6 +173,7 @@ export const menus: MenuItem[] = [
     hidden: 0,
     builtin: 1
   },
+  // 角色管理
   {
     id: "1300",
     pid: "1000",
@@ -109,7 +181,7 @@ export const menus: MenuItem[] = [
     type: "M",
     path: "/admin/system/role",
     component: "system/role/index",
-    sort: 2,
+    sort: 3,
     icon: "ep:avatar",
     status: 0,
     hidden: 0,
@@ -170,6 +242,7 @@ export const menus: MenuItem[] = [
     hidden: 0,
     builtin: 1
   },
+  // 菜单管理
   {
     id: "1400",
     pid: "1000",
@@ -177,7 +250,7 @@ export const menus: MenuItem[] = [
     type: "M",
     path: "/admin/system/menu",
     component: "system/menu/index",
-    sort: 3,
+    sort: 4,
     icon: "ep:menu",
     status: 0,
     hidden: 0,
@@ -238,6 +311,7 @@ export const menus: MenuItem[] = [
     hidden: 0,
     builtin: 1
   },
+  // 字典管理
   {
     id: "1500",
     pid: "1000",
@@ -245,7 +319,7 @@ export const menus: MenuItem[] = [
     type: "M",
     path: "/admin/system/dict",
     component: "system/dict/index",
-    sort: 4,
+    sort: 5,
     icon: "ep:collection",
     status: 0,
     hidden: 0,
@@ -306,6 +380,7 @@ export const menus: MenuItem[] = [
     hidden: 0,
     builtin: 1
   },
+  // 缓存监控
   {
     id: "1600",
     pid: "1000",
@@ -330,41 +405,88 @@ export const menus: MenuItem[] = [
     hidden: 0,
     builtin: 1
   },
-  // 日志管理（模板保留的 monitor 页面已更名 logs，第 3 期与后端蓝图对齐）
+  // 日志管理
+  {
+    id: "1700",
+    pid: "1000",
+    title: "日志管理",
+    type: "M",
+    path: "/admin/system/log",
+    component: "system/log/index",
+    sort: 7,
+    icon: "ep:document",
+    status: 0,
+    hidden: 0,
+    builtin: 1
+  },
+  {
+    id: "1701",
+    pid: "1700",
+    title: "登录日志分页查询",
+    type: "B",
+    perms: "log:login:page",
+    sort: 1,
+    status: 0,
+    hidden: 0,
+    builtin: 1
+  },
+  {
+    id: "1702",
+    pid: "1700",
+    title: "操作日志分页查询",
+    type: "B",
+    perms: "log:operate:page",
+    sort: 2,
+    status: 0,
+    hidden: 0,
+    builtin: 1
+  },
+  // 文件管理
+  {
+    id: "1800",
+    pid: "1000",
+    title: "文件管理",
+    type: "M",
+    path: "/admin/system/file",
+    component: "system/file/index",
+    sort: 8,
+    icon: "ep:folder-opened",
+    status: 0,
+    hidden: 0,
+    builtin: 1
+  },
+  {
+    id: "1801",
+    pid: "1800",
+    title: "文件分页查询",
+    type: "B",
+    perms: "system:file:page",
+    sort: 1,
+    status: 0,
+    hidden: 0,
+    builtin: 1
+  },
+  {
+    id: "1802",
+    pid: "1800",
+    title: "删除文件",
+    type: "B",
+    perms: "system:file:delete",
+    sort: 2,
+    status: 0,
+    hidden: 0,
+    builtin: 1
+  },
+  // 个人中心(顶级菜单)
   {
     id: "3000",
     pid: "0",
-    title: "日志管理",
-    type: "D",
-    path: "/admin/logs",
-    sort: 2,
-    icon: "ep:monitor",
-    status: 0,
-    hidden: 0,
-    builtin: 1
-  },
-  {
-    id: "3200",
-    pid: "3000",
-    title: "登录日志",
+    title: "个人中心",
     type: "M",
-    path: "/admin/logs/login-logs",
-    component: "logs/login/index",
-    sort: 2,
-    icon: "ri:window-line",
-    status: 0,
-    hidden: 0,
-    builtin: 1
-  },
-  {
-    id: "3300",
-    pid: "3000",
-    title: "操作日志",
-    type: "M",
-    path: "/admin/logs/operation-logs",
-    component: "logs/operation/index",
+    path: "/admin/profile",
+    component: "profile/index",
     sort: 3,
-    icon: "ri:history-fill",
+    icon: "ep:avatar",
     status: 0,
     hidden: 0,
     builtin: 1
@@ -385,14 +507,13 @@ export default defineFakeRoute([
           id: "1",
           username: "admin",
           nickname: "超级管理员",
-          avatar:
-            "https://q.qlogo.cn/headimg_dl?dst_uin=12345678&spec=640&img_type=jpg",
+          avatar: null,
           idCard: "",
-          email: "",
+          email: "admin@amour.com",
           phone: "",
           qq: "12345678",
           gender: "U",
-          remark: "超级管理员",
+          remark: "系统内置超级管理员",
           builtin: 1,
           roles: ["admin"],
           perms: ["*:*:*"],

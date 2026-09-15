@@ -1,15 +1,5 @@
-/* 门户样式聚合入口:引入顺序与原站 fragments/layout.html 的 head 片段一致
- * (base 为元素级基础重置,替代原 layui.css 底座;breakpoints 按原站的媒体查询区间挂载;
- *  content.css 为原站全文拷贝,其活规则已并入 portal.css 后移除) */
+/* 门户样式聚合入口(「双人小站」温馨浪漫风改版)
+ * (base 为元素级基础重置;tokens 为设计令牌与共享杂志元素;
+ *  旧版 layui 系样式(portal/breakpoints/pages)已随杂志化改版退役,不再引入) */
 @import "./css/base.css";
-@import "./css/portal.css";
-@import "./css/breakpoints/max-768.css" screen and (max-width: 768px);
-@import "./css/breakpoints/min-768.css" screen and (min-width: 768px);
-@import "./css/breakpoints/min-960.css" screen and (min-width: 960px);
-@import "./css/breakpoints/min-1200.css" screen and (min-width: 1200px);
-@import "./css/pages/moments.css";
-@import "./css/pages/message.css";
-@import "./css/pages/about.css";
-@import "./css/pages/love-photo.css";
-@import "./css/pages/love-list.css";
-@import "./icons/iconfont-list.css";
+@import "./css/tokens.css";

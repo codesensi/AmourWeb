@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { nextTick, onMounted, ref, watch } from "vue";
+import { useRoute } from "vue-router";
 import PortalHeader from "./PortalHeader.vue";
-import PortalHero from "./PortalHero.vue";
 import PortalSidebar from "./PortalSidebar.vue";
 import PortalFooter from "./PortalFooter.vue";
 import { providePortalSysConfig } from "./usePortalSysConfig";
@@ -11,12 +11,12 @@ import {
   fetchSysConfig,
   type SysConfig
 } from "@/utils/sysConfig";
-import "animate.css";
-// 门户样式入口(base 元素级重置已内聚到 portal/css/base.css,不再依赖 layui)
+// 门户样式入口(「双人小站」:base 元素级重置 + 设计令牌)
 import "@/assets/portal/index.css";
-import "@/assets/portal/icons/iconfont-sprite.js";
 
 defineOptions({ name: "PortalLayout" });
+
+const route = useRoute();
 
 /** 站点公共配置:按需拉取门户所需键(后端 config 缓存兜底),经 provide 下发子组件 */
 const sysConfig = ref<Partial<SysConfig>>({});
@@ -36,18 +36,46 @@ onMounted(async () => {
   Object.assign(sysConfig.value, config);
 });
 providePortalSysConfig(sysConfig);
+
+/* ---------------- 列表状态与滚动位置保持(KeepAlive + 滚动记忆) ---------------- */
+
+/** 各路径离开时的滚动位置记忆(切页返回后还原,对齐 Medium/掘金阅读体验) */
+const scrollMemory = new Map<string, number>();
+
+/** 离开页面:在路由切换生效前捕获当前滚动位置 */
+watch(
+  () => route.fullPath,
+  (_to, from) => {
+    if (from) scrollMemory.set(from, window.scrollY);
+  }
+);
+
+/** 进入页面:等待过渡与 KeepAlive DOM 恢复后还原滚动位置 */
+watch(
+  () => route.fullPath,
+  to => {
+    const saved = scrollMemory.get(to);
+    nextTick(() => {
+      window.setTimeout(() => {
+        window.scrollTo(0, saved ?? 0);
+      }, 260);
+    });
+  }
+);
 </script>
 
 <template>
-  <!-- 门户样式作用域根容器:门户 CSS(layui/portal)经 postcss 统一加 .portal 前缀,避免全局泄漏污染管理端 -->
+  <!-- 门户样式作用域根容器:门户样式经 postcss 统一加 .portal 前缀,避免全局泄漏污染管理端 -->
   <div class="portal">
     <PortalHeader />
-    <PortalHero />
-    <!-- 内容区:各门户页面经 RouterView 注入;淡入过渡消除路由切换硬切 -->
+    <!-- 内容区:各门户页面经 RouterView 注入;KeepAlive 缓存列表状态(分页/滚动位置),
+         过渡淡入消除路由切换硬切 -->
     <div class="portal-content">
       <RouterView v-slot="{ Component }">
         <Transition name="portal-fade" mode="out-in">
-          <component :is="Component" />
+          <KeepAlive>
+            <component :is="Component" />
+          </KeepAlive>
         </Transition>
       </RouterView>
     </div>
@@ -57,27 +85,31 @@ providePortalSysConfig(sysConfig);
 </template>
 
 <style lang="scss" scoped>
-/* 门户基础观感:承接 layui.css 原 body 级全局规则
-   (前缀隔离后 body 选择器不再命中,统一收敛到 .portal 根容器) */
+/* 门户基础观感:杂志纸感底 + 墨色正文(令牌来自 tokens.css) */
 .portal {
-  font-family:
-    -apple-system, Roboto, "PingFang SC", "Helvetica Neue", Arial, sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  font-size: 14px;
-  line-height: 1.6;
-  color: rgb(0 0 0 / 85%);
+  font-family: var(
+    --am-font-body,
+    Inter,
+    "PingFang SC",
+    "Microsoft YaHei",
+    sans-serif
+  );
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--am-ink);
+  background: var(--am-bg);
 }
 
 /* 内容区最小高度:避免短页面(如空态列表页)切换时页脚大幅上跳 */
 .portal-content {
-  min-height: 40vh;
+  min-height: 60vh;
 }
 
-/* 路由切换过渡:进入时轻微上移淡入(呼应首页卡片入场动画),离开仅快速淡出,消除瞬间替换的闪屏感 */
+/* 路由切换过渡:进入时轻微上移淡入,离开仅快速淡出,消除瞬间替换的闪屏感 */
 .portal-fade-enter-active {
   transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
+    opacity 0.22s ease,
+    transform 0.22s ease;
 }
 
 .portal-fade-leave-active {

@@ -11,45 +11,32 @@ const roles = [
     sort: 1,
     status: 0,
     builtin: 1,
-    remark: "超级管理员拥有最高权限",
-    createTime: "2020-11-15 16:00:00"
+    remark: "系统内置超级管理员角色",
+    createTime: "2026-01-01 00:00:00"
   },
   {
     id: "2",
-    name: "普通角色",
-    code: "common",
+    name: "主角",
+    code: "hero",
     sort: 2,
     status: 0,
-    builtin: 0,
-    remark: "普通角色拥有部分权限",
-    createTime: "2020-11-15 16:00:00"
-  },
-  {
-    id: "3",
-    name: "内容编辑",
-    code: "editor",
-    sort: 3,
-    status: 0,
-    builtin: 0,
-    remark: "负责内容的编辑与发布",
-    createTime: "2026-01-01 10:00:00"
-  },
-  {
-    id: "4",
-    name: "访客",
-    code: "guest",
-    sort: 4,
-    status: 1,
-    builtin: 0,
-    remark: "仅可浏览,当前已禁用",
-    createTime: "2026-01-01 10:00:00"
+    builtin: 1,
+    remark: "系统内置门户主角角色",
+    createTime: "2026-01-01 00:00:00"
   }
 ];
 
-// 角色已分配的菜单ID(角色ID为键;分配后落地,menu-ids 回显读取)
+// 角色已分配的菜单ID(角色ID为键;分配后落地,menu-ids 回显读取;
+// 对齐后端 sys_role_menu 种子:admin 全量菜单,hero 无管理端菜单)
 const menusByRole: Record<number, string[]> = {
   1: [
     "1000",
+    "1100",
+    "1101",
+    "1102",
+    "1103",
+    "1104",
+    "1105",
     "1200",
     "1201",
     "1202",
@@ -68,14 +55,23 @@ const menusByRole: Record<number, string[]> = {
     "1403",
     "1404",
     "1405",
-    "3000",
-    "3200",
-    "3300",
-    "3400"
+    "1500",
+    "1501",
+    "1502",
+    "1503",
+    "1504",
+    "1505",
+    "1600",
+    "1601",
+    "1700",
+    "1701",
+    "1702",
+    "1800",
+    "1801",
+    "1802",
+    "3000"
   ],
-  2: ["3000", "3200", "3300", "3400"],
-  3: ["3000", "3200", "3300", "3400"],
-  4: ["3000", "3200", "3300", "3400"]
+  2: []
 };
 
 /** 当前时间,格式对齐后端 createTime(yyyy-MM-dd HH:mm:ss) */

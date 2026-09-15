@@ -14,8 +14,7 @@ const portalPage = <T>(url: string) => {
 export type MomentsItem = {
   /**
    * 文章 ID。当前为 mock 自增数字(后端 /portal/moments 尚未落地);
-   * 管理端主键惯例是雪花 ID 经后端序列化为 string(JS Number 精度丢失防护),
-   * 后端实现该接口时需确认 id 序列化契约,不一致时同步调整本类型。
+   * 管理端主键经后端序列化为 string(JS Number 精度丢失防护),后端实现该接口时需对齐
    */
   id: number;
   title: string;
@@ -74,6 +73,97 @@ export const sendMessage = (data: {
   return http.request<ApiResult<null>>("post", "/portal/message", { data });
 };
 
+/** 纪念日-纪念日项(GET /portal/anniversary,免登录全量列表) */
+export type AnniversaryItem = {
+  id: number;
+  /** 纪念日名称 */
+  name: string;
+  /** 纪念日类型: 1-生日, 2-纪念日, 3-节日 */
+  type: 1 | 2 | 3;
+  /** 纪念日日期(每年重复时仅取月/日) */
+  anniversaryDate: string;
+  /** 是否每年重复 */
+  repeatYearly: boolean;
+};
+
+/** 纪念日全量列表(GET /portal/anniversary;倒计时需全量排序,不分页) */
+export const getAnniversaryList = () => {
+  return http.request<ApiResult<AnniversaryItem[]>>(
+    "get",
+    "/portal/anniversary"
+  );
+};
+
+/** 时间胶囊-胶囊项(GET /portal/time-capsule 分页) */
+export type TimeCapsuleItem = {
+  id: number;
+  /** 标题 */
+  title: string | null;
+  /** 信件内容(未到期时服务端裁剪为 null,前端只展示倒计时) */
+  content: string | null;
+  /** 解锁时间(yyyy-MM-dd HH:mm:ss) */
+  openTime: string;
+};
+
+/** 时间胶囊分页(GET /portal/time-capsule,每页 6 封) */
+export const getTimeCapsule = portalPage<TimeCapsuleItem>(
+  "/portal/time-capsule"
+);
+
+/** 情侣日记-日记项(GET /portal/diary 分页) */
+export type DiaryItem = {
+  id: number;
+  /** 记录人 ID(双人日记按人分栏) */
+  userId: number;
+  /** 记录人昵称(展示用) */
+  nickname: string;
+  /** 记录人头像(空则前端兜底图) */
+  avatar: string;
+  /** 记录日期(yyyy-MM-dd) */
+  diaryDate: string;
+  /** 心情标识(sunny/rainy/starry 等枚举,空则不展示) */
+  mood: string | null;
+  /** 日记内容 */
+  content: string;
+};
+
+/** 情侣日记分页(GET /portal/diary,每页 6 篇) */
+export const getDiary = portalPage<DiaryItem>("/portal/diary");
+
+/** 足迹-足迹项(GET /portal/footprint,免登录全量列表) */
+export type FootprintItem = {
+  id: number;
+  /** 城市/地点名称 */
+  city: string;
+  /** 经纬度(地图组件接入后启用;当前时间轴视图仅作展示) */
+  longitude: number | null;
+  latitude: number | null;
+  /** 到访日期(yyyy-MM-dd) */
+  arrivalDate: string | null;
+  /** 关联照片地址(无照片为 null) */
+  photoUrl: string | null;
+  /** 备注 */
+  remark: string | null;
+};
+
+/** 足迹全量列表(GET /portal/footprint;地图/时间轴需全量点位,不分页) */
+export const getFootprintList = () => {
+  return http.request<ApiResult<FootprintItem[]>>("get", "/portal/footprint");
+};
+
+/** 访问统计-累计(GET /portal/visit/total) */
+export type VisitTotal = {
+  /** 累计浏览量(PV) */
+  pv: number;
+  /** 累计独立访客数(UV) */
+  uv: number;
+};
+
+/** 查询累计访问统计(GET /portal/visit/total;页脚「已被阅读 N 次」) */
+export const getVisitTotal = () => {
+  return http.request<ApiResult<VisitTotal>>("get", "/portal/visit/total");
+};
+
 /** 门户主角-单个主角信息(对齐后端 PortalHeroUserResponse) */
 export type HeroInfoData = {
   /** 用户昵称(用户未维护时为 null,由前端兜底为空串) */
@@ -127,27 +217,4 @@ export const getQqInfo = (qq: string) => {
   return http.request<ApiResult<QqInfoData>>("get", "/qq-info", {
     params: { qq }
   });
-};
-
-/** 关于页对话-剧本分支选项(点选后递归播放 next 分支) */
-export type ChatScriptOption = {
-  text: string;
-  value: string;
-  next?: ChatScriptNode[];
-};
-
-/** 关于页对话-剧本节点(两种:type=bot 消息气泡 / type=buttons 分支按钮) */
-export type ChatScriptNode = {
-  type: "bot" | "buttons";
-  /** 播放前的延时(毫秒) */
-  delay?: number;
-  /** bot 消息内容,支持 ![alt](url) 图片语法 */
-  content?: string;
-  /** 分支按钮组(type=buttons 时有效) */
-  options?: ChatScriptOption[];
-};
-
-/** 关于页对话剧本(GET /portal/chat,后台可配) */
-export const getChatScript = () => {
-  return http.request<ApiResult<ChatScriptNode[]>>("get", "/portal/chat");
 };

@@ -10,6 +10,25 @@
     />
     <title>%VITE_APP_TITLE%</title>
     <link rel="icon" href="/favicon.ico" />
+    <script>
+      /* 门户主题首屏解析:localStorage 手动选择优先,否则跟随系统;
+       * 必须在应用挂载前同步执行,避免深色用户首屏白闪。解析失败静默回退浅色。 */
+      (function () {
+        try {
+          var theme = localStorage.getItem("amour-theme");
+          if (theme !== "dark" && theme !== "light") {
+            theme =
+              window.matchMedia &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches
+                ? "dark"
+                : "light";
+          }
+          document.documentElement.setAttribute("data-amour-theme", theme);
+        } catch (e) {
+          /* localStorage 不可用(隐私模式等):保持默认浅色 */
+        }
+      })();
+    </script>
   </head>
 
   <body>

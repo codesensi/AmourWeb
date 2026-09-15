@@ -74,25 +74,43 @@ export default [
         path: "/message",
         name: "PortalMessage",
         component: () => import("@/views/portal/message/index.vue"),
-        meta: { title: "留言板" }
-      },
-      {
-        path: "/about",
-        name: "PortalAbout",
-        component: () => import("@/views/portal/about/index.vue"),
-        meta: { title: "关于我们" }
+        meta: { title: "留言簿" }
       },
       {
         path: "/love-photo",
         name: "PortalLovePhoto",
         component: () => import("@/views/portal/love-photo/index.vue"),
-        meta: { title: "Love Photo" }
+        meta: { title: "恋爱画册" }
       },
       {
         path: "/love-list",
         name: "PortalLoveList",
         component: () => import("@/views/portal/love-list/index.vue"),
-        meta: { title: "Love List" }
+        meta: { title: "恋爱清单" }
+      },
+      {
+        path: "/anniversary",
+        name: "PortalAnniversary",
+        component: () => import("@/views/portal/anniversary/index.vue"),
+        meta: { title: "纪念日" }
+      },
+      {
+        path: "/time-capsule",
+        name: "PortalTimeCapsule",
+        component: () => import("@/views/portal/time-capsule/index.vue"),
+        meta: { title: "时间胶囊" }
+      },
+      {
+        path: "/diary",
+        name: "PortalDiary",
+        component: () => import("@/views/portal/diary/index.vue"),
+        meta: { title: "情侣日记" }
+      },
+      {
+        path: "/footprint",
+        name: "PortalFootprint",
+        component: () => import("@/views/portal/footprint/index.vue"),
+        meta: { title: "足迹" }
       }
     ]
   }

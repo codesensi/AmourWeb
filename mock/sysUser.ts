@@ -9,14 +9,14 @@ const users = [
     username: "admin",
     nickname: "超级管理员",
     idCard: "",
-    email: "",
+    email: "admin@amour.com",
     phone: "",
     qq: "12345678",
     gender: "U",
     avatar: "",
     status: 0,
     builtin: 1,
-    remark: "超级管理员",
+    remark: "系统内置超级管理员",
     createTime: "2026-01-01 08:00:00"
   },
   {
@@ -24,14 +24,14 @@ const users = [
     username: "li",
     nickname: "Li",
     idCard: "",
-    email: "",
+    email: "li@amour.com",
     phone: "",
     qq: "2623669948",
     gender: "M",
     avatar: "",
     status: 0,
     builtin: 1,
-    remark: "门户男主",
+    remark: "系统内置门户男主",
     createTime: "2026-01-01 09:00:00"
   },
   {
@@ -39,30 +39,15 @@ const users = [
     username: "su",
     nickname: "Su",
     idCard: "",
-    email: "",
+    email: "su@amour.com",
     phone: "",
     qq: "673822943",
     gender: "F",
     avatar: "",
     status: 0,
     builtin: 1,
-    remark: "门户女主",
+    remark: "系统内置门户女主",
     createTime: "2026-01-01 09:01:00"
-  },
-  {
-    id: "4",
-    username: "common",
-    nickname: "小林",
-    idCard: "110101199001011234",
-    email: "",
-    phone: "",
-    qq: "",
-    gender: "M",
-    avatar: "",
-    status: 1,
-    builtin: 0,
-    remark: "普通用户",
-    createTime: "2026-06-15 10:00:00"
   }
 ];
 
@@ -70,8 +55,7 @@ const users = [
 const rolesByUser: Record<number, string[]> = {
   1: ["1"],
   2: ["2"],
-  3: ["2"],
-  4: ["2"]
+  3: ["2"]
 };
 
 /** 当前时间,格式对齐后端 createTime(yyyy-MM-dd HH:mm:ss) */

@@ -48,6 +48,36 @@ const configs = [
     updateTime: "2026-01-01 00:00:00"
   },
   {
+    id: "1005",
+    configKey: "trust-proxy-headers",
+    configValue: "true",
+    valueType: "BOOLEAN",
+    configGroup: "base",
+    sensitive: 0,
+    remark: "是否信任X-Real-IP等代理头(仅部署于可信反向代理后开启)",
+    updateTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "1006",
+    configKey: "logo",
+    configValue: "",
+    valueType: "STRING",
+    configGroup: "base",
+    sensitive: 0,
+    remark: "项目/站点logo图片(登录页/管理端/门户端统一)",
+    updateTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "1007",
+    configKey: "favicon",
+    configValue: "",
+    valueType: "STRING",
+    configGroup: "base",
+    sensitive: 0,
+    remark: "项目/站点favicon图标(登录页/管理端/门户端统一)",
+    updateTime: "2026-01-01 00:00:00"
+  },
+  {
     id: "2001",
     configKey: "site.love-start-date",
     configValue: "2018-07-15 00:00:00",
@@ -85,6 +115,66 @@ const configs = [
     configGroup: "file",
     sensitive: 0,
     remark: "文件存储方式: local-本地, oss-对象存储",
+    updateTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "5001",
+    configKey: "rate-limit.login.limit",
+    configValue: "5",
+    valueType: "INTEGER",
+    configGroup: "rate-limit",
+    sensitive: 0,
+    remark: "登录接口-窗口内最大请求数(0 表示拒绝全部请求)",
+    updateTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "5002",
+    configKey: "rate-limit.login.window",
+    configValue: "60",
+    valueType: "INTEGER",
+    configGroup: "rate-limit",
+    sensitive: 0,
+    remark: "登录接口-时间窗口(秒)",
+    updateTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "5003",
+    configKey: "rate-limit.captcha.limit",
+    configValue: "10",
+    valueType: "INTEGER",
+    configGroup: "rate-limit",
+    sensitive: 0,
+    remark: "验证码接口-窗口内最大请求数(0 表示拒绝全部请求)",
+    updateTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "5004",
+    configKey: "rate-limit.captcha.window",
+    configValue: "60",
+    valueType: "INTEGER",
+    configGroup: "rate-limit",
+    sensitive: 0,
+    remark: "验证码接口-时间窗口(秒)",
+    updateTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "5005",
+    configKey: "rate-limit.qq.limit",
+    configValue: "10",
+    valueType: "INTEGER",
+    configGroup: "rate-limit",
+    sensitive: 0,
+    remark: "QQ信息接口-窗口内最大请求数(0 表示拒绝全部请求)",
+    updateTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "5006",
+    configKey: "rate-limit.qq.window",
+    configValue: "60",
+    valueType: "INTEGER",
+    configGroup: "rate-limit",
+    sensitive: 0,
+    remark: "QQ信息接口-时间窗口(秒)",
     updateTime: "2026-01-01 00:00:00"
   }
 ];

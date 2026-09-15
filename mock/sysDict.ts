@@ -3,7 +3,7 @@
 // 组数据契约对齐 DictGroupResponse:dictCode/items(dictValue/dictLabel/sort)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
-// 与后端 sys_dict 内置种子同源(10 组 30 条;组内顺序即 sort 升序)
+// 与后端 sys_dict 内置种子同源(12 组 41 条;组内顺序即 sort 升序)
 const dicts = [
   {
     id: "10001",
@@ -90,11 +90,11 @@ const dicts = [
     createTime: "2026-01-01 00:00:00"
   },
   {
-    id: "10302",
+    id: "10301",
     dictCode: "del-flag",
     dictName: "删除标识",
-    dictValue: "1",
-    dictLabel: "已删除",
+    dictValue: "0",
+    dictLabel: "未删除",
     sort: 1,
     status: 0,
     builtin: 1,
@@ -102,11 +102,11 @@ const dicts = [
     createTime: "2026-01-01 00:00:00"
   },
   {
-    id: "10301",
+    id: "10302",
     dictCode: "del-flag",
     dictName: "删除标识",
-    dictValue: "0",
-    dictLabel: "未删除",
+    dictValue: "1",
+    dictLabel: "已删除",
     sort: 2,
     status: 0,
     builtin: 1,
@@ -158,7 +158,7 @@ const dicts = [
     sort: 1,
     status: 0,
     builtin: 1,
-    remark: "与 ImageType 对齐",
+    remark: "与 ImageType(spec/gif/chinese/chinese-gif/arithmetic) 对齐",
     createTime: "2026-01-01 00:00:00"
   },
   {
@@ -282,6 +282,18 @@ const dicts = [
     createTime: "2026-01-01 00:00:00"
   },
   {
+    id: "10705",
+    dictCode: "config-group",
+    dictName: "配置分组",
+    dictValue: "rate-limit",
+    dictLabel: "接口限流",
+    sort: 5,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
     id: "10801",
     dictCode: "config-value-type",
     dictName: "配置值类型",
@@ -360,6 +372,176 @@ const dicts = [
     dictValue: "oss",
     dictLabel: "对象存储",
     sort: 2,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  // biz-type(文件业务类型,对应 FileBizTypeEnum:infra/avatar/photo/markdown;11000 段)
+  {
+    id: "11001",
+    dictCode: "biz-type",
+    dictName: "文件业务类型",
+    dictValue: "infra",
+    dictLabel: "基础设施",
+    sort: 1,
+    status: 0,
+    builtin: 1,
+    remark: "与 FileBizTypeEnum(infra/avatar/photo/markdown) 对齐",
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11002",
+    dictCode: "biz-type",
+    dictName: "文件业务类型",
+    dictValue: "avatar",
+    dictLabel: "用户头像",
+    sort: 2,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11003",
+    dictCode: "biz-type",
+    dictName: "文件业务类型",
+    dictValue: "photo",
+    dictLabel: "相册照片",
+    sort: 3,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11004",
+    dictCode: "biz-type",
+    dictName: "文件业务类型",
+    dictValue: "markdown",
+    dictLabel: "点滴配图",
+    sort: 4,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  // log-type(日志类型,对应 LogTypeEnum:0-未知,1-登录,2-登出,3-查询,4-新增,5-修改,6-删除,7-授权,8-上传,9-下载;11100 段)
+  {
+    id: "11101",
+    dictCode: "log-type",
+    dictName: "日志类型",
+    dictValue: "0",
+    dictLabel: "未知",
+    sort: 1,
+    status: 0,
+    builtin: 1,
+    remark: "与 LogTypeEnum 对齐",
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11102",
+    dictCode: "log-type",
+    dictName: "日志类型",
+    dictValue: "1",
+    dictLabel: "登录",
+    sort: 2,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11103",
+    dictCode: "log-type",
+    dictName: "日志类型",
+    dictValue: "2",
+    dictLabel: "登出",
+    sort: 3,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11104",
+    dictCode: "log-type",
+    dictName: "日志类型",
+    dictValue: "3",
+    dictLabel: "查询",
+    sort: 4,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11105",
+    dictCode: "log-type",
+    dictName: "日志类型",
+    dictValue: "4",
+    dictLabel: "新增",
+    sort: 5,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11106",
+    dictCode: "log-type",
+    dictName: "日志类型",
+    dictValue: "5",
+    dictLabel: "修改",
+    sort: 6,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11107",
+    dictCode: "log-type",
+    dictName: "日志类型",
+    dictValue: "6",
+    dictLabel: "删除",
+    sort: 7,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11108",
+    dictCode: "log-type",
+    dictName: "日志类型",
+    dictValue: "7",
+    dictLabel: "授权",
+    sort: 8,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11109",
+    dictCode: "log-type",
+    dictName: "日志类型",
+    dictValue: "8",
+    dictLabel: "上传",
+    sort: 9,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11110",
+    dictCode: "log-type",
+    dictName: "日志类型",
+    dictValue: "9",
+    dictLabel: "下载",
+    sort: 10,
     status: 0,
     builtin: 1,
     remark: null,

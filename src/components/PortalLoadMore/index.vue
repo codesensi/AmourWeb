@@ -25,25 +25,30 @@ defineEmits<{ load: [] }>();
 </template>
 
 <style scoped>
-/* 「加载更多」按钮:替代原站 layui flow 的按钮式分页(门户列表页共用) */
+/* 「加载更多」按钮(门户列表页共用):杂志风墨色细线框 */
 .portal-load-more {
+  display: block;
   width: fit-content;
-  padding: 0.5rem 2rem;
+  padding: 12px 32px;
   margin: 2rem auto 0;
-  font-family: inherit;
-  font-size: 1.2rem;
-  color: #959595;
+  font-family: var(--am-font-mono);
+  font-size: var(--am-text-sm);
+  color: var(--am-ink-secondary);
   text-align: center;
   letter-spacing: 0.3rem;
   cursor: pointer;
   background: none;
-  border: 1px solid #e4e4e4;
-  border-radius: 2rem;
-  transition: all 0.2s;
+  border: 1px solid var(--am-line);
+  border-radius: 999px;
+  transition:
+    color var(--am-duration) ease,
+    border-color var(--am-duration) ease,
+    background var(--am-duration) ease;
 }
 
 .portal-load-more:hover:not(:disabled) {
-  color: #ff69b4;
-  border-color: #ff69b4;
+  color: var(--am-rose);
+  background: var(--am-rose-soft);
+  border-color: var(--am-rose);
 }
 </style>

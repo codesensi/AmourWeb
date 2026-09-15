@@ -1,5 +1,4 @@
 // @ts-check
-import prefixer from "postcss-prefix-selector";
 
 /** @type {import('postcss-load-config').Config} */
 export default {
@@ -16,15 +15,16 @@ export default {
         if (selector === "html" || selector.startsWith("html:")) {
           return selector;
         }
+        // :root 令牌定义保持全局:主题切换依赖 <html data-amour-theme>
+        // 属性选择器,加前缀会被改写成 .portal[data-...] 而永远无法命中。
+        // 令牌均为 --am-* 命名空间的自定义属性,对管理端无副作用
+        if (selector.startsWith(":root")) {
+          return selector;
+        }
         if (
-          [":root", "body", "html"].some(globalSel =>
-            selector.startsWith(globalSel)
-          )
+          ["body", "html"].some(globalSel => selector.startsWith(globalSel))
         ) {
-          return selector.replace(
-            /(html\s+body|:root\s+body|html|:root|body)/gm,
-            _prefix
-          );
+          return selector.replace(/(html\s+body|html|body)/gm, _prefix);
         }
         return prefixedSelector;
       }

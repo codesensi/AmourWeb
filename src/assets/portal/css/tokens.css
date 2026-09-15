@@ -1,0 +1,224 @@
+/* =====================================================================
+ * Amour 门户设计令牌 ——「双人小站」主题
+ * 温馨浪漫风:暖粉纸感底 + 墨色正文 + 玫瑰强调色 + 大圆角软阴影。
+ * 所有门户页面/组件仅允许引用本文件的语义令牌,禁止逐屏硬编码色值。
+ * ===================================================================== */
+
+/* Google Fonts:字体加载失败时按 fallback 栈优雅降级,不阻塞渲染;
+ * ZCOOL XiaoWei(站酷小薇体)承担中文标题,圆润雅致更贴情侣小站气质 */
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=ZCOOL+XiaoWei&display=swap");
+
+:root {
+  /* ---- 颜色令牌(浅色:暖粉纸感 + 墨 + 玫瑰) ---- */
+  --am-bg: #fdf6f3;
+  --am-bg-deep: #faeee9;
+  --am-ink: #1a1614;
+  --am-ink-secondary: #6b6259;
+  --am-ink-tertiary: #9b928a;
+  --am-rose: #e11d48;
+  --am-rose-soft: #fdeef0;
+  --am-line: #eddbd7;
+  --am-line-strong: #1a1614;
+  --am-card: #fffdfa;
+  --am-card-hover: #ffffff;
+  --am-cta: #e11d48;
+  --am-cta-text: #fff8f5;
+  --am-mask: rgb(20 16 14 / 62%);
+
+  /* 字体族 */
+  --am-font-display:
+    "Playfair Display", "ZCOOL XiaoWei", "Noto Serif SC", Georgia,
+    "STZhongsong", "SimSun", serif;
+  --am-font-body:
+    Inter, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --am-font-mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+
+  /* 字号阶梯(模块化) */
+  --am-text-xs: 0.75rem;
+  --am-text-sm: 0.875rem;
+  --am-text-base: 1rem;
+  --am-text-lg: 1.25rem;
+  --am-text-xl: 1.75rem;
+  --am-text-2xl: 2.5rem;
+  --am-text-huge: 4rem;
+  --am-text-giant: 6rem;
+
+  /* 间距刻度(8 基准) */
+  --am-space-xs: 8px;
+  --am-space-sm: 16px;
+  --am-space-md: 24px;
+  --am-space-lg: 32px;
+  --am-space-xl: 48px;
+  --am-space-2xl: 64px;
+  --am-space-3xl: 96px;
+
+  /* 形状:大圆角传达柔软亲密感;胶囊用于按钮/标签 */
+  --am-radius: 14px;
+  --am-radius-pill: 999px;
+  --am-content-width: 1120px;
+
+  /* 动效:时长三档 + 缓动双轨(enter 用 ease-out 族,弹性元素用 spring) */
+  --am-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --am-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --am-duration-fast: 0.15s;
+  --am-duration: 0.3s;
+  --am-duration-slow: 0.5s;
+
+  /* 卡片悬浮抬升阴影(玫瑰调软阴影,配合 transform-only 微交互,不引发布局) */
+  --am-shadow-hover: 0 12px 28px rgb(225 29 72 / 12%);
+
+  /* 封面:晨光插画 + 提亮薄纱(浅色模式用奶油纱保淡雅,文字走墨色令牌) */
+  --am-cover-img: url("/portal-cover.svg");
+  --am-cover-veil: linear-gradient(
+    180deg,
+    rgb(255 251 245 / 30%),
+    rgb(255 251 245 / 10%)
+  );
+}
+
+/* 深色主题:由内联脚本/切换开关在 <html> 上写入 data-amour-theme
+ * (三态:light / dark / 不设置=跟随系统,跟随态由 JS 解析 matchMedia 后写入)
+ * 注意:本文件的 --am-line-strong 已在浅色 :root 中定义,此处为深色覆盖 */
+:root[data-amour-theme="dark"] {
+  --am-bg: #1b1216;
+  --am-bg-deep: #241820;
+  --am-ink: #f5efe9;
+  --am-ink-secondary: #a89f94;
+  --am-ink-tertiary: #6b6259;
+  --am-rose: #fb7185;
+  --am-rose-soft: #2e1218;
+  --am-line: #463039;
+  --am-line-strong: #f5efe9;
+  --am-card: #251a21;
+  --am-card-hover: #2e2028;
+  --am-cta: #fb7185;
+  --am-cta-text: #1b1216;
+
+  /* 深色模式封面:暗纱压住浅色插画,保奶油文字可读 */
+  --am-cover-veil: linear-gradient(
+    180deg,
+    rgb(20 16 14 / 55%),
+    rgb(20 16 14 / 72%)
+  );
+}
+
+/* ------------------------------------------------------------------
+ * 门户共享基础类(页面级复用的杂志元素,放令牌层避免各页重复)
+ * ------------------------------------------------------------------ */
+
+/* 杂志专栏容器:统一内容宽度与纵向节奏 */
+.am-page {
+  width: 100%;
+  max-width: var(--am-content-width);
+  margin: 0 auto;
+  padding: var(--am-space-lg) var(--am-space-md) var(--am-space-2xl, 64px);
+}
+
+/* 章节题头:期号小字 + 衬线大标题 + 分隔线 */
+.am-section-head {
+  padding: var(--am-space-md) 0 var(--am-space-md);
+  border-bottom: 1px solid var(--am-line);
+}
+
+.am-section-kicker {
+  font-family: var(--am-font-mono, "JetBrains Mono", monospace);
+  font-size: var(--am-text-xs);
+  letter-spacing: 0.18em;
+  color: var(--am-rose);
+  text-transform: uppercase;
+}
+
+.am-section-title {
+  margin: 8px 0 0;
+  font-family: var(--am-font-display, serif);
+  font-weight: 700;
+  font-size: var(--am-text-lg);
+  line-height: 1.3;
+  color: var(--am-ink);
+}
+
+/* 滚动涌现:配合 v-reveal 指令(is-visible 由指令写入) */
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 0.45s var(--am-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    transform 0.45s var(--am-ease, cubic-bezier(0.22, 1, 0.36, 1));
+  /* 动画延迟经由行内 --reveal-delay 注入,实现分组 stagger */
+  transition-delay: var(--reveal-delay, 0s);
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* 涌现变体:侧向滑入(侧栏/署名栏)与缩放浮现(焦点卡),复用同一指令 */
+.reveal-left {
+  transform: translateX(-18px);
+}
+
+.reveal-scale {
+  transform: scale(0.96);
+}
+
+/* 无动效偏好:涌现直接可见,transition-delay 全部失效 */
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal-left,
+  .reveal-scale {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 杂志风细滚动条:玫瑰拇指悬停加深,Firefox 走 scrollbar-width */
+.portal {
+  scrollbar-width: thin;
+  scrollbar-color: var(--am-line) transparent;
+}
+
+.portal::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.portal::-webkit-scrollbar-thumb {
+  background: var(--am-line);
+  border-radius: 3px;
+}
+
+.portal::-webkit-scrollbar-thumb:hover {
+  background: var(--am-ink-tertiary);
+}
+
+/* 共享微交互:下划线从左向右生长(导航/目录/页脚链接统一手感) */
+.am-link-underline {
+  background-image: linear-gradient(currentcolor, currentcolor);
+  background-size: 0% 1px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size var(--am-duration) var(--am-ease);
+}
+
+.am-link-underline:hover,
+.am-link-underline.active {
+  background-size: 100% 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .am-link-underline {
+    transition: none;
+  }
+}
+
+/* 门户通用空态(杂志风:细线框 + 引导文案) */
+.am-empty {
+  padding: var(--am-space-lg) 0;
+  border-top: 1px solid var(--am-line);
+  border-bottom: 1px solid var(--am-line);
+  color: var(--am-ink-secondary);
+  font-size: var(--am-text-sm);
+  text-align: center;
+}

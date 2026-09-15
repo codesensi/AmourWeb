@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice" role="img" aria-label="晨光下相依的两人剪影">
+  <defs>
+    <!-- 晨光天空:奶油 → 淡玫瑰,呼应门户玫瑰主色与纸感暖调 -->
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFF7ED"/>
+      <stop offset="0.42" stop-color="#FDEDE6"/>
+      <stop offset="0.72" stop-color="#FADCD9"/>
+      <stop offset="1" stop-color="#F5C9CB"/>
+    </linearGradient>
+    <!-- 晨光晕 -->
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FFF4DE" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#FFF4DE" stop-opacity="0"/>
+    </radialGradient>
+    <!-- 小爱心(可复用) -->
+    <path id="heart" d="M0 4 C -4 0 -8 -3 -8 -6.5 C -8 -9 -6 -10.5 -4 -10.5 C -2.5 -10.5 -1 -9.5 0 -8 C 1 -9.5 2.5 -10.5 4 -10.5 C 6 -10.5 8 -9 8 -6.5 C 8 -3 4 0 0 4 Z"/>
+  </defs>
+
+  <!-- 天空 -->
+  <rect width="1920" height="1080" fill="url(#sky)"/>
+
+  <!-- 晨光晕与朝阳 -->
+  <circle cx="960" cy="648" r="190" fill="url(#glow)"/>
+  <circle cx="960" cy="648" r="76" fill="#FFE2BC"/>
+
+  <!-- 飘散的小爱心 -->
+  <g fill="#F2A9B4" opacity="0.55">
+    <use href="#heart" transform="translate(420 300) scale(1.1)"/>
+    <use href="#heart" transform="translate(640 210) scale(0.8) rotate(-12)"/>
+    <use href="#heart" transform="translate(1330 250) scale(1) rotate(10)"/>
+    <use href="#heart" transform="translate(1540 340) scale(0.75)"/>
+    <use href="#heart" transform="translate(1130 170) scale(0.65) rotate(8)"/>
+  </g>
+
+  <!-- 暖云三组 -->
+  <g fill="#FFFFFF" opacity="0.65">
+    <ellipse cx="430" cy="520" rx="150" ry="16"/>
+    <ellipse cx="520" cy="548" rx="90" ry="12"/>
+    <ellipse cx="1440" cy="470" rx="180" ry="18"/>
+    <ellipse cx="1330" cy="502" rx="100" ry="13"/>
+    <ellipse cx="760" cy="420" rx="110" ry="12" opacity="0.7"/>
+  </g>
+
+  <!-- 归鸟两行 -->
+  <g stroke="#B98A92" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.8">
+    <path d="M600 300 q 11 -12 22 0 q 11 -12 22 0"/>
+    <path d="M660 330 q 9 -10 18 0 q 9 -10 18 0"/>
+    <path d="M1310 260 q 10 -11 20 0 q 10 -11 20 0"/>
+  </g>
+
+  <!-- 远丘 -->
+  <path d="M0 780 Q 480 700 960 760 T 1920 740 V 1080 H 0 Z" fill="#E5BCC4"/>
+  <!-- 近丘 -->
+  <path d="M0 880 Q 600 800 1200 862 T 1920 850 V 1080 H 0 Z" fill="#D2A2B0"/>
+  <!-- 前景草地 -->
+  <rect y="942" width="1920" height="138" fill="#C08CA0"/>
+
+  <!-- 相依两人剪影:头轻靠在一起,前者手臂环过对方肩头 -->
+  <g fill="#5E3A4A">
+    <!-- 身形 A(略高) -->
+    <circle cx="948" cy="814" r="15"/>
+    <path d="M926 942 v-68 q0-36 22-36 q22 0 22 36 v68 z"/>
+    <!-- 身形 B(略矮,头轻靠向 A) -->
+    <circle cx="976" cy="824" r="13"/>
+    <path d="M958 942 v-60 q0-34 19-34 q19 0 19 34 v60 z"/>
+    <!-- 环肩手臂 -->
+    <path d="M930 868 Q 955 840 992 862" stroke="#5E3A4A" stroke-width="10" stroke-linecap="round" fill="none"/>
+  </g>
+
+  <!-- 依偎之树 -->
+  <g fill="#5E3A4A">
+    <path d="M1148 942 c-4-60 2-118 10-150 l 14 0 c 8 32 14 90 10 150 z"/>
+    <circle cx="1170" cy="742" r="58"/>
+    <circle cx="1122" cy="772" r="40"/>
+    <circle cx="1214" cy="766" r="44"/>
+  </g>
+
+  <!-- 草叶细节 -->
+  <g stroke="#5E3A4A" stroke-width="3" stroke-linecap="round" fill="none">
+    <path d="M760 942 q 4 -18 12 -24"/>
+    <path d="M790 942 q 2 -14 8 -20"/>
+    <path d="M1060 942 q 4 -16 12 -22"/>
+    <path d="M1092 942 q 2 -12 8 -18"/>
+    <path d="M1320 942 q 4 -18 12 -24"/>
+  </g>
+</svg>

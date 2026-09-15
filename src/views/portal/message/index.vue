@@ -6,10 +6,14 @@ import { fallbackAvatar, notifyFallbackAvatar } from "@/utils/avatar";
 import { fetchQqInfo, QQ_PATTERN } from "@/utils/qqInfo";
 import { usePagedList } from "@/hooks/usePagedList";
 import PortalLoadMore from "@/components/PortalLoadMore/index.vue";
+import PortalSkeleton from "@/components/PortalSkeleton/index.vue";
+import reveal from "@/directives/reveal";
 
 defineOptions({ name: "PortalMessage" });
 
-/** 门户「加载更多」分页加载(每页 6 条,与原站 PAGE_SIZE 一致);快照头像缺失时提示使用默认头像 */
+const vReveal = reveal;
+
+/** 门户「加载更多」分页加载(每页 6 条);快照头像缺失时提示使用默认头像 */
 const { items, totalRow, loading, hasMore, loadMore, reset } =
   usePagedList<MessageItem>(getMessage, {
     onLoaded: records => {
@@ -27,7 +31,9 @@ function reloadMessages() {
 /** 留言表单:校验文案逐字保留原站 */
 const form = reactive({ qq: "", name: "", text: "" });
 const submitting = ref(false);
-const submitText = ref("提交留言");
+const submitText = ref("投递留言");
+/** 表单级提交结果状态行(role=status + aria-live,读屏器即时播报) */
+const formStatus = ref("");
 
 /** 列表头像地址:留言快照 avatar 非空用之,否则本地兜底图 */
 function listAvatarSrc(m: MessageItem): string {
@@ -130,20 +136,23 @@ async function submit() {
   }
 
   submitting.value = true;
-  submitText.value = "留言提交中...";
+  submitText.value = "留言投递中...";
+  formStatus.value = "";
   try {
     await sendMessage({ qq: form.qq, name: form.name, text: form.text });
-    message("留言提交成功！", { type: "success" });
+    message("留言提交成功,审核通过后上墙！", { type: "success" });
     submitText.value = "留言成功";
+    formStatus.value = "留言提交成功,审核通过后就会出现在明信片墙上。";
     reloadMessages();
     // 按钮置灰 5 秒后恢复(对齐原站 submitMessage);句柄随卸载清理
     submitTimer = setTimeout(() => {
       submitting.value = false;
-      submitText.value = "提交留言";
+      submitText.value = "投递留言";
     }, 5000);
   } catch {
     submitting.value = false;
-    submitText.value = "提交留言";
+    submitText.value = "投递留言";
+    formStatus.value = "留言投递失败,请稍后重试。";
   }
 }
 
@@ -155,125 +164,344 @@ onMounted(() => loadMore());
 </script>
 
 <template>
-  <div>
-    <div class="central central-800 bg">
-      <div class="title mt-2rem">
-        <h1>在这里写下我们的留言祝福</h1>
-      </div>
-      <h3>
-        已收到 <b id="messageCount">{{ totalRow }}</b> 条祝福留言<i
-          class="count-note"
-          >(显示最新 100条)</i
-        >
-      </h3>
-      <div class="row">
-        <div class="card col-lg-12 col-md-12 col-sm-12 col-sm-x-12">
-          <!-- 留言列表 -->
-          <div id="messageList">
-            <div
-              v-for="(m, i) in items"
-              :key="`${m.date}-${i}`"
-              class="message-item animated fadeInUp delay-03s"
-            >
-              <div class="textinfo">
-                <div class="message-top-info">
-                  <i class="time">
-                    {{ m.date }}<b v-if="m.location" class="dot" />{{
-                      m.location
-                    }}
-                  </i>
-                </div>
-                <div class="user-info">
-                  <img
-                    :src="listAvatarSrc(m)"
-                    alt=""
-                    @error="onListAvatarError(m)"
-                  />
-                  <div class="head-content">
-                    <div class="level">
-                      访客 <b>#{{ i + 1 }}</b>
-                    </div>
-                    <span v-if="m.nickname" class="name">{{ m.nickname }}</span>
-                  </div>
-                </div>
-                <div class="text">{{ m.content }}</div>
-              </div>
-            </div>
-            <div v-if="!loading && items.length === 0" class="portal-empty">
-              还没有留言,来写下第一条吧~
-            </div>
-          </div>
-          <!-- 「加载更多」:补齐分页加载入口(门户列表页共用组件) -->
-          <PortalLoadMore
-            :loading="loading"
-            :has-more="hasMore"
-            @load="loadMore"
-          />
-          <!-- 提交表单(POST /portal/message {qq, name, text};校验文案逐字保留原站) -->
-          <form class="message-form" @submit.prevent="submit">
-            <div id="messageArea" class="input-box">
-              <img
-                :src="previewAvatar"
-                alt=""
-                class="avatar"
-                @error="onPreviewError"
-              />
-              <input
-                id="qqInput"
-                v-model="form.qq"
-                type="text"
-                placeholder="请输入QQ号码"
-                class="input-qq"
-                maxlength="12"
-                @input="onQqInput"
-                @blur="onQqBlur"
-              />
-              <input
-                id="nicknameInput"
-                v-model="form.name"
-                type="text"
-                placeholder="输入QQ号码后自动获取"
-                class="input-nickname"
-              />
-            </div>
-            <textarea
-              id="messageInput"
-              v-model="form.text"
-              rows="8"
-              placeholder="请输入您的留言内容..."
+  <div class="am-page">
+    <!-- 章节题头 -->
+    <header class="am-section-head">
+      <p class="am-section-kicker">Sweet Words · 甜甜的话</p>
+      <h1 class="am-section-title">访客留言簿</h1>
+      <p class="msg-intro">
+        已收到 <b class="msg-count">{{ totalRow }}</b> 条祝福留言
+      </p>
+    </header>
+
+    <!-- 写明信片:置顶表单卡(字段均配可见 label,占位符仅为示例) -->
+    <form class="postcard-form reveal" @submit.prevent="submit">
+      <div class="postcard-head">
+        <img
+          :src="previewAvatar"
+          alt="留言头像预览"
+          class="postcard-avatar"
+          @error="onPreviewError"
+        />
+        <div class="postcard-fields">
+          <div class="postcard-field">
+            <label class="postcard-label" for="msg-qq">QQ 号码</label>
+            <input
+              id="msg-qq"
+              v-model="form.qq"
+              type="text"
+              inputmode="numeric"
+              autocomplete="off"
+              placeholder="如 123456789"
+              maxlength="12"
+              aria-describedby="msg-qq-hint"
+              @input="onQqInput"
+              @blur="onQqBlur"
             />
-            <div class="input-sub">
-              <button
-                id="messageSubmit"
-                type="button"
-                class="submit-btn"
-                :disabled="submitting"
-                @click="submit"
-              >
-                {{ submitText }}
-                <svg
-                  style="width: 1.3em; height: 1.3em"
-                  viewBox="0 0 1024 1024"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M620.8 179.2c12.8 12.8 6.4 32-6.4 44.8-19.2 6.4-38.4 6.4-44.8-12.8-44.8-70.4-128-115.2-217.6-115.2-140.8 0-256 115.2-256 256 0 89.6 44.8 166.4 115.2 217.6 19.2 6.4 19.2 25.6 12.8 38.4-12.8 19.2-32 19.2-44.8 12.8C89.6 563.2 32 460.8 32 352c0-179.2 140.8-320 320-320 108.8 0 211.2 57.6 268.8 147.2zM326.4 332.8l243.2 601.6 83.2-243.2c6.4-19.2 19.2-32 38.4-38.4L934.4 576 326.4 332.8z m25.6-57.6L960 518.4c32 12.8 51.2 51.2 38.4 83.2-6.4 19.2-19.2 32-38.4 38.4l-243.2 83.2L633.6 960c-12.8 32-44.8 51.2-83.2 38.4-19.2-6.4-32-19.2-38.4-38.4L268.8 358.4c-12.8-32 6.4-70.4 38.4-83.2 12.8-6.4 32-6.4 44.8 0z"
-                    fill="#ffffff"
-                  />
-                </svg>
-              </button>
-            </div>
-          </form>
+            <span id="msg-qq-hint" class="postcard-hint">
+              填写 QQ 自动带出头像与昵称
+            </span>
+          </div>
+          <div class="postcard-field">
+            <label class="postcard-label" for="msg-name">昵称</label>
+            <input
+              id="msg-name"
+              v-model="form.name"
+              type="text"
+              autocomplete="nickname"
+              placeholder="QQ 自动带出,也可手填"
+            />
+          </div>
         </div>
       </div>
+      <div class="postcard-field">
+        <label class="postcard-label" for="msg-text">留言内容</label>
+        <textarea
+          id="msg-text"
+          v-model="form.text"
+          rows="5"
+          maxlength="1024"
+          placeholder="写一张明信片给我们…"
+          aria-describedby="msg-text-count"
+        />
+      </div>
+      <div class="postcard-actions">
+        <span id="msg-text-count" class="postcard-count">
+          {{ form.text.length }} / 1024
+        </span>
+        <button class="postcard-submit" type="submit" :disabled="submitting">
+          <span v-if="submitting" class="postcard-spinner" aria-hidden="true" />
+          {{ submitText }}
+        </button>
+      </div>
+      <p v-if="formStatus" class="postcard-status" role="status">
+        {{ formStatus }}
+      </p>
+    </form>
+
+    <!-- 明信片墙 -->
+    <div class="postcard-wall">
+      <article
+        v-for="(m, i) in items"
+        :key="`${m.date}-${i}`"
+        v-reveal="(i % 3 || 0) * 0.06"
+        class="postcard reveal"
+        :style="{ '--tilt': `${((i % 3) - 1) * 0.8}deg` }"
+      >
+        <header class="postcard-meta">
+          <time class="postcard-date">{{ m.date }}</time>
+          <span v-if="m.location" class="postcard-region">
+            寄自{{ m.location }}
+          </span>
+        </header>
+        <p class="postcard-text">{{ m.content }}</p>
+        <footer class="postcard-sign">
+          <img :src="listAvatarSrc(m)" alt="" @error="onListAvatarError(m)" />
+          <span class="postcard-name">{{ m.nickname || "访客" }}</span>
+          <b class="postcard-no">#{{ i + 1 }}</b>
+        </footer>
+      </article>
     </div>
+
+    <!-- 首屏加载:杂志线框骨架屏(>300ms 可感知) -->
+    <PortalSkeleton v-if="loading && items.length === 0" :rows="2" />
+
+    <div v-if="!loading && items.length === 0" class="am-empty">
+      还没有明信片,来投递第一张吧~
+    </div>
+
+    <!-- 「加载更多」按钮(门户列表页共用组件) -->
+    <PortalLoadMore :loading="loading" :has-more="hasMore" @load="loadMore" />
   </div>
 </template>
 
 <style scoped>
-/* 留言内容区加宽:解除胶囊 800px 限宽,容器宽度调整到 1000px(略宽于原站,提升列表与表单展示) */
-.central {
+/* ---------------- 写明信片表单 ---------------- */
+.postcard-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 720px;
+  padding: var(--am-space-md) 0 var(--am-space-lg);
+}
+
+.postcard-head {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.postcard-avatar {
+  width: 52px;
+  height: 52px;
+  object-fit: cover;
+  border: 1px solid var(--am-line);
+  border-radius: 50%;
+}
+
+.postcard-fields {
+  display: flex;
+  flex: 1;
+  gap: 10px;
+}
+
+/* 字段组:可见 label + 输入 + 提示,读屏与键鼠用户共用同一入口 */
+.postcard-field {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.postcard-label {
+  font-family: var(--am-font-mono);
+  font-size: var(--am-text-xs);
+  color: var(--am-ink-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.postcard-hint {
+  font-size: var(--am-text-xs);
+  color: var(--am-ink-tertiary);
+}
+
+/* 提交结果状态行:role=status,读屏器即时播报 */
+.postcard-status {
+  margin: 0;
+  font-size: var(--am-text-sm);
+  color: var(--am-rose);
+}
+
+/* 提交中 spinner:内联反馈,替代纯文字等待 */
+.postcard-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  vertical-align: -2px;
+  border: 2px solid currentcolor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: postcard-spin 0.7s linear infinite;
+}
+
+@keyframes postcard-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .postcard-spinner {
+    animation-duration: 2s;
+  }
+}
+
+.postcard-fields input,
+.postcard-form textarea {
   width: 100%;
-  max-width: 1000px;
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: var(--am-text-sm);
+  color: var(--am-ink);
+  background: var(--am-card);
+  border: 1px solid var(--am-line);
+  border-radius: var(--am-radius);
+}
+
+.postcard-fields input:focus,
+.postcard-form textarea:focus {
+  outline: 2px solid var(--am-rose);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+
+.postcard-form textarea {
+  line-height: 1.7;
+  resize: vertical;
+}
+
+.postcard-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.postcard-count {
+  font-family: var(--am-font-mono);
+  font-size: var(--am-text-xs);
+  color: var(--am-ink-secondary);
+}
+
+.postcard-submit {
+  padding: 12px 28px;
+  font-size: var(--am-text-sm);
+  color: var(--am-cta-text);
+  cursor: pointer;
+  background: var(--am-cta);
+  border: 0;
+  border-radius: var(--am-radius-pill);
+  transition:
+    opacity var(--am-duration) ease,
+    transform var(--am-duration-fast) var(--am-ease),
+    box-shadow var(--am-duration) ease;
+}
+
+.postcard-submit:hover:not(:disabled) {
+  box-shadow: var(--am-shadow-hover);
+  transform: translateY(-2px);
+}
+
+/* 按压反馈:缩到 97% 表达「按下了」,不改布局边界 */
+.postcard-submit:active:not(:disabled) {
+  box-shadow: none;
+  transform: scale(0.97);
+}
+
+.postcard-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+/* ---------------- 明信片墙 ---------------- */
+.postcard-wall {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--am-space-md);
+  padding: var(--am-space-md) 0;
+}
+
+/* 明信片:纸感卡 + 轻微随机旋转(--tilt 行内注入);
+ * 悬浮回正抬升 + 投下纸影,位移 4px 内保持「反馈而非运动」 */
+.postcard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: var(--am-space-md);
+  background: var(--am-card);
+  border: 1px solid var(--am-line);
+  border-radius: var(--am-radius);
+  transform: rotate(var(--tilt, 0deg));
+  transition:
+    transform var(--am-duration) var(--am-ease),
+    box-shadow var(--am-duration) ease;
+}
+
+.postcard:hover {
+  box-shadow: var(--am-shadow-hover);
+  transform: rotate(0deg) translateY(-4px);
+}
+
+.postcard-meta {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed var(--am-line);
+}
+
+.postcard-date {
+  font-family: var(--am-font-mono);
+  font-size: var(--am-text-xs);
+  color: var(--am-ink-secondary);
+}
+
+.postcard-sign {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: auto;
+}
+
+.postcard-sign img {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.postcard-name {
+  font-size: var(--am-text-sm);
+  color: var(--am-ink);
+}
+
+.postcard-no {
+  margin-left: auto;
+  font-family: var(--am-font-mono);
+  font-size: var(--am-text-xs);
+  color: var(--am-rose);
+}
+
+@media (width <= 640px) {
+  .postcard-wall {
+    grid-template-columns: 1fr;
+  }
+
+  .postcard-fields {
+    flex-direction: column;
+  }
 }
 </style>
