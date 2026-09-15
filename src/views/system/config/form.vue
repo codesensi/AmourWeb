@@ -68,15 +68,26 @@ const configDictCode = computed(
 );
 
 /** 图片型配置键:渲染头像上传组件(裁剪上传/直链二选一),值仍为字符串 URL,与配置值统一字符串存储契约一致 */
-const IMAGE_CONFIG_KEYS = ["logo"];
+const IMAGE_CONFIG_KEYS = ["logo", "favicon"];
+/** 图片型配置的上传文案主体(按配置键区分 Logo/Favicon) */
+const IMAGE_LABELS: Record<string, string> = {
+  logo: "Logo",
+  favicon: "Favicon"
+};
 /** 是否图片型配置 */
 const isImageConfig = computed(() =>
   IMAGE_CONFIG_KEYS.includes(newFormInline.value.configKey ?? "")
 );
 
 /** 可选(允许为空)的配置键:清空保存后由消费侧兜底 ——
- *  icp 整块隐藏、copyright-year 回落当前年份、uapi-key 按空值降级、logo 回退 favicon */
-const OPTIONAL_CONFIG_KEYS = ["logo", "icp", "copyright-year", "uapi-key"];
+ *  icp 整块隐藏、copyright-year 回落当前年份、uapi-key 按空值降级、logo/favicon 回退默认图标 */
+const OPTIONAL_CONFIG_KEYS = [
+  "logo",
+  "icp",
+  "copyright-year",
+  "uapi-key",
+  "favicon"
+];
 /** 是否可选配置(必填校验放行) */
 const isOptionalConfig = computed(() =>
   OPTIONAL_CONFIG_KEYS.includes(newFormInline.value.configKey ?? "")
@@ -129,12 +140,12 @@ defineExpose({ getRef });
     </el-form-item>
 
     <el-form-item label="配置值" prop="configValue">
-      <!-- 站点 logo:复用头像上传组件(裁剪上传/直链二选一),bizType=infra 走基础设施图片校验(logo/favicon 等站点资源共用) -->
+      <!-- 站点 logo/favicon:复用头像上传组件(裁剪上传/直链二选一),bizType=infra 走基础设施图片校验(logo/favicon 等站点资源共用) -->
       <ReAvatarUpload
         v-if="isImageConfig"
         v-model="newFormInline.configValue"
         biz-type="infra"
-        label="Logo"
+        :label="IMAGE_LABELS[newFormInline.configKey ?? ''] ?? '图片'"
       />
       <DictSelect
         v-else-if="configDictCode"

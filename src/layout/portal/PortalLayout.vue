@@ -6,6 +6,7 @@ import PortalSidebar from "./PortalSidebar.vue";
 import PortalFooter from "./PortalFooter.vue";
 import { providePortalSysConfig } from "./usePortalSysConfig";
 import {
+  applySiteFavicon,
   applySiteLogo,
   fetchSysConfig,
   type SysConfig
@@ -25,10 +26,13 @@ onMounted(async () => {
     "icp",
     "copyrightYear",
     "siteLoveStartDate",
-    "logo"
+    "logo",
+    "favicon"
   );
   // logo 顺手回填全局状态,管理端/登录页共享,门户内不再单独拉取
   applySiteLogo(config.logo);
+  // favicon 同步注入 <head>(与 logo 同批拉取,免重复请求)
+  applySiteFavicon(config.favicon);
   Object.assign(sysConfig.value, config);
 });
 providePortalSysConfig(sysConfig);

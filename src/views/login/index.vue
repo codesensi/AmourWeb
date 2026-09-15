@@ -13,6 +13,7 @@ import { useLayout } from "@/layout/hooks/useLayout";
 import { useUserStoreHook } from "@/store/modules/user";
 import { getCaptchaImage } from "@/api/captcha";
 import {
+  applySiteFavicon,
   applySiteLogo,
   fetchSysConfig,
   LOGO_FALLBACK,
@@ -72,14 +73,17 @@ const getCaptcha = async () => {
   }
 };
 
-/** 拉取站点公共配置:一次合并拉取 logo 与验证码开关(logo 经 applySiteLogo 回填全局状态,
- *  避免与 useNav 内 initSiteLogo 各拉一次);验证码开关开启时才拉取验证码 */
+/** 拉取站点公共配置:一次合并拉取 logo/favicon 与验证码开关(logo 经 applySiteLogo 回填全局
+ *  状态,favicon 经 applySiteFavicon 注入 <head>,避免与 useNav 内 initSiteLogo 各拉一次);
+ *  验证码开关开启时才拉取验证码 */
 const loadSiteConfig = async () => {
-  const { logo, captchaEnabled: enabled } = await fetchSysConfig(
-    "logo",
-    "captchaEnabled"
-  );
+  const {
+    logo,
+    favicon,
+    captchaEnabled: enabled
+  } = await fetchSysConfig("logo", "favicon", "captchaEnabled");
   applySiteLogo(logo);
+  applySiteFavicon(favicon);
   captchaEnabled.value = enabled ?? false;
   if (captchaEnabled.value) await getCaptcha();
 };
