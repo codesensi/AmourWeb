@@ -84,30 +84,39 @@ function parseViewFileId(url: string) {
   return /^\/file\/view\/(\d+)$/.exec(url)?.[1] ?? null;
 }
 
+/** 清除请求进行中标记(防重入:避免确认框期间重复触发并发删除) */
+const clearing = ref(false);
+
 /** 清除图片:确认后站内文件逻辑删除进回收站,外链仅清空引用;
  *  值清空后由业务侧保存/更新按钮落库,消费端按空值回退兜底图 */
 async function onClear() {
-  const fileId = parseViewFileId(props.modelValue);
-  const confirmed = await ElMessageBox.confirm(
-    fileId
-      ? `确认清除当前${props.label}?清除后图片文件将移入文件回收站。`
-      : `确认清除当前${props.label}?外部链接仅清空引用,不影响原文件。`,
-    "清除确认",
-    {
-      confirmButtonText: "确认清除",
-      cancelButtonText: "取消",
-      type: "warning",
-      draggable: true
+  if (clearing.value) return;
+  clearing.value = true;
+  try {
+    const fileId = parseViewFileId(props.modelValue);
+    const confirmed = await ElMessageBox.confirm(
+      fileId
+        ? `确认清除当前${props.label}?清除后图片文件将移入文件回收站。`
+        : `确认清除当前${props.label}?外部链接仅清空引用,不影响原文件。`,
+      "清除确认",
+      {
+        confirmButtonText: "确认清除",
+        cancelButtonText: "取消",
+        type: "warning",
+        draggable: true
+      }
+    ).catch(() => false);
+    if (!confirmed) return;
+    // 站内文件逻辑删除到回收站;失败提示由 http 拦截器统一弹出
+    if (fileId) {
+      const res = await deleteFile(fileId);
+      if (!res.success) return;
     }
-  ).catch(() => false);
-  if (!confirmed) return;
-  // 站内文件逻辑删除到回收站;失败提示由 http 拦截器统一弹出
-  if (fileId) {
-    const res = await deleteFile(fileId);
-    if (!res.success) return;
+    emit("update:modelValue", "");
+    message("清除成功", { type: "success" });
+  } finally {
+    clearing.value = false;
   }
-  emit("update:modelValue", "");
-  message("清除成功", { type: "success" });
 }
 
 /* 裁剪上传:选择文件 → 弹窗裁剪 → 确认上传 */
@@ -203,7 +212,7 @@ async function confirmUpload() {
           circle
           size="small"
           type="danger"
-          :disabled="avatarLoading"
+          :disabled="avatarLoading || clearing"
           @click="onClear"
         >
           <IconifyIconOffline :icon="closeLine" />

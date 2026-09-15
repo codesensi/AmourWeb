@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { onBeforeUnmount, ref, watch } from "vue";
 import { useClipboard } from "@vueuse/core";
 import { ElMessageBox } from "element-plus";
 import CopyDocument from "~icons/ep/copy-document";
@@ -21,6 +21,8 @@ const props = withDefaults(
 
 /** 复制态,1.5s 后还原按钮态 */
 const copied = ref(false);
+/** 复制态还原定时器(连点时清理旧 timer,组件卸载时清理,避免竞态与泄漏) */
+let copiedTimer: ReturnType<typeof setTimeout> | undefined;
 /** legacy 模式:非安全上下文(http)自动降级 execCommand 复制 */
 const { copy: copyText } = useClipboard({ legacy: true });
 
@@ -37,13 +39,18 @@ async function handleCopy() {
   try {
     await copyText(props.code);
     copied.value = true;
-    setTimeout(() => {
+    if (copiedTimer) clearTimeout(copiedTimer);
+    copiedTimer = setTimeout(() => {
       copied.value = false;
     }, 1500);
   } catch {
     ElMessageBox.alert("复制失败,请手动选择文本复制", "系统提示");
   }
 }
+
+onBeforeUnmount(() => {
+  if (copiedTimer) clearTimeout(copiedTimer);
+});
 </script>
 
 <template>

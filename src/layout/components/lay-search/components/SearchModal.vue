@@ -272,9 +272,16 @@ function handleDrag(item: dragItem) {
   historyPath.value = reorderedItem.path;
 }
 
-onKeyStroke("Enter", handleEnter);
-onKeyStroke("ArrowUp", handleUp);
-onKeyStroke("ArrowDown", handleDown);
+// 全局按键监听仅在弹窗打开时生效(关闭态短路,避免无谓的全局处理)
+onKeyStroke("Enter", event => {
+  if (show.value) handleEnter();
+});
+onKeyStroke("ArrowUp", event => {
+  if (show.value) handleUp();
+});
+onKeyStroke("ArrowDown", event => {
+  if (show.value) handleDown();
+});
 </script>
 
 <template>

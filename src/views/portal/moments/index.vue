@@ -25,14 +25,8 @@ onMounted(() => loadMore());
         class="card col-lg-12 col-md-12 col-sm-12 col-sm-x-12"
       >
         <div class="moments-texts">
-          <a href="javascript:void(0)" :data-id="it.id">
-            <div class="top-title textOneHide">
-              {{ it.title }}
-              <svg class="moments-icon" aria-hidden="true">
-                <use xlink:href="#icon-zhankai" />
-              </svg>
-            </div>
-          </a>
+          <!-- 标题:数据模型无详情页,原站的可展开空链接改按纯文本渲染 -->
+          <div class="top-title textOneHide">{{ it.title }}</div>
           <div class="info">
             <span>
               <svg class="moments-icon" aria-hidden="true">

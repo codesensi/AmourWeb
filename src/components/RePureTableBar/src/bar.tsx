@@ -199,13 +199,17 @@ export default defineComponent({
     };
 
     /** 列展示拖拽排序 */
+    /** 已创建的 Sortable 实例(mouseenter 会重复触发,复用实例避免重复创建累积) */
+    let sortableInstance: Sortable | null = null;
     const rowDrop = (event: { preventDefault: () => void }) => {
       event.preventDefault();
       nextTick(() => {
         const wrapper: HTMLElement = (
           instance?.proxy?.$refs[`GroupRef${unref(props.tableKey)}`] as any
         ).$el.firstElementChild;
-        Sortable.create(wrapper, {
+        // 同一表头容器只创建一次实例,重复创建会叠加事件导致拖拽异常
+        if (sortableInstance) return;
+        sortableInstance = Sortable.create(wrapper, {
           animation: 300,
           handle: ".drag-btn",
           onEnd: ({ newIndex, oldIndex, item }) => {
