@@ -152,6 +152,12 @@ export function useLogPage(tab: LogTab) {
       )
     },
     {
+      label: "描述",
+      prop: "msg",
+      minWidth: 160,
+      showOverflowTooltip: true
+    },
+    {
       label: "操作时间",
       prop: "createTime",
       minWidth: 170
