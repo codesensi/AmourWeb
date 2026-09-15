@@ -1,28 +1,24 @@
 <script setup lang="ts">
 import { PropType } from "vue";
-import { ListItem } from "../data";
 import NoticeItem from "./NoticeItem.vue";
+import type { NoticeItem as NoticeItemData } from "@/api/notice";
 
 defineProps({
   list: {
-    type: Array as PropType<Array<ListItem>>,
+    type: Array as PropType<Array<NoticeItemData>>,
     default: () => []
-  },
-  emptyText: {
-    type: String,
-    default: ""
   }
 });
+
+const emit = defineEmits<{ open: [item: NoticeItemData] }>();
 </script>
 
 <template>
-  <div v-if="list.length">
-    <NoticeItem
-      v-for="(item, index) in list"
-      :key="index"
-      :noticeItem="item"
-      :isLast="index === list.length - 1"
-    />
-  </div>
-  <el-empty v-else :description="emptyText" />
+  <NoticeItem
+    v-for="(item, index) in list"
+    :key="item.id"
+    :noticeItem="item"
+    :isLast="index === list.length - 1"
+    @open="emit('open', $event)"
+  />
 </template>

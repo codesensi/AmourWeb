@@ -1,45 +1,48 @@
 <script setup lang="ts">
-// @ts-nocheck
-import { ref, computed } from "vue";
-import { noticesData } from "./data";
+import { ref, computed, onMounted } from "vue";
+import { getNoticeList, markNoticesRead, type NoticeItem } from "@/api/notice";
 import NoticeList from "./components/NoticeList.vue";
 
 import BellIcon from "~icons/lucide/bell";
-import ArrowRightIcon from "~icons/ri/arrow-right-s-line";
+import ArrowLeftIcon from "~icons/ri/arrow-left-s-line";
 
 const dropdownRef = ref();
-const notices = ref(noticesData);
-const activeKey = ref(noticesData[0]?.key);
+/** 通知列表(登录态接口;拉取失败静默降级为空态,与 fetchSysConfig 同款兜底风格) */
+const notices = ref<Array<NoticeItem>>([]);
+/** 当前查看的通知(空=列表视图,非空=详情视图) */
+const currentNotice = ref<NoticeItem | null>(null);
 
-const getLabel = computed(
-  () => item =>
-    item.name + (item.list.length > 0 ? `(${item.list.length})` : "")
+/** 未读数(角标红点由它驱动) */
+const unreadCount = computed(
+  () => notices.value.filter(item => !item.read).length
 );
 
-const currentNoticeHasData = computed(() => {
-  const currentNotice = notices.value.find(
-    item => item.key === activeKey.value
-  );
-  return currentNotice && currentNotice.list.length > 0;
+onMounted(async () => {
+  try {
+    const res = await getNoticeList();
+    notices.value = res.data ?? [];
+  } catch {
+    notices.value = [];
+  }
 });
 
-const hasAnyNoticeData = computed(() => {
-  return notices.value.some(
-    item => Array.isArray(item.list) && item.list.length > 0
-  );
-});
-
-const onWatchMore = () => {
-  dropdownRef.value.handleClose();
+/** 打开详情:进入即标记已读(未读时);标记失败则保持未读,下次进入可重试 */
+const onOpen = async (item: NoticeItem) => {
+  currentNotice.value = item;
+  if (!item.read) {
+    try {
+      await markNoticesRead([item.id]);
+      item.read = true;
+    } catch {
+      /* 静默降级:保持未读状态 */
+    }
+  }
 };
 
-const onMarkAsRead = () => {
-  const currentNotice = notices.value.find(
-    item => item.key === activeKey.value
-  );
-  if (currentNotice) {
-    currentNotice.list = [];
-  }
+/** 全部标记已读:接口幂等,成功后本地同步置为已读,避免二次拉取 */
+const onMarkAsRead = async () => {
+  await markNoticesRead();
+  notices.value = notices.value.map(item => ({ ...item, read: true }));
 };
 </script>
 
@@ -48,7 +51,7 @@ const onMarkAsRead = () => {
     <span
       :class="['dropdown-badge', 'navbar-bg-hover', 'select-none', 'mr-1.75']"
     >
-      <el-badge is-dot :hidden="!hasAnyNoticeData">
+      <el-badge :value="unreadCount" :max="99" :hidden="unreadCount === 0">
         <span class="header-notice-icon">
           <IconifyIconOffline :icon="BellIcon" />
         </span>
@@ -56,43 +59,62 @@ const onMarkAsRead = () => {
     </span>
     <template #dropdown>
       <el-dropdown-menu>
-        <el-tabs
-          v-model="activeKey"
-          :stretch="true"
-          class="dropdown-tabs"
-          :style="{ width: notices.length === 0 ? '200px' : '330px' }"
-        >
-          <el-empty
-            v-if="notices.length === 0"
-            description="暂无消息"
-            :image-size="60"
-          />
-          <span v-else>
-            <template v-for="item in notices" :key="item.key">
-              <el-tab-pane :label="getLabel(item)" :name="`${item.key}`">
-                <el-scrollbar max-height="345px">
-                  <div class="noticeList-container">
-                    <NoticeList :list="item.list" :emptyText="item.emptyText" />
-                  </div>
-                </el-scrollbar>
-              </el-tab-pane>
-            </template>
-          </span>
-        </el-tabs>
+        <el-empty
+          v-if="notices.length === 0"
+          description="暂无消息"
+          :image-size="60"
+          style="width: 330px"
+        />
+        <!-- 详情视图:点击列表条目进入,返回回到列表 -->
         <div
-          v-if="currentNoticeHasData"
-          class="border-t border-t-(--el-border-color-light) text-sm"
+          v-else-if="currentNotice"
+          class="noticeDetail-container"
+          style="width: 330px"
         >
-          <div class="flex-bc m-1">
-            <el-button type="primary" size="small" text @click="onWatchMore">
-              查看更多
-              <IconifyIconOffline :icon="ArrowRightIcon" />
-            </el-button>
-            <el-button type="primary" size="small" text @click="onMarkAsRead">
-              标为已读
+          <div class="m-1">
+            <el-button
+              type="primary"
+              size="small"
+              text
+              @click="currentNotice = null"
+            >
+              <IconifyIconOffline :icon="ArrowLeftIcon" />
+              返回
             </el-button>
           </div>
+          <div class="px-6 pb-4">
+            <div
+              class="text-sm font-bold mb-1 text-[#000000d9] dark:text-white"
+            >
+              {{ currentNotice.title }}
+            </div>
+            <div class="text-xs mb-2 text-[#00000073] dark:text-white">
+              {{ currentNotice.createTime }}
+            </div>
+            <div
+              class="text-sm whitespace-pre-wrap text-[#000000d9] dark:text-white"
+            >
+              {{ currentNotice.content }}
+            </div>
+          </div>
         </div>
+        <template v-else>
+          <el-scrollbar max-height="345px">
+            <div class="noticeList-container" style="width: 330px">
+              <NoticeList :list="notices" @open="onOpen" />
+            </div>
+          </el-scrollbar>
+          <div
+            v-if="notices.length > 0"
+            class="border-t border-t-(--el-border-color-light) text-sm"
+          >
+            <div class="flex justify-end m-1">
+              <el-button type="primary" size="small" text @click="onMarkAsRead">
+                全部已读
+              </el-button>
+            </div>
+          </div>
+        </template>
       </el-dropdown-menu>
     </template>
   </el-dropdown>
@@ -146,21 +168,11 @@ const onMarkAsRead = () => {
   }
 }
 
-.dropdown-tabs {
-  .noticeList-container {
-    padding: 15px 24px 0;
-  }
+.noticeList-container {
+  padding: 15px 24px 0;
+}
 
-  :deep(.el-tabs__header) {
-    margin: 0;
-  }
-
-  :deep(.el-tabs__nav-wrap)::after {
-    height: 1px;
-  }
-
-  :deep(.el-tabs__nav-wrap) {
-    padding: 0 36px;
-  }
+.noticeDetail-container {
+  padding: 8px 0 0;
 }
 </style>
