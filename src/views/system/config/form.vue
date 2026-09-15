@@ -129,11 +129,11 @@ defineExpose({ getRef });
     </el-form-item>
 
     <el-form-item label="配置值" prop="configValue">
-      <!-- 站点 logo:复用头像上传组件(裁剪上传/直链二选一),bizType=logo 走基础设施校验 -->
+      <!-- 站点 logo:复用头像上传组件(裁剪上传/直链二选一),bizType=infra 走基础设施图片校验(logo/favicon 等站点资源共用) -->
       <ReAvatarUpload
         v-if="isImageConfig"
         v-model="newFormInline.configValue"
-        biz-type="logo"
+        biz-type="infra"
         label="Logo"
       />
       <DictSelect
