@@ -4,6 +4,7 @@ import type { FormItemProps, FormProps } from "./utils/types";
 import { DictTag } from "@/components/DictTag";
 import { DictSelect } from "@/components/DictSelect";
 import { DICT_CODES } from "@/api/dict";
+import ReAvatarUpload from "@/components/ReAvatarUpload";
 import { usePublicHooks } from "../hooks";
 
 const props = withDefaults(defineProps<FormProps>(), {
@@ -59,6 +60,12 @@ const datetimeProxy = computed<string>({
   set: value => (newFormInline.value.configValue = value ?? "")
 });
 
+/** 年份选择器与字符串值的桥接(清空回落为空串,交由必填校验拦截) */
+const yearProxy = computed<string>({
+  get: () => newFormInline.value.configValue,
+  set: value => (newFormInline.value.configValue = value ?? "")
+});
+
 /** 配置键 → 字典编码(取值可枚举的配置项用字典下拉替代自由文本,与 init_dml.sql 字典种子对齐) */
 const DICT_CODE_BY_CONFIG_KEY: Record<string, string> = {
   "captcha.image-type": DICT_CODES.imageType,
@@ -69,8 +76,37 @@ const configDictCode = computed(
   () => DICT_CODE_BY_CONFIG_KEY[newFormInline.value.configKey ?? ""]
 );
 
+/** 图片型配置键:渲染头像上传组件(裁剪上传/直链二选一),值仍为字符串 URL,与配置值统一字符串存储契约一致 */
+const IMAGE_CONFIG_KEYS = ["logo"];
+/** 是否图片型配置 */
+const isImageConfig = computed(() =>
+  IMAGE_CONFIG_KEYS.includes(newFormInline.value.configKey ?? "")
+);
+
+/** 可选(允许为空)的配置键:清空保存后由消费侧兜底 ——
+ *  icp 整块隐藏、copyright-year 回落当前年份、uapi-key 按空值降级、logo 回退 favicon */
+const OPTIONAL_CONFIG_KEYS = ["logo", "icp", "copyright-year", "uapi-key"];
+/** 是否可选配置(必填校验放行) */
+const isOptionalConfig = computed(() =>
+  OPTIONAL_CONFIG_KEYS.includes(newFormInline.value.configKey ?? "")
+);
+
+/** 年份型配置键:渲染年份选择器(type=year,产出 yyyy 字符串,与配置值字符串契约一致) */
+const YEAR_CONFIG_KEYS = ["copyright-year"];
+/** 是否年份型配置 */
+const isYearConfig = computed(() =>
+  YEAR_CONFIG_KEYS.includes(newFormInline.value.configKey ?? "")
+);
+
 const formRules = computed(() => ({
-  configValue: [{ required: true, message: "配置值为必填项", trigger: "blur" }]
+  configValue: [
+    {
+      // 可选配置允许为空(未配置时由消费侧兜底),其余类型保持必填
+      required: !isOptionalConfig.value,
+      message: "配置值为必填项",
+      trigger: "blur"
+    }
+  ]
 }));
 
 function getRef() {
@@ -101,11 +137,26 @@ defineExpose({ getRef });
     </el-form-item>
 
     <el-form-item label="配置值" prop="configValue">
+      <!-- 站点 logo:复用头像上传组件(裁剪上传/直链二选一),bizType=logo 走基础设施校验 -->
+      <ReAvatarUpload
+        v-if="isImageConfig"
+        v-model="newFormInline.configValue"
+        biz-type="logo"
+        label="Logo"
+      />
       <DictSelect
-        v-if="configDictCode"
+        v-else-if="configDictCode"
         v-model="newFormInline.configValue"
         :dict-code="configDictCode"
         placeholder="请选择配置值"
+        class="w-full!"
+      />
+      <el-date-picker
+        v-else-if="isYearConfig"
+        v-model="yearProxy"
+        type="year"
+        value-format="YYYY"
+        placeholder="请选择年份"
         class="w-full!"
       />
       <el-switch

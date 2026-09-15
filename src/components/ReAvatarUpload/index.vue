@@ -3,21 +3,29 @@
 import { computed, ref, watch } from "vue";
 import dayjs from "dayjs";
 import ReCropperPreview from "@/components/ReCropperPreview";
+import { ElMessageBox } from "element-plus";
 import { message } from "@/utils/message";
 import { deviceDetection } from "@pureadmin/utils";
 import uploadLine from "~icons/ri/upload-line";
-import { uploadAvatar } from "@/api/file";
+import closeLine from "~icons/ri/close-line";
+import { deleteFile, uploadFile } from "@/api/file";
 
 interface Props {
   /** 头像地址(v-model 双向绑定,为空时不渲染预览) */
   modelValue?: string;
   /** 预览尺寸(px) */
   size?: number;
+  /** 上传业务类型(路由后端 FileBizTypeEnum 的校验规则;默认头像) */
+  bizType?: string;
+  /** 文案主体(按钮/弹窗/提示中的对象名;默认头像) */
+  label?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   modelValue: "",
-  size: 80
+  size: 80,
+  bizType: "avatar",
+  label: "头像"
 });
 
 const emit = defineEmits<{
@@ -68,7 +76,38 @@ function onAvatarError() {
     return;
   }
   avatarErrorNotified.value = props.modelValue;
-  message("头像图片无法加载,请检查链接", { type: "warning" });
+  message(`${props.label}图片无法加载,请检查链接`, { type: "warning" });
+}
+
+/** 站内文件 URL 解析文件 ID(仅识别 /file/view/{id} 形态);外链返回 null */
+function parseViewFileId(url: string) {
+  return /^\/file\/view\/(\d+)$/.exec(url)?.[1] ?? null;
+}
+
+/** 清除图片:确认后站内文件逻辑删除进回收站,外链仅清空引用;
+ *  值清空后由业务侧保存/更新按钮落库,消费端按空值回退兜底图 */
+async function onClear() {
+  const fileId = parseViewFileId(props.modelValue);
+  const confirmed = await ElMessageBox.confirm(
+    fileId
+      ? `确认清除当前${props.label}?清除后图片文件将移入文件回收站。`
+      : `确认清除当前${props.label}?外部链接仅清空引用,不影响原文件。`,
+    "清除确认",
+    {
+      confirmButtonText: "确认清除",
+      cancelButtonText: "取消",
+      type: "warning",
+      draggable: true
+    }
+  ).catch(() => false);
+  if (!confirmed) return;
+  // 站内文件逻辑删除到回收站;失败提示由 http 拦截器统一弹出
+  if (fileId) {
+    const res = await deleteFile(fileId);
+    if (!res.success) return;
+  }
+  emit("update:modelValue", "");
+  message("清除成功", { type: "success" });
 }
 
 /* 裁剪上传:选择文件 → 弹窗裁剪 → 确认上传 */
@@ -119,9 +158,9 @@ async function doUpload(blob: Blob, name: string) {
   avatarLoading.value = true;
   try {
     // 以 multipart 上传,后端返回 /file/view/{id} 形态的真实文件 URL
-    const res = await uploadAvatar(blob, name);
+    const res = await uploadFile(props.bizType, blob, name);
     if (res.success) {
-      message("头像上传成功", { type: "success" });
+      message(`${props.label}上传成功`, { type: "success" });
       emit("update:modelValue", res.data.url);
       emit("uploaded", res.data.url);
       handleClose();
@@ -152,13 +191,22 @@ async function confirmUpload() {
 
 <template>
   <div class="flex items-start">
-    <el-avatar
-      v-if="modelValue"
-      :size="size"
-      :src="modelValue"
-      class="shrink-0"
-      @error="onAvatarError"
-    />
+    <!-- 预览图 + 清除按钮:右上角叠加,点击经确认后删除站内文件/清空引用 -->
+    <div v-if="modelValue" class="relative shrink-0">
+      <el-avatar :size="size" :src="modelValue" @error="onAvatarError" />
+      <el-tooltip content="清除" placement="top">
+        <el-button
+          class="absolute! -right-2! -top-2!"
+          circle
+          size="small"
+          type="danger"
+          :disabled="avatarLoading"
+          @click="onClear"
+        >
+          <IconifyIconOffline :icon="closeLine" />
+        </el-button>
+      </el-tooltip>
+    </div>
     <div :class="['flex flex-col gap-2', modelValue && 'ml-4']">
       <el-radio-group v-model="avatarMode" size="small">
         <el-radio-button value="upload">裁剪上传</el-radio-button>
@@ -176,7 +224,7 @@ async function confirmUpload() {
       >
         <el-button plain :loading="avatarLoading">
           <IconifyIconOffline :icon="uploadLine" />
-          <span class="ml-2">上传头像</span>
+          <span class="ml-2">上传{{ label }}</span>
         </el-button>
       </el-upload>
       <div v-else>
@@ -192,11 +240,11 @@ async function confirmUpload() {
         </div>
       </div>
     </div>
-    <!-- 编辑头像弹窗:选择图片后裁剪再上传 -->
+    <!-- 编辑弹窗:选择图片后裁剪再上传 -->
     <el-dialog
       v-model="isShow"
       width="40%"
-      title="编辑头像"
+      :title="`编辑${label}`"
       destroy-on-close
       append-to-body
       :close-on-click-modal="false"

@@ -29,6 +29,7 @@ const {
   logout,
   onPanel,
   getLogo,
+  onLogoError,
   username,
   userAvatar,
   onUserAvatarError,
@@ -58,7 +59,7 @@ onMounted(() => {
     class="horizontal-header"
   >
     <div v-if="showLogo" class="horizontal-header-left" @click="backTopMenu">
-      <img :src="getLogo()" alt="logo" />
+      <img :src="getLogo()" alt="logo" @error="onLogoError" />
       <span>{{ title }}</span>
     </div>
     <el-menu

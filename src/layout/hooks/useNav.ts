@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { storeToRefs } from "pinia";
 import { getConfig, siteTitle } from "@/config";
+import { initSiteLogo, LOGO_FALLBACK, siteLogo } from "@/utils/sysConfig";
 import { useRouter } from "vue-router";
 import { emitter } from "@/utils/mitt";
 import { fallbackAvatar, notifyFallbackAvatar } from "@/utils/avatar";
@@ -157,10 +158,18 @@ export function useNav() {
     return remainingPaths.includes(path);
   }
 
-  /** 获取`logo` */
+  /** 获取`logo`(统一走站点 logo 配置,未配置时回退本地兜底图;读取响应式状态,配置变更自动生效) */
   function getLogo() {
-    return new URL("/logo.svg", import.meta.url).href;
+    return siteLogo.value || LOGO_FALLBACK;
   }
+
+  /** logo 图片加载失败:清空配置态(与配置为空同路径),统一回落本地兜底图 */
+  function onLogoError() {
+    siteLogo.value = "";
+  }
+
+  /** 站点 Logo 惰性初始化(模块级去重,仅首次调用发起请求) */
+  initSiteLogo();
 
   return {
     title,
@@ -182,6 +191,7 @@ export function useNav() {
     handleResize,
     resolvePath,
     getLogo,
+    onLogoError,
     isCollapse,
     pureApp,
     username,

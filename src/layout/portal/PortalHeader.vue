@@ -1,12 +1,21 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref } from "vue";
 import type { SysConfig } from "@/utils/sysConfig";
+import { LOGO_FALLBACK } from "@/utils/sysConfig";
 import { getPortalSaying, type SayingData } from "@/api/portal";
 import { RouterLink } from "vue-router";
 
 defineOptions({ name: "PortalHeader" });
 
-defineProps<{ sysConfig: Partial<SysConfig> }>();
+const props = defineProps<{ sysConfig: Partial<SysConfig> }>();
+
+/** logo 加载失败降级标记:降级目标为本地 favicon(必可达,不会二次触发) */
+const logoBroken = ref(false);
+
+/** 站点 logo 展示地址:配置优先,未配置/加载失败统一回退 favicon.ico */
+const logoSrc = computed(() =>
+  logoBroken.value ? LOGO_FALLBACK : (props.sysConfig.logo ?? LOGO_FALLBACK)
+);
 
 /** 一言(随机优先,失败降级 uapi-saying):content 为空或请求失败时整个角标不展示 */
 const saying = ref<SayingData | null>(null);
@@ -54,7 +63,11 @@ onMounted(resolveSaying);
     <div class="header">
       <div class="logo">
         <h1>
-          <RouterLink class="alogo" to="/">{{ sysConfig.name }}</RouterLink>
+          <RouterLink class="alogo" to="/">
+            <!-- 站点 logo 配置(项目/站点logo图片)优先展示,缺失/加载失败统一回落 favicon -->
+            <img :src="logoSrc" alt="logo" class="logo-img" @error="logoBroken = true" />
+            {{ sysConfig.name }}
+          </RouterLink>
         </h1>
       </div>
       <!-- 一言:来自 /portal/saying(随机优先,失败后端降级);返回空时整个角标不展示;
@@ -78,3 +91,12 @@ onMounted(resolveSaying);
     </div>
   </div>
 </template>
+
+<style scoped>
+/* 站点 logo:行内对齐 h1 文字(字号 1.5rem,见 portal.css),随文字基线微调 */
+.logo-img {
+  height: 1.5em;
+  margin-right: 0.4em;
+  vertical-align: -0.3em;
+}
+</style>

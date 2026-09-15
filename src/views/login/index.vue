@@ -12,9 +12,9 @@ import type { FormInstance } from "element-plus";
 import { useLayout } from "@/layout/hooks/useLayout";
 import { useUserStoreHook } from "@/store/modules/user";
 import { getCaptchaImage } from "@/api/captcha";
-import { fetchSysConfig } from "@/utils/sysConfig";
+import { fetchSysConfig, LOGO_FALLBACK, siteLogo } from "@/utils/sysConfig";
 import { initRouter, getTopMenu } from "@/router/utils";
-import { bg, avatar, illustration } from "./utils/static";
+import { bg, illustration } from "./utils/static";
 import { ref, toRaw, reactive, watch, computed, onMounted } from "vue";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { useDataThemeChange } from "@/layout/hooks/useDataThemeChange";
@@ -47,7 +47,10 @@ const { initStorage } = useLayout();
 initStorage();
 const { dataTheme, themeMode, dataThemeChange } = useDataThemeChange();
 dataThemeChange(themeMode.value);
-const { title } = useNav();
+const { title, onLogoError } = useNav();
+
+/** 登录框顶部图标:站点 logo 配置优先,未配置时统一回退本地 favicon */
+const siteLogoImg = computed(() => siteLogo.value || LOGO_FALLBACK);
 
 const ruleForm = reactive({
   username: "",
@@ -146,7 +149,12 @@ watch(checked, bool => {
       </div>
       <div class="login-box">
         <div class="login-form">
-          <img :src="avatar" class="avatar" alt="" />
+          <img
+            :src="siteLogoImg"
+            class="avatar"
+            alt=""
+            @error="onLogoError"
+          />
           <Motion>
             <h2 class="outline-hidden">
               <TypeIt

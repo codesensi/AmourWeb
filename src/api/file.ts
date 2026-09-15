@@ -15,7 +15,7 @@ export type UploadFileResult = ApiResult<{
 /**
  * 上传文件。
  * blob 由前端裁剪组件产出,以 multipart/form-data 提交;
- * bizType 路由业务类型(avatar-头像, photo-相册, markdown-点滴配图),
+ * bizType 路由业务类型(avatar-用户头像, photo-相册照片, markdown-点滴配图, logo-基础设施),
  * 扩展名与大小限制由后端 FileBizTypeEnum 按类型校验。
  */
 export const uploadFile = (
