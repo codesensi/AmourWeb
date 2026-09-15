@@ -12,6 +12,11 @@ const portalPage = <T>(url: string) => {
 
 /** 点点滴滴-文章项 */
 export type MomentsItem = {
+  /**
+   * 文章 ID。当前为 mock 自增数字(后端 /portal/moments 尚未落地);
+   * 管理端主键惯例是雪花 ID 经后端序列化为 string(JS Number 精度丢失防护),
+   * 后端实现该接口时需确认 id 序列化契约,不一致时同步调整本类型。
+   */
   id: number;
   title: string;
   author: string;
