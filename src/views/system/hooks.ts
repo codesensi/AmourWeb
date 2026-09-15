@@ -1,5 +1,13 @@
 // 抽离可公用的工具函数等用于系统管理页面逻辑
-import { computed, h, onMounted, reactive, ref, type Ref, type VNode } from "vue";
+import {
+  computed,
+  h,
+  onMounted,
+  reactive,
+  ref,
+  type Ref,
+  type VNode
+} from "vue";
 import { useDark } from "@pureadmin/utils";
 import { ElTag } from "element-plus";
 import type { PaginationProps, TableColumnRenderer } from "@pureadmin/table";
@@ -58,7 +66,9 @@ export function usePublicHooks() {
  *                        懒加载页签等首次查询前不展示表格的场景传 false
  */
 export function usePageQuery<T>(
-  fetchPage: (query: PageQuery) => Promise<ApiResult<PageResult<T>>> | undefined,
+  fetchPage: (
+    query: PageQuery
+  ) => Promise<ApiResult<PageResult<T>>> | undefined,
   options?: { loading?: boolean }
 ) {
   const pagination = reactive<PaginationProps>({
@@ -155,13 +165,15 @@ export function useStatusSwitch<
 
   /** 开关切换处理:确认 → 提交 → 提示;取消或失败时回滚开关显示状态 */
   function onChange(row: T) {
+    // 确认弹窗期间即占用加载态(开关禁用),防止重复打开确认框并发提交两次互相翻转
+    switchLoadMap.value[row.id] = { loading: true };
     confirmAction(options.confirmText(row)).then(async confirmed => {
       if (!confirmed) {
-        // 取消:回滚开关显示状态
+        // 取消:释放加载态并回滚开关显示状态
+        switchLoadMap.value[row.id] = { loading: false };
         row.status = row.status === 0 ? 1 : 0;
         return;
       }
-      switchLoadMap.value[row.id] = { loading: true };
       try {
         await options.submit(row);
         await options.afterSubmit?.(row);

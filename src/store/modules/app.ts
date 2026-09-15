@@ -52,6 +52,8 @@ export const useAppStore = defineStore("pure-app", {
       const layout = storageLocal().getItem<StorageConfigs>(
         `${responsiveStorageNameSpace()}layout`
       );
+      // localStorage 被清空后 getItem 返回 null,直接赋值会抛 TypeError(对齐 epTheme 的防护写法)
+      if (!layout) return;
       if (opened && resize) {
         this.sidebar.withoutAnimation = true;
         this.sidebar.opened = true;

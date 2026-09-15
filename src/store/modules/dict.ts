@@ -12,6 +12,10 @@ interface DictState {
 /** 待请求队列与刷新定时器(模块级:同一轮事件循环内的多次 load 合并为一次请求) */
 let queue: Array<string> = [];
 let timer: ReturnType<typeof setTimeout> | undefined;
+/** 全局批次序号:refresh 重新入队后,在途旧批次的结果据此判定为过期丢弃 */
+let flushSeq = 0;
+/** 各编码最近一次入队的批次号 */
+const loadSeq = new Map<string, number>();
 
 export const useDictStore = defineStore("pure-dict", {
   state: (): DictState => ({ dicts: {}, pending: {} }),
@@ -52,21 +56,22 @@ export const useDictStore = defineStore("pure-dict", {
       const codes = [...new Set(queue)];
       queue = [];
       if (codes.length === 0) return;
+      const seq = ++flushSeq;
+      for (const code of codes) loadSeq.set(code, seq);
       getDictByCodes(codes)
         .then(res => {
-          if (res.success) {
-            for (const group of res.data) {
-              this.dicts[group.dictCode] = group.items;
-            }
-            // 后端只下发有启用条目的编码,未命中的写空数组占位,避免反复请求
-            for (const code of codes) {
-              if (!this.dicts[code]) {
-                this.dicts[code] = [];
-              }
-            }
+          for (const code of codes) delete this.pending[code];
+          for (const group of res.data ?? []) {
+            // 本批发起后该编码又被 refresh 重新入队:本批结果已过期,不写入
+            if ((loadSeq.get(group.dictCode) ?? 0) > seq) continue;
+            this.dicts[group.dictCode] = group.items;
           }
+          // 后端只下发有启用条目的编码,未命中的写空数组占位,避免反复请求
+          // (同理跳过已被 refresh 取代的编码)
           for (const code of codes) {
-            delete this.pending[code];
+            if (!this.dicts[code] && (loadSeq.get(code) ?? 0) <= seq) {
+              this.dicts[code] = [];
+            }
           }
         })
         .catch(() => {
@@ -86,6 +91,9 @@ export const useDictStore = defineStore("pure-dict", {
       if (todo.length === 0) return;
       for (const code of todo) {
         delete this.dicts[code];
+        // 同步清除在途标记:否则 load 被 pending 短路,refresh 后
+        // 旧响应照常写入缓存,刷新失效
+        delete this.pending[code];
       }
       this.load(todo);
     }

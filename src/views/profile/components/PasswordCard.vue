@@ -51,7 +51,9 @@ const pwdRules = {
   oldPwd: [{ required: true, message: "请输入原密码", trigger: "blur" }],
   newPwd: [
     { required: true, message: "请输入新密码", trigger: "blur" },
-    { min: 6, message: "密码长度不能少于 6 位", trigger: "blur" }
+    { min: 6, message: "密码长度不能少于 6 位", trigger: "blur" },
+    // 长度上限对齐后端 UserPasswordUpdateRequest 的 PASSWORD_MAX_LENGTH
+    { max: 64, message: "密码长度不能超过 64 位", trigger: "blur" }
   ],
   confirmPwd: [
     { required: true, message: "请再次输入新密码", trigger: "blur" },

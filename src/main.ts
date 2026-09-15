@@ -71,32 +71,40 @@ import "tippy.js/themes/light.css";
 import VueTippy from "vue-tippy";
 app.use(VueTippy);
 
-getPlatformConfig(app).then(async config => {
-  setupStore(app);
-  // 站点标题:出厂值取 platform-config 的 Title,再由后端系统配置覆盖(GET /portal/config/list-by-keys 免登录,失败时保持出厂值)
-  siteTitle.value = getConfig().Title ?? siteTitle.value;
-  app.use(router);
-  await router.isReady();
-  injectResponsiveStorage(app, config);
-  // echarts 体积大且仅 welcome/cache 监控页使用,动态加载为独立 chunk,
-  // 缩小首屏依赖图(不再进入入口 chunk 的静态依赖链)
-  const { useEcharts } = await import("@/plugins/echarts");
-  app
-    .use(MotionPlugin)
-    .use(useElementPlus)
-    .use(Table)
-    .use(PureDescriptions)
-    .use(useEcharts);
-  app.mount("#app");
+getPlatformConfig(app)
+  .then(async config => {
+    setupStore(app);
+    // 站点标题:出厂值取 platform-config 的 Title,再由后端系统配置覆盖(GET /portal/config/list-by-keys 免登录,失败时保持出厂值)
+    siteTitle.value = getConfig().Title ?? siteTitle.value;
+    app.use(router);
+    await router.isReady();
+    injectResponsiveStorage(app, config);
+    // echarts 体积大且仅 welcome/cache 监控页使用,动态加载为独立 chunk,
+    // 缩小首屏依赖图(不再进入入口 chunk 的静态依赖链)
+    const { useEcharts } = await import("@/plugins/echarts");
+    app
+      .use(MotionPlugin)
+      .use(useElementPlus)
+      .use(Table)
+      .use(PureDescriptions)
+      .use(useEcharts);
+    app.mount("#app");
 
-  // 站点名异步刷新:挂载完成后再拉取 sys_config,失败保持出厂标题。
-  // 不可放在 mount 之前 await——该请求失败时(后端不可用/超时/返回失败体)异常会
-  // 中断本回调,导致 app.mount 永远不执行,整站(含登录页)白屏
-  fetchSysConfig("name")
-    .then(({ name }) => {
-      if (name) siteTitle.value = name;
-    })
-    .catch(() => {
-      /* 后端不可用:保持出厂标题 */
-    });
-});
+    // 站点名异步刷新:挂载完成后再拉取 sys_config,失败保持出厂标题。
+    // 不可放在 mount 之前 await——该请求失败时(后端不可用/超时/返回失败体)异常会
+    // 中断本回调,导致 app.mount 永远不执行,整站(含登录页)白屏
+    fetchSysConfig("name")
+      .then(({ name }) => {
+        if (name) siteTitle.value = name;
+      })
+      .catch(() => {
+        /* 后端不可用:保持出厂标题 */
+      });
+  })
+  .catch(error => {
+    // platform-config.json 缺失/损坏:给出白屏前的明确提示,而非静默失败
+    console.error(error);
+    document.body.innerHTML =
+      '<div style="display:flex;align-items:center;justify-content:center;height:100vh;color:#f56c6c;font-size:14px;">' +
+      "平台配置加载失败,请确认 public/platform-config.json 是否存在后刷新重试</div>";
+  });
