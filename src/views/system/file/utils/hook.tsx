@@ -2,6 +2,7 @@ import { reactive, ref, toRaw } from "vue";
 import { usePageQuery } from "../../hooks";
 import { DICT_CODES } from "@/api/dict";
 import { useDict } from "@/hooks/useDict";
+import { DictTag } from "@/components/DictTag";
 import {
   deleteFile,
   downloadFile,
@@ -104,13 +105,30 @@ export function useFilePage(mode: FilePageMode = "active") {
       )
     },
     {
+      label: "业务关联",
+      prop: "bizId",
+      minWidth: 90,
+      // 接入 yes 字典(0-否,1-是):bizId 有值归一化为 1,文案与样式由字典统一驱动;
+      // tagMap 区分配色:已关联-绿色(success),未关联-灰色(info)
+      cellRenderer: ({ row, props }) => (
+        <DictTag
+          dictCode="yes"
+          value={row.bizId == null ? 0 : 1}
+          size={props.size}
+          effect="light"
+          tagMap={{ "1": "success", "0": "info" }}
+        />
+      )
+    },
+    {
       label: "存储类型",
       prop: "storageType",
       minWidth: 100,
+      // local 为默认主流程(primary 蓝),oss 为外部依赖(warning 橙)提示区分
       cellRenderer: ({ row, props }) => (
         <el-tag
           size={props.size}
-          type={row.storageType === "oss" ? "warning" : "info"}
+          type={row.storageType === "oss" ? "warning" : "primary"}
           effect="light"
         >
           {storageLabelOf(row.storageType) || "未知"}
