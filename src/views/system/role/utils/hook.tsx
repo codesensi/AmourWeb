@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import editForm from "../form.vue";
 import { handleTree } from "@/utils/tree";
-import { confirmAction, message } from "@/utils/message";
+import { confirmAction, emphasize, message } from "@/utils/message";
 import { hasPerms } from "@/utils/auth";
 import {
   useBuiltinTag,
@@ -68,15 +68,11 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
       h("span", [
         "确认要",
         h("strong", row.status === 0 ? enableLabelOf(0) : enableLabelOf(1)),
-        h("strong", { style: "color: var(--el-color-primary)" }, row.name),
+        emphasize(row.name),
         "吗?"
       ]),
     successText: row =>
-      h("span", [
-        `已${enableLabelOf(row.status)}`,
-        h("strong", { style: "color: var(--el-color-primary)" }, row.name),
-        "角色"
-      ])
+      h("span", [`已${enableLabelOf(row.status)}`, emphasize(row.name), "角色"])
   });
   // 「是否内置」列统一渲染(字典 yes 驱动)
   const builtinTagCell = useBuiltinTag();
@@ -146,11 +142,7 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
   async function handleDelete(row: SysRoleItem) {
     // 确认弹窗与用户管理风格一致;角色名样式加粗 + 主题主色
     const confirmed = await confirmAction(
-      h("span", [
-        "确认要删除",
-        h("strong", { style: "color: var(--el-color-primary)" }, row.name),
-        "角色吗?"
-      ])
+      h("span", ["确认要删除", emphasize(row.name), "角色吗?"])
     );
     if (!confirmed) return;
     try {
@@ -159,14 +151,9 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
       // 删除失败(失败提示由拦截器统一弹出):静默返回
       return;
     }
-    message(
-      h("span", [
-        "成功删除",
-        h("strong", { style: "color: var(--el-color-primary)" }, row.name),
-        "角色"
-      ]),
-      { type: "success" }
-    );
+    message(h("span", ["成功删除", emphasize(row.name), "角色"]), {
+      type: "success"
+    });
     search();
   }
 
@@ -183,11 +170,7 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
         : names.join("、");
     // 确认弹窗与单条删除/状态开关风格一致;角色名加粗 + 主题主色
     const confirmed = await confirmAction(
-      h("span", [
-        "确认要删除",
-        h("strong", { style: "color: var(--el-color-primary)" }, displayNames),
-        "角色吗?"
-      ])
+      h("span", ["确认要删除", emphasize(displayNames), "角色吗?"])
     );
     if (!confirmed) return;
     try {
@@ -196,14 +179,9 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
       // 删除失败(失败提示由拦截器统一弹出):静默返回
       return;
     }
-    message(
-      h("span", [
-        "成功删除",
-        h("strong", { style: "color: var(--el-color-primary)" }, displayNames),
-        "角色"
-      ]),
-      { type: "success" }
-    );
+    message(h("span", ["成功删除", emphasize(displayNames), "角色"]), {
+      type: "success"
+    });
     tableRef.value.getTableRef().clearSelection();
     search();
   }
@@ -243,7 +221,10 @@ export function useRole(treeRef: Ref, tableRef: Ref) {
       sureBtnLoading: true,
       // formInline 实际取值由 ReDialog 的 options.props 注入,此处仅占位
       contentRenderer: () =>
-        h(editForm, { ref: formRef, formInline: null as unknown as FormItemProps }),
+        h(editForm, {
+          ref: formRef,
+          formInline: null as unknown as FormItemProps
+        }),
       beforeSure: (done, { options, closeLoading }) => {
         const FormRef = formRef.value.getRef();
         const curData = options.props.formInline as FormItemProps;

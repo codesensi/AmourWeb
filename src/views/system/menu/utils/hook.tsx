@@ -1,7 +1,7 @@
 import editForm from "../form.vue";
 import dayjs from "dayjs";
 import { handleTree } from "@/utils/tree";
-import { confirmAction, message } from "@/utils/message";
+import { confirmAction, emphasize, message } from "@/utils/message";
 import { useBuiltinTag, useStatusSwitch, usePublicHooks } from "../../hooks";
 import { hasPerms } from "@/utils/auth";
 import {
@@ -55,13 +55,13 @@ export function useMenu() {
       h("span", [
         "确认要",
         h("strong", row.status === 0 ? enableLabelOf(0) : enableLabelOf(1)),
-        h("strong", { style: "color: var(--el-color-primary)" }, row.title),
+        emphasize(row.title),
         "菜单吗?"
       ]),
     successText: row =>
       h("span", [
         `已${enableLabelOf(row.status)}`,
-        h("strong", { style: "color: var(--el-color-primary)" }, row.title),
+        emphasize(row.title),
         "菜单"
       ])
   });
@@ -304,7 +304,10 @@ export function useMenu() {
       sureBtnLoading: true,
       // formInline 实际取值由 ReDialog 的 options.props 注入,此处仅占位
       contentRenderer: () =>
-        h(editForm, { ref: formRef, formInline: null as unknown as FormItemProps }),
+        h(editForm, {
+          ref: formRef,
+          formInline: null as unknown as FormItemProps
+        }),
       beforeSure: (done, { options, closeLoading }) => {
         const FormRef = formRef.value.getRef();
         const curData = options.props.formInline as FormItemProps;
@@ -347,7 +350,7 @@ export function useMenu() {
     const confirmed = await confirmAction(
       h("span", [
         "确认要删除",
-        h("strong", { style: "color: var(--el-color-primary)" }, row.title),
+        emphasize(row.title),
         "菜单吗?",
         (row?.children?.length ?? 0) > 0
           ? [h("br"), "注意其下级菜单也会一并删除，请谨慎操作"]
@@ -356,14 +359,9 @@ export function useMenu() {
     );
     if (!confirmed) return;
     await deleteMenu(row.id);
-    message(
-      h("span", [
-        "成功删除",
-        h("strong", { style: "color: var(--el-color-primary)" }, row.title),
-        "菜单"
-      ]),
-      { type: "success" }
-    );
+    message(h("span", ["成功删除", emphasize(row.title), "菜单"]), {
+      type: "success"
+    });
     onSearch();
   }
 

@@ -1,5 +1,6 @@
 // 留言板 mock(GET /portal/message 分页 + POST /portal/message 提交)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
+import { fakePageResponse } from "../utils";
 
 const messages = [
   {
@@ -73,27 +74,7 @@ export default defineFakeRoute([
   {
     url: "/portal/message",
     method: "get",
-    response: ({ query }) => {
-      const pageNumber = Number(query?.pageNumber ?? 1);
-      const pageSize = Number(query?.pageSize ?? 6);
-      const records = messages.slice(
-        (pageNumber - 1) * pageSize,
-        pageNumber * pageSize
-      );
-      return {
-        success: true,
-        code: 200,
-        msg: "操作成功",
-        timestamp: Date.now(),
-        data: {
-          records,
-          pageNumber,
-          pageSize,
-          totalRow: messages.length,
-          totalPage: Math.ceil(messages.length / pageSize)
-        }
-      };
-    }
+    response: ({ query }) => fakePageResponse(messages, query)
   },
   // 提交留言(POST /portal/message)
   {

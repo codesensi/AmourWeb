@@ -1,6 +1,7 @@
 // 恋爱清单 mock(GET /portal/love-list 分页;7 条清单,移植原站 PORTAL_MOCK.loveList)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 import { mockPhoto } from "./mockPhoto";
+import { fakePageResponse } from "../utils";
 
 const loveList = [
   { text: "一起期待未来甜蜜小生活💑", done: false },
@@ -17,26 +18,6 @@ export default defineFakeRoute([
   {
     url: "/portal/love-list",
     method: "get",
-    response: ({ query }) => {
-      const pageNumber = Number(query?.pageNumber ?? 1);
-      const pageSize = Number(query?.pageSize ?? 6);
-      const records = loveList.slice(
-        (pageNumber - 1) * pageSize,
-        pageNumber * pageSize
-      );
-      return {
-        success: true,
-        code: 200,
-        msg: "操作成功",
-        timestamp: Date.now(),
-        data: {
-          records,
-          pageNumber,
-          pageSize,
-          totalRow: loveList.length,
-          totalPage: Math.ceil(loveList.length / pageSize)
-        }
-      };
-    }
+    response: ({ query }) => fakePageResponse(loveList, query)
   }
 ]);

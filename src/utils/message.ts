@@ -1,4 +1,4 @@
-import type { VNode } from "vue";
+import { h, type VNode } from "vue";
 import { isFunction } from "@pureadmin/utils";
 import { type MessageHandler, ElMessage, ElMessageBox } from "element-plus";
 
@@ -117,5 +117,16 @@ const confirmAction = (
     .then(() => true)
     .catch(() => false);
 };
+
+/**
+ * 确认框/提示文案中的业务数据强调节点(主色加粗) —— 全项目强调样式单点维护。
+ * <p>
+ * 用法:`h("span", ["确认要删除", emphasize(row.username), "用户吗?"])`,
+ * 与 `confirmAction` / `message` 的 VNode 内容参数配合使用。
+ *
+ * @param content 需要强调的业务数据(用户名/角色名等,以纯文本渲染)
+ */
+export const emphasize = (content: string) =>
+  h("strong", { style: "color: var(--el-color-primary)" }, content);
 
 export { message, closeAllMessage, confirmAction };

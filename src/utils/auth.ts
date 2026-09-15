@@ -23,6 +23,15 @@ export interface DataInfo<T> {
 
 export const userKey = "user-info";
 export const TokenKey = "authorized-token";
+
+/**
+ * 读取 localStorage 中 key 为 `user-info` 的当前登录用户信息快照。
+ * 不存在时返回 `null`,字段兜底由消费侧按需处理
+ * (统一入口,避免各处重复 `storageLocal().getItem(userKey)` 调用链)。
+ */
+export function getStoredUserInfo(): DataInfo<number> | null {
+  return storageLocal().getItem<DataInfo<number>>(userKey);
+}
 /**
  * 通过`multiple-tabs`是否在`cookie`中，判断用户是否已经登录系统，
  * 从而支持多标签页打开已经登录的系统后无需再登录。
@@ -103,22 +112,13 @@ export function setToken(data: DataInfo<number>) {
       permissions: data?.permissions ?? []
     });
   } else {
-    const avatar =
-      storageLocal().getItem<DataInfo<number>>(userKey)?.avatar ?? "";
-    const username =
-      storageLocal().getItem<DataInfo<number>>(userKey)?.username ?? "";
-    const nickname =
-      storageLocal().getItem<DataInfo<number>>(userKey)?.nickname ?? "";
-    const roles =
-      storageLocal().getItem<DataInfo<number>>(userKey)?.roles ?? [];
-    const permissions =
-      storageLocal().getItem<DataInfo<number>>(userKey)?.permissions ?? [];
+    const storedUserInfo = getStoredUserInfo();
     setUserKey({
-      avatar,
-      username,
-      nickname,
-      roles,
-      permissions
+      avatar: storedUserInfo?.avatar ?? "",
+      username: storedUserInfo?.username ?? "",
+      nickname: storedUserInfo?.nickname ?? "",
+      roles: storedUserInfo?.roles ?? [],
+      permissions: storedUserInfo?.permissions ?? []
     });
   }
 }

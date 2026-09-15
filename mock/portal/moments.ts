@@ -1,5 +1,6 @@
 // 点点滴滴 mock(GET /portal/moments,门户蓝图接口)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
+import { fakePageResponse } from "../utils";
 
 const moments = [
   { id: 1, title: "Like_Girl 默认文章语法", author: "Ki.", date: "2022-11-20" },
@@ -18,26 +19,6 @@ export default defineFakeRoute([
   {
     url: "/portal/moments",
     method: "get",
-    response: ({ query }) => {
-      const pageNumber = Number(query?.pageNumber ?? 1);
-      const pageSize = Number(query?.pageSize ?? 6);
-      const records = moments.slice(
-        (pageNumber - 1) * pageSize,
-        pageNumber * pageSize
-      );
-      return {
-        success: true,
-        code: 200,
-        msg: "操作成功",
-        timestamp: Date.now(),
-        data: {
-          records,
-          pageNumber,
-          pageSize,
-          totalRow: moments.length,
-          totalPage: Math.ceil(moments.length / pageSize)
-        }
-      };
-    }
+    response: ({ query }) => fakePageResponse(moments, query)
   }
 ]);

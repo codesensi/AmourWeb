@@ -1,4 +1,4 @@
-import { confirmAction, message } from "@/utils/message";
+import { confirmAction, emphasize, message } from "@/utils/message";
 import { hasPerms } from "@/utils/auth";
 import { addDialog } from "@/components/ReDialog";
 import {
@@ -101,20 +101,22 @@ export function useDictPage() {
     });
   });
   // 状态开关公共骨架:确认 + 提交加载态 + 成功提示 + 取消/失败回滚
-  const { switchLoadMap, onChange } = useStatusSwitch<Required<SysDictPageItem>>({
+  const { switchLoadMap, onChange } = useStatusSwitch<
+    Required<SysDictPageItem>
+  >({
     submit: row => changeDictStatus({ id: row.id, status: row.status }),
     confirmText: row =>
       h("span", [
         "确认要",
         h("strong", row.status === 0 ? enableLabelOf(0) : enableLabelOf(1)),
         "字典标签为",
-        h("strong", { style: "color: var(--el-color-primary)" }, row.dictLabel),
+        emphasize(row.dictLabel),
         "的条目吗?"
       ]),
     successText: row =>
       h("span", [
         `已${enableLabelOf(row.status)}`,
-        h("strong", { style: "color: var(--el-color-primary)" }, row.dictLabel),
+        emphasize(row.dictLabel),
         "字典条目"
       ]),
     // 状态影响消费端的 list-by-codes 结果,提交成功后同步刷新字典缓存
@@ -196,11 +198,7 @@ export function useDictPage() {
   async function handleDelete(row: SysDictPageItem) {
     // 确认弹窗与状态开关/修改新增弹窗风格一致;字典标签样式加粗 + 主题主色
     const confirmed = await confirmAction(
-      h("span", [
-        "确认要删除",
-        h("strong", { style: "color: var(--el-color-primary)" }, row.dictLabel),
-        "字典条目吗?"
-      ])
+      h("span", ["确认要删除", emphasize(row.dictLabel), "字典条目吗?"])
     );
     if (!confirmed) return;
     try {
@@ -209,14 +207,9 @@ export function useDictPage() {
       // 删除失败(失败提示由拦截器统一弹出):静默返回
       return;
     }
-    message(
-      h("span", [
-        "成功删除",
-        h("strong", { style: "color: var(--el-color-primary)" }, row.dictLabel),
-        "字典条目"
-      ]),
-      { type: "success" }
-    );
+    message(h("span", ["成功删除", emphasize(row.dictLabel), "字典条目"]), {
+      type: "success"
+    });
     await useDictStoreHook().refresh(row.dictCode);
     await loadTypes();
     search();
@@ -247,15 +240,7 @@ export function useDictPage() {
         : names.join("、");
     // 确认弹窗与单条删除/状态开关风格一致;字典标签加粗 + 主题主色
     const confirmed = await confirmAction(
-      h("span", [
-        "确认要删除",
-        h(
-          "strong",
-          { style: "color: var(--el-color-primary)" },
-          displayNames
-        ),
-        "字典条目吗?"
-      ])
+      h("span", ["确认要删除", emphasize(displayNames), "字典条目吗?"])
     );
     if (!confirmed) return;
     try {
@@ -268,14 +253,9 @@ export function useDictPage() {
     for (const code of new Set(getKeyList(curSelected, "dictCode"))) {
       await useDictStoreHook().refresh(code);
     }
-    message(
-      h("span", [
-        "成功删除",
-        h("strong", { style: "color: var(--el-color-primary)" }, displayNames),
-        "字典条目"
-      ]),
-      { type: "success" }
-    );
+    message(h("span", ["成功删除", emphasize(displayNames), "字典条目"]), {
+      type: "success"
+    });
     tableRef.value.getTableRef().clearSelection();
     await loadTypes();
     search();
@@ -309,7 +289,10 @@ export function useDictPage() {
       sureBtnLoading: true,
       // formInline 实际取值由 ReDialog 的 options.props 注入,此处仅占位
       contentRenderer: () =>
-        h(editForm, { ref: formRef, formInline: null as unknown as FormItemProps }),
+        h(editForm, {
+          ref: formRef,
+          formInline: null as unknown as FormItemProps
+        }),
       beforeSure: (done, { options, closeLoading }) => {
         const FormRef = formRef.value.getRef();
         const curData = options.props.formInline as FormItemProps;

@@ -6,13 +6,7 @@ import { buildHierarchyTree } from "@/utils/tree";
 import remainingRouter from "./modules/remaining";
 import { useMultiTagsStoreHook } from "@/store/modules/multiTags";
 import { usePermissionStoreHook } from "@/store/modules/permission";
-import {
-  isUrl,
-  openLink,
-  cloneDeep,
-  isAllEmpty,
-  storageLocal
-} from "@pureadmin/utils";
+import { isUrl, openLink, cloneDeep, isAllEmpty } from "@pureadmin/utils";
 import {
   ascending,
   getTopMenu,
@@ -30,12 +24,7 @@ import {
   type RouteComponent,
   createRouter
 } from "vue-router";
-import {
-  type DataInfo,
-  userKey,
-  removeToken,
-  multipleTabsKey
-} from "@/utils/auth";
+import { removeToken, multipleTabsKey, getStoredUserInfo } from "@/utils/auth";
 
 /** 自动导入全部静态路由，无需再手动引入！匹配 src/router/modules 目录（任何嵌套级别）中具有 .ts 扩展名的所有文件，除了 remaining.ts 文件
  * 如何匹配所有文件请看：https://github.com/mrmlnc/fast-glob#basic-syntax
@@ -146,7 +135,7 @@ router.beforeEach((to: ToRouteType, _from) => {
   if (to.meta?.public) {
     return true;
   }
-  const userInfo = storageLocal().getItem<DataInfo<number>>(userKey);
+  const userInfo = getStoredUserInfo();
   /** 如果已经登录并存在登录信息后不能跳转到路由白名单，而是继续保持在当前页面 */
   function toCorrectRoute() {
     return whiteList.includes(to.fullPath) ? _from.fullPath : undefined;

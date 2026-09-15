@@ -1,6 +1,7 @@
 // 恋爱相册 mock(GET /portal/love-photo 分页;48 张渐变占位照片,移植原站 PORTAL_MOCK.photos)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 import { mockPhoto } from "./mockPhoto";
+import { fakePageResponse } from "../utils";
 
 /** 占位图渐变色池:批量生成的示例照片循环取色,视觉上区分页与页 */
 const PHOTO_GRADIENTS = [
@@ -48,26 +49,6 @@ export default defineFakeRoute([
   {
     url: "/portal/love-photo",
     method: "get",
-    response: ({ query }) => {
-      const pageNumber = Number(query?.pageNumber ?? 1);
-      const pageSize = Number(query?.pageSize ?? 6);
-      const records = photos.slice(
-        (pageNumber - 1) * pageSize,
-        pageNumber * pageSize
-      );
-      return {
-        success: true,
-        code: 200,
-        msg: "操作成功",
-        timestamp: Date.now(),
-        data: {
-          records,
-          pageNumber,
-          pageSize,
-          totalRow: photos.length,
-          totalPage: Math.ceil(photos.length / pageSize)
-        }
-      };
-    }
+    response: ({ query }) => fakePageResponse(photos, query)
   }
 ]);

@@ -4,31 +4,33 @@ import {
   store,
   router,
   resetRouter,
-  routerArrays,
-  storageLocal
+  routerArrays
 } from "../utils";
 import { type LoginRequest, type LoginResult, login, logout } from "@/api/user";
 import { useMultiTagsStoreHook } from "./multiTags";
-import { type DataInfo, setToken, removeToken, userKey } from "@/utils/auth";
+import { setToken, removeToken, getStoredUserInfo } from "@/utils/auth";
 
 export const useUserStore = defineStore("pure-user", {
-  state: (): userType => ({
-    // 头像
-    avatar: storageLocal().getItem<DataInfo<number>>(userKey)?.avatar ?? "",
-    // 用户名
-    username: storageLocal().getItem<DataInfo<number>>(userKey)?.username ?? "",
-    // 昵称
-    nickname: storageLocal().getItem<DataInfo<number>>(userKey)?.nickname ?? "",
-    // 页面级别权限
-    roles: storageLocal().getItem<DataInfo<number>>(userKey)?.roles ?? [],
-    // 按钮级别权限
-    permissions:
-      storageLocal().getItem<DataInfo<number>>(userKey)?.permissions ?? [],
-    // 判断登录页面显示哪个组件（0：登录（默认）、1：手机登录、2：二维码登录、3：注册、4：忘记密码）
-    currentPage: 0,
-    // 是否勾选了登录页的「记住密码」
-    isRemembered: false
-  }),
+  state: (): userType => {
+    // 登录快照统一从 auth 工具单点读取(不存在时各字段按空值兜底)
+    const storedUserInfo = getStoredUserInfo();
+    return {
+      // 头像
+      avatar: storedUserInfo?.avatar ?? "",
+      // 用户名
+      username: storedUserInfo?.username ?? "",
+      // 昵称
+      nickname: storedUserInfo?.nickname ?? "",
+      // 页面级别权限
+      roles: storedUserInfo?.roles ?? [],
+      // 按钮级别权限
+      permissions: storedUserInfo?.permissions ?? [],
+      // 判断登录页面显示哪个组件（0：登录（默认）、1：手机登录、2：二维码登录、3：注册、4：忘记密码）
+      currentPage: 0,
+      // 是否勾选了登录页的「记住密码」
+      isRemembered: false
+    };
+  },
   actions: {
     /** 存储头像 */
     SET_AVATAR(avatar: string) {
