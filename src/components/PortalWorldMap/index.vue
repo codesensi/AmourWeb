@@ -301,7 +301,13 @@ onMounted(async () => {
   /* 省界线懒加载:就绪后按当前缩放级别决定是否显示 */
   loadBoundaries().then(() => syncCnBorders());
 
-  resizeObserver = new ResizeObserver(() => chart?.resize());
+  /* KeepAlive 摘离 DOM 的瞬间容器尺寸为 0,echarts 在 0 尺寸上重建坐标系
+   * 会导致变换矩阵不可逆(空指针 TypeError),故离屏/零尺寸时跳过 resize */
+  resizeObserver = new ResizeObserver(entries => {
+    const hasSize = entries.some(e => e.contentRect.width > 0 && e.contentRect.height > 0);
+    if (!hasSize || !wrapRef.value?.isConnected) return;
+    chart?.resize();
+  });
   if (wrapRef.value) resizeObserver.observe(wrapRef.value);
 });
 
