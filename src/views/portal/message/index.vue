@@ -4,6 +4,7 @@ import { getMessage, sendMessage, type MessageItem } from "@/api/portal";
 import { message } from "@/utils/message";
 import { fallbackAvatar, notifyFallbackAvatar } from "@/utils/avatar";
 import { fetchQqInfo, QQ_PATTERN } from "@/utils/qqInfo";
+import { scrollToTop } from "@/utils/motion";
 import { usePagedList } from "@/hooks/usePagedList";
 import PortalLoadMore from "@/components/PortalLoadMore/index.vue";
 import PortalSkeleton from "@/components/PortalSkeleton/index.vue";
@@ -23,9 +24,10 @@ const { items, totalRow, loading, hasMore, loadMore, reset } =
     }
   });
 
-/** 提交留言后重载列表:清空旧内容并重建流加载 */
+/** 提交留言后重载列表:清空旧内容并重建流加载,回页首查看最新状态 */
 function reloadMessages() {
   reset();
+  scrollToTop();
 }
 
 /** 留言表单:校验文案逐字保留原站 */
@@ -175,12 +177,12 @@ onMounted(() => loadMore());
     </header>
 
     <!-- 写明信片:置顶表单卡(字段均配可见 label,占位符仅为示例) -->
-    <form class="postcard-form reveal" @submit.prevent="submit">
+    <form v-reveal class="postcard-form reveal" @submit.prevent="submit">
       <div class="postcard-head">
         <img
           :src="previewAvatar"
           alt="留言头像预览"
-          class="postcard-avatar"
+          class="postcard-face"
           @error="onPreviewError"
         />
         <div class="postcard-fields">
@@ -248,18 +250,31 @@ onMounted(() => loadMore());
         class="postcard reveal"
         :style="{ '--tilt': `${((i % 3) - 1) * 0.8}deg` }"
       >
+        <!-- 邮票角标:品牌爱心 + 齿孔虚线框,呼应「寄一张明信片」的隐喻 -->
+        <span class="postcard-stamp" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M12 21s-7.5-4.9-10-9.2C.4 8.6 2 5 5.5 5c2 0 3.4 1.1 4.2 2.4L12 9.6l2.3-2.2C15.1 6.1 16.5 5 18.5 5 22 5 23.6 8.6 22 11.8 19.5 16.1 12 21 12 21z"
+              fill="currentColor"
+            />
+          </svg>
+        </span>
         <header class="postcard-meta">
+          <img
+            :src="listAvatarSrc(m)"
+            alt=""
+            class="postcard-face"
+            @error="onListAvatarError(m)"
+          />
+          <span class="postcard-name">{{ m.nickname || "访客" }}</span>
           <time class="postcard-date">{{ m.date }}</time>
           <span v-if="m.location" class="postcard-region">
             寄自{{ m.location }}
           </span>
-        </header>
-        <p class="postcard-text">{{ m.content }}</p>
-        <footer class="postcard-sign">
-          <img :src="listAvatarSrc(m)" alt="" @error="onListAvatarError(m)" />
-          <span class="postcard-name">{{ m.nickname || "访客" }}</span>
           <b class="postcard-no">#{{ i + 1 }}</b>
-        </footer>
+        </header>
+        <!-- 留言内容:卡片主角,字号与行高放大,全墨色 -->
+        <p class="postcard-text">{{ m.content }}</p>
       </article>
     </div>
 
@@ -276,27 +291,25 @@ onMounted(() => loadMore());
 </template>
 
 <style scoped>
+/* 留言页内容宽度:表单与明信片墙共用,加宽后仍保留明信片构图 */
+.am-page {
+  --postcard-width: 960px;
+}
+
 /* ---------------- 写明信片表单 ---------------- */
 .postcard-form {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  max-width: 720px;
+  max-width: var(--postcard-width);
   padding: var(--am-space-md) 0 var(--am-space-lg);
+  margin-inline: auto;
 }
 
 .postcard-head {
   display: flex;
   gap: 14px;
   align-items: center;
-}
-
-.postcard-avatar {
-  width: 52px;
-  height: 52px;
-  object-fit: cover;
-  border: 1px solid var(--am-line);
-  border-radius: 50%;
 }
 
 .postcard-fields {
@@ -343,13 +356,7 @@ onMounted(() => loadMore());
   border: 2px solid currentcolor;
   border-top-color: transparent;
   border-radius: 50%;
-  animation: postcard-spin 0.7s linear infinite;
-}
-
-@keyframes postcard-spin {
-  to {
-    transform: rotate(360deg);
-  }
+  animation: am-spin 0.7s linear infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -426,20 +433,26 @@ onMounted(() => loadMore());
 }
 
 /* ---------------- 明信片墙 ---------------- */
+
+/* 单栏居中:与上方表单同宽,像钉在软木板上的一列明信片 */
 .postcard-wall {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: var(--am-space-md);
+  width: 100%;
+  max-width: var(--postcard-width);
   padding: var(--am-space-md) 0;
+  margin-inline: auto;
 }
 
 /* 明信片:纸感卡 + 轻微随机旋转(--tilt 行内注入);
  * 悬浮回正抬升 + 投下纸影,位移 4px 内保持「反馈而非运动」 */
 .postcard {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: var(--am-space-md);
+  padding: var(--am-space-lg);
   background: var(--am-card);
   border: 1px solid var(--am-line);
   border-radius: var(--am-radius);
@@ -449,57 +462,91 @@ onMounted(() => loadMore());
     box-shadow var(--am-duration) ease;
 }
 
+/* 邮票角标:齿孔虚线框 + 品牌爱心(与刊名同源),微微倾斜似手贴上去的 */
+.postcard-stamp {
+  position: absolute;
+  top: var(--am-space-md);
+  right: var(--am-space-md);
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 42px;
+  color: var(--am-rose);
+  background: var(--am-rose-soft);
+  border: 1px dashed color-mix(in srgb, var(--am-rose) 45%, transparent);
+  border-radius: 4px;
+  rotate: 4deg;
+  transition: transform var(--am-duration) var(--am-ease);
+}
+
+.postcard-stamp svg {
+  width: 16px;
+  height: 16px;
+}
+
+.postcard:hover .postcard-stamp {
+  transform: scale(1.06);
+}
+
 .postcard:hover {
   box-shadow: var(--am-shadow-hover);
   transform: rotate(0deg) translateY(-4px);
 }
 
+/* 头部一行:头像/昵称/时间/地点/编号全部弱化为次要信息,内容才是主角 */
 .postcard-meta {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  align-items: baseline;
-  justify-content: space-between;
-  padding-bottom: 10px;
-  border-bottom: 1px dashed var(--am-line);
-}
-
-.postcard-date {
-  font-family: var(--am-font-mono);
-  font-size: var(--am-text-xs);
-  color: var(--am-ink-secondary);
-}
-
-.postcard-sign {
-  display: flex;
-  gap: 10px;
   align-items: center;
-  margin-top: auto;
+
+  /* 右侧避让邮票角标 */
+  padding-inline-end: 44px;
 }
 
-.postcard-sign img {
-  width: 36px;
-  height: 36px;
+.postcard-face {
+  width: 28px;
+  height: 28px;
   object-fit: cover;
+  border: 1px solid var(--am-line);
   border-radius: 50%;
 }
 
 .postcard-name {
   font-size: var(--am-text-sm);
-  color: var(--am-ink);
+  font-weight: 600;
+  color: var(--am-ink-secondary);
+}
+
+.postcard-date {
+  margin-inline-start: auto;
+  font-family: var(--am-font-mono);
+  font-size: var(--am-text-xs);
+  color: var(--am-ink-secondary);
+}
+
+.postcard-region {
+  font-size: var(--am-text-xs);
+  color: var(--am-ink-secondary);
 }
 
 .postcard-no {
-  margin-left: auto;
   font-family: var(--am-font-mono);
   font-size: var(--am-text-xs);
+  font-weight: 500;
   color: var(--am-rose);
+  opacity: 0.75;
+}
+
+/* 留言内容:卡片主角,放大字号与行高,全墨色 */
+.postcard-text {
+  font-size: 1.125rem;
+  line-height: 1.85;
+  color: var(--am-ink);
+  overflow-wrap: anywhere;
 }
 
 @media (width <= 640px) {
-  .postcard-wall {
-    grid-template-columns: 1fr;
-  }
-
   .postcard-fields {
     flex-direction: column;
   }

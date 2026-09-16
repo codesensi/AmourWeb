@@ -1,30 +1,129 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { getDiary, type DiaryItem } from "@/api/portal";
 import { usePagedList } from "@/hooks/usePagedList";
 import PortalLoadMore from "@/components/PortalLoadMore/index.vue";
 import PortalSkeleton from "@/components/PortalSkeleton/index.vue";
 import { fallbackAvatar } from "@/utils/avatar";
+import { prefersReducedMotion } from "@/utils/motion";
 import reveal from "@/directives/reveal";
 
 defineOptions({ name: "PortalDiary" });
 
 const vReveal = reveal;
 
-/** 门户「加载更多」分页加载(每页 6 篇) */
-const { items, loading, hasMore, loadMore } = usePagedList<DiaryItem>(getDiary);
+/** 门户「加载更多」分页加载(每页 12 篇:双栏布局左右各 6 篇) */
+const { items, loading, hasMore, loadMore } = usePagedList<DiaryItem>(
+  getDiary,
+  { pageSize: 12 }
+);
 
 onMounted(() => loadMore());
 
-/** 展开状态(>6 行截断展开) */
+/** 展开状态(超过 2 行截断展开) */
 const expanded = ref(new Set<number>());
 
+/** 展开过渡时长(与 CSS max-height 过渡一致) */
+const EXPAND_MS = 400;
+
+/** 进行中的高度过渡定时器:快速连点时清理上一次 */
+const timers = new Map<number, number>();
+
 function toggle(id: number) {
-  const next = new Set(expanded.value);
-  if (next.has(id)) next.delete(id);
-  else next.add(id);
-  expanded.value = next;
+  const el = contentEls.get(id);
+  const isExpanding = !expanded.value.has(id);
+  // 减少动态偏好或元素缺失:状态瞬时切换,跳过高度动画
+  if (!el || prefersReducedMotion()) {
+    const next = new Set(expanded.value);
+    if (isExpanding) next.add(id);
+    else next.delete(id);
+    expanded.value = next;
+    return;
+  }
+
+  const prev = timers.get(id);
+  if (prev) clearTimeout(prev);
+
+  const lineHeight = parseFloat(getComputedStyle(el).lineHeight) || 26;
+  const collapsedMax = `${Math.round(lineHeight * 2)}px`;
+
+  /** 过渡结束:还原自然高度;收起时此刻才收回钳制,高度无缝衔接 */
+  const finish = () => {
+    timers.delete(id);
+    el.style.maxHeight = "";
+    if (!isExpanding) {
+      const next = new Set(expanded.value);
+      next.delete(id);
+      expanded.value = next;
+    }
+    measureOverflow();
+  };
+
+  if (isExpanding) {
+    // 展开:类先解除钳制,再从 2 行高度过渡到自然全高
+    const next = new Set(expanded.value);
+    next.add(id);
+    expanded.value = next;
+    el.style.maxHeight = collapsedMax;
+    void el.offsetHeight; // 强制回流,锁定起点
+    el.style.maxHeight = `${el.scrollHeight}px`;
+  } else {
+    // 收起:钳制保持(类未移除),用 max-height 裁剪平滑回 2 行,结束后再收钳制
+    el.style.maxHeight = `${el.scrollHeight}px`;
+    void el.offsetHeight;
+    el.style.maxHeight = collapsedMax;
+  }
+
+  timers.set(id, window.setTimeout(finish, EXPAND_MS));
 }
+
+/** 溢出检测结果:需要显示展开按钮的日记 id(已展开的恒显示「收起」) */
+const expandable = ref(new Set<number>());
+
+/** 模板 ref 收集正文元素,供溢出量测 */
+const contentEls = new Map<number, HTMLElement>();
+
+function setContentRef(id: number, el: unknown) {
+  if (el) contentEls.set(id, el as HTMLElement);
+  else contentEls.delete(id);
+}
+
+/** 量测正文是否超过两行:未展开时滚动高大于可视高即溢出 */
+function measureOverflow() {
+  const next = new Set<number>();
+  for (const [id, el] of contentEls) {
+    if (expanded.value.has(id) || el.scrollHeight > el.clientHeight + 1) {
+      next.add(id);
+    }
+  }
+  expandable.value = next;
+}
+
+/** 合帧量测:resize 等高频事件下合并到下一帧执行 */
+function scheduleMeasure() {
+  cancelAnimationFrame(measureRaf);
+  measureRaf = requestAnimationFrame(measureOverflow);
+}
+
+let measureRaf = 0;
+
+/* 新数据渲染后与展开/收起后都要重新量测;
+ * usePagedList 对 items 是原地 push,必须监听 length 而非 ref 本身 */
+watch(
+  () => items.value.length,
+  () => nextTick(measureOverflow)
+);
+watch(expanded, () => nextTick(measureOverflow));
+
+onMounted(() => {
+  window.addEventListener("resize", scheduleMeasure, { passive: true });
+  document.fonts?.ready.then(scheduleMeasure).catch(() => {});
+});
+
+onUnmounted(() => {
+  cancelAnimationFrame(measureRaf);
+  window.removeEventListener("resize", scheduleMeasure);
+});
 
 /** 记录人列表(按 user_id 聚合,维持首次出现顺序) */
 const writers = computed(() => {
@@ -133,10 +232,19 @@ function moodIcon(mood: string | null): string | null {
               />
             </svg>
           </header>
-          <p class="diary-content" :class="{ expanded: expanded.has(it.id) }">
+          <p
+            :ref="el => setContentRef(it.id, el)"
+            class="diary-content"
+            :class="{ expanded: expanded.has(it.id) }"
+          >
             {{ it.content }}
           </p>
-          <button class="diary-expand" type="button" @click="toggle(it.id)">
+          <button
+            v-if="expandable.has(it.id)"
+            class="diary-expand"
+            type="button"
+            @click="toggle(it.id)"
+          >
             {{ expanded.has(it.id) ? "收起" : "展开全文" }}
           </button>
         </article>
@@ -190,12 +298,11 @@ function moodIcon(mood: string | null): string | null {
   color: var(--am-ink);
 }
 
-/* 日记卡:手账窄栏限宽控制行长 */
+/* 日记卡:手账窄栏限宽控制行长;
+ * 不用 content-visibility:auto——视口外卡片跳过布局会让溢出量测失真 */
 .diary-card {
   max-width: 36em;
-  contain-intrinsic-size: auto 180px;
   padding: 14px 0;
-  content-visibility: auto;
   border-bottom: 1px solid var(--am-line);
 }
 
@@ -218,21 +325,28 @@ function moodIcon(mood: string | null): string | null {
   color: var(--am-ink-secondary);
 }
 
-/* 正文:默认截断 6 行,展开后完整显示 */
+/* 正文:默认截断 2 行,展开后完整显示;仅溢出的日记显示按钮 */
 .diary-content {
   display: -webkit-box;
   margin: 0;
   overflow: hidden;
-  -webkit-line-clamp: 6;
+  -webkit-line-clamp: 2;
   font-size: var(--am-text-sm);
   line-height: 1.9;
   color: var(--am-ink);
   -webkit-box-orient: vertical;
+  transition: max-height 0.4s var(--am-ease);
 }
 
 .diary-content.expanded {
-  overflow: visible;
   -webkit-line-clamp: unset;
+}
+
+/* 减少动态:高度过渡直接关闭(状态切换由脚本瞬时完成) */
+@media (prefers-reduced-motion: reduce) {
+  .diary-content {
+    transition: none;
+  }
 }
 
 /* 展开按钮:小字链接 */

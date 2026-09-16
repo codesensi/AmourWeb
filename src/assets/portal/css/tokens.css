@@ -5,8 +5,9 @@
  * ===================================================================== */
 
 /* Google Fonts:字体加载失败时按 fallback 栈优雅降级,不阻塞渲染;
- * ZCOOL XiaoWei(站酷小薇体)承担中文标题,圆润雅致更贴情侣小站气质 */
-@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=ZCOOL+XiaoWei&display=swap");
+ * Cormorant Garamond 为情侣/婚礼站经典浪漫衬线,马善政楷体承担中文标题的
+ * 情书手写感,Nunito 圆润温暖的字形贴合温馨主旨 */
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Nunito:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Ma+Shan+Zheng&display=swap");
 
 :root {
   /* ---- 颜色令牌(浅色:暖粉纸感 + 墨 + 玫瑰) ---- */
@@ -20,17 +21,15 @@
   --am-line: #eddbd7;
   --am-line-strong: #1a1614;
   --am-card: #fffdfa;
-  --am-card-hover: #ffffff;
   --am-cta: #e11d48;
   --am-cta-text: #fff8f5;
-  --am-mask: rgb(20 16 14 / 62%);
 
   /* 字体族 */
   --am-font-display:
-    "Playfair Display", "ZCOOL XiaoWei", "Noto Serif SC", Georgia,
+    "Cormorant Garamond", "Ma Shan Zheng", "Noto Serif SC", Georgia,
     "STZhongsong", "SimSun", serif;
   --am-font-body:
-    Inter, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    Nunito, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
   --am-font-mono: "JetBrains Mono", Consolas, "Courier New", monospace;
 
   /* 字号阶梯(模块化) */
@@ -50,7 +49,6 @@
   --am-space-lg: 32px;
   --am-space-xl: 48px;
   --am-space-2xl: 64px;
-  --am-space-3xl: 96px;
 
   /* 形状:大圆角传达柔软亲密感;胶囊用于按钮/标签 */
   --am-radius: 14px;
@@ -62,7 +60,6 @@
   --am-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --am-duration-fast: 0.15s;
   --am-duration: 0.3s;
-  --am-duration-slow: 0.5s;
 
   /* 卡片悬浮抬升阴影(玫瑰调软阴影,配合 transform-only 微交互,不引发布局) */
   --am-shadow-hover: 0 12px 28px rgb(225 29 72 / 12%);
@@ -90,7 +87,6 @@
   --am-line: #463039;
   --am-line-strong: #f5efe9;
   --am-card: #251a21;
-  --am-card-hover: #2e2028;
   --am-cta: #fb7185;
   --am-cta-text: #1b1216;
 
@@ -153,11 +149,7 @@
   transform: none;
 }
 
-/* 涌现变体:侧向滑入(侧栏/署名栏)与缩放浮现(焦点卡),复用同一指令 */
-.reveal-left {
-  transform: translateX(-18px);
-}
-
+/* 涌现变体:缩放浮现(焦点卡),复用同一指令 */
 .reveal-scale {
   transform: scale(0.96);
 }
@@ -165,7 +157,6 @@
 /* 无动效偏好:涌现直接可见,transition-delay 全部失效 */
 @media (prefers-reduced-motion: reduce) {
   .reveal,
-  .reveal-left,
   .reveal-scale {
     transition: none;
     opacity: 1;
@@ -193,26 +184,6 @@
   background: var(--am-ink-tertiary);
 }
 
-/* 共享微交互:下划线从左向右生长(导航/目录/页脚链接统一手感) */
-.am-link-underline {
-  background-image: linear-gradient(currentcolor, currentcolor);
-  background-size: 0% 1px;
-  background-position: 0 100%;
-  background-repeat: no-repeat;
-  transition: background-size var(--am-duration) var(--am-ease);
-}
-
-.am-link-underline:hover,
-.am-link-underline.active {
-  background-size: 100% 1px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .am-link-underline {
-    transition: none;
-  }
-}
-
 /* 门户通用空态(杂志风:细线框 + 引导文案) */
 .am-empty {
   padding: var(--am-space-lg) 0;
@@ -221,4 +192,24 @@
   color: var(--am-ink-secondary);
   font-size: var(--am-text-sm);
   text-align: center;
+}
+
+/* =====================================================================
+ * 通用动效关键帧:旋转指示与线框呼吸,供各组件 scoped 类引用
+ * ===================================================================== */
+
+@keyframes am-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes am-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }

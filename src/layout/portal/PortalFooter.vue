@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from "vue";
 import { RouterLink } from "vue-router";
 import { getPortalSaying, type SayingData, getVisitTotal } from "@/api/portal";
 import { usePortalSysConfig } from "./usePortalSysConfig";
+import { prefersReducedMotion } from "@/utils/motion";
 
 defineOptions({ name: "PortalFooter" });
 
@@ -22,20 +23,30 @@ const copyrightYears = computed(() => {
 /** ICP 备案文案:未配置(缺失或纯空白)时整个 ICP 块不展示 */
 const icpText = computed(() => sysConfig.value.icp?.trim() ?? "");
 
-/** 卷末一言(随机优先,失败降级):content 为空或请求失败时不展示 */
+/** 页脚一言(随机优先):请求失败或无数据时降级为固定兜底文案 */
 const saying = ref<SayingData | null>(null);
+
+/** 一言接口调不通(请求异常/无数据返回)时的兜底文案:站点自己的态度文案 */
+const FALLBACK_SAYING: SayingData = {
+  content: "落俗不可避免,浪漫至死不渝",
+  source: "",
+  author: ""
+};
 
 /** 访问累计(PV):接口不可用时不展示该行 */
 const totalPv = ref<number | null>(null);
 
-/** 卷末语 · 出处·作者 */
+/** 管理后台地址:项目为 hash 路由,须带 # 前缀,否则 /admin 会被当作首页 */
+const adminHref = `${import.meta.env.BASE_URL}#/admin`;
+
+/** 写在最后 · 出处·作者 */
 const sayingFrom = computed(() =>
   [saying.value?.source, saying.value?.author].filter(Boolean).join("·")
 );
 
 /** 访问数滚动入场:从 0 计到目标值(rAF 缓动,reduced-motion 时直接到位) */
 function countUp(target: number) {
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  if (prefersReducedMotion()) {
     totalPv.value = target;
     return;
   }
@@ -51,12 +62,12 @@ function countUp(target: number) {
 }
 
 onMounted(async () => {
-  // 一言与访问计数互不阻塞,任一失败静默降级(对应行不渲染)
+  // 一言与访问计数互不阻塞:一言拿不到(失败/空数据)时显示兜底文案,访问计数失败静默降级
   try {
     const { success, data } = await getPortalSaying();
-    if (success && data?.content) saying.value = data;
+    saying.value = success && data?.content ? data : FALLBACK_SAYING;
   } catch {
-    // 静默降级
+    saying.value = FALLBACK_SAYING;
   }
   try {
     const { success, data } = await getVisitTotal();
@@ -68,12 +79,12 @@ onMounted(async () => {
 </script>
 
 <template>
-  <!-- 版权页(Colophon):卷末语 + 站点信息 + 备案/版权 -->
+  <!-- 版权页(Colophon):写在最后 + 站点信息 + 备案/版权 -->
   <footer class="colophon">
     <div class="colophon-inner">
-      <!-- 卷末语:一言(失败/为空不渲染) -->
+      <!-- 写在最后:一言(接口不可用时渲染兜底文案) -->
       <p v-if="saying?.content" class="colophon-saying">
-        <span class="colophon-kicker">卷末语</span>
+        <span class="colophon-kicker">Love Notes · 写在最后</span>
         <span class="colophon-saying-text">“{{ saying.content }}”</span>
         <span v-if="sayingFrom" class="colophon-saying-from">
           —— {{ sayingFrom }}
@@ -83,7 +94,7 @@ onMounted(async () => {
       <div class="colophon-meta">
         <!-- 访问累计:来自 portal_visit(接口不可用时不展示) -->
         <p v-if="totalPv !== null" class="colophon-visit">
-          本刊已被阅读
+          我们的故事已被翻开
           <b class="colophon-visit-num">{{ totalPv }}</b>
           次
         </p>
@@ -93,7 +104,7 @@ onMounted(async () => {
           <RouterLink to="/" class="colophon-link">{{
             sysConfig.name || "AMOUR"
           }}</RouterLink>
-          · 与我们的每一期
+          · 与我们的每一天
         </p>
 
         <p v-if="icpText" class="colophon-icp">
@@ -103,6 +114,17 @@ onMounted(async () => {
             rel="noopener"
             class="colophon-link"
             >{{ icpText }}</a
+          >
+        </p>
+
+        <!-- 管理后台:低存在感文字入口(对齐市面个人站惯例),新标签页打开 -->
+        <p class="colophon-admin">
+          <a
+            :href="adminHref"
+            target="_blank"
+            rel="noopener"
+            class="colophon-link"
+            >管理后台</a
           >
         </p>
       </div>
@@ -125,7 +147,7 @@ onMounted(async () => {
   text-align: center;
 }
 
-/* 卷末语:衬线斜体引文 */
+/* 写在最后:衬线斜体引文 */
 .colophon-saying {
   display: flex;
   flex-direction: column;

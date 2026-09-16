@@ -71,6 +71,12 @@ export default [
         meta: { title: "点点滴滴" }
       },
       {
+        path: "/moments/:id",
+        name: "PortalMomentDetail",
+        component: () => import("@/views/portal/moments/detail.vue"),
+        meta: { title: "文章详情" }
+      },
+      {
         path: "/message",
         name: "PortalMessage",
         component: () => import("@/views/portal/message/index.vue"),

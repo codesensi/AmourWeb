@@ -15,7 +15,7 @@ export default defineFakeRoute([
         timestamp: Date.now(),
         data: {
           avatarUrl: `https://q.qlogo.cn/headimg_dl?dst_uin=${String(query.qq ?? "")}&spec=640&img_type=jpg`,
-          nickname: ""
+          nickname: "龙猫"
         }
       };
     }

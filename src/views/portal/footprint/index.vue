@@ -6,6 +6,7 @@ import PortalLightbox, {
   type LightboxItem
 } from "@/components/PortalLightbox/index.vue";
 import reveal from "@/directives/reveal";
+import { useLightbox } from "@/hooks/useLightbox";
 
 defineOptions({ name: "PortalFootprint" });
 
@@ -36,8 +37,7 @@ onMounted(async () => {
 
 /* ---------------- 纪念照影院模式 ---------------- */
 
-const lightboxOpen = ref(false);
-const lightboxIndex = ref(0);
+const { lightboxOpen, lightboxIndex, openAt: openLightbox } = useLightbox();
 
 /** 带照片的足迹(影院模式数据源) */
 const photoItems = computed<LightboxItem[]>(() =>
@@ -52,10 +52,7 @@ const photoItems = computed<LightboxItem[]>(() =>
 /** 打开纪念照 */
 function openPhoto(item: FootprintItem) {
   const idx = photoItems.value.findIndex(p => p.url === item.photoUrl);
-  if (idx >= 0) {
-    lightboxIndex.value = idx;
-    lightboxOpen.value = true;
-  }
+  if (idx >= 0) openLightbox(idx);
 }
 
 /** 坐标展示文案(30.66°N, 104.06°E) */

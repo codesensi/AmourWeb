@@ -68,6 +68,10 @@ export const router: Router = createRouter({
   routes: constantRoutes.concat(...(remainingRouter as any)),
   strict: true,
   scrollBehavior(to, from, savedPosition) {
+    // 门户公开路由:滚动由 PortalLayout 的滚动记忆统一管理,router 不干预
+    if (to.matched.some(record => record.name === "Portal")) {
+      return false;
+    }
     // 浏览器前进/后退:恢复原滚动位置
     if (savedPosition) return savedPosition;
     // 页面声明 saveSrollTop 时保持当前滚动(管理端既有机制不变)
@@ -76,10 +80,14 @@ export const router: Router = createRouter({
         document.documentElement.scrollTop || document.body.scrollTop;
       return { left: 0, top };
     }
-    // 其余(含门户公开路由):从最顶部加载
+    // 其余(管理端路由):从最顶部加载
     return { top: 0 };
   }
 });
+
+// 禁用浏览器原生的历史滚动恢复:前进/后退的定位由 scrollBehavior 与门户滚动记忆
+// 显式管理,避免原生恢复叠加导致位置不可预期
+history.scrollRestoration = "manual";
 
 /** 记录已经加载的页面路径 */
 const loadedPaths = new Set<string>();

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { nextTick, onMounted, ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import PortalHeader from "./PortalHeader.vue";
-import PortalSidebar from "./PortalSidebar.vue";
 import PortalFooter from "./PortalFooter.vue";
+import PortalBackTop from "@/components/PortalBackTop/index.vue";
 import { providePortalSysConfig } from "./usePortalSysConfig";
 import {
   applySiteFavicon,
@@ -50,18 +50,11 @@ watch(
   }
 );
 
-/** 进入页面:等待过渡与 KeepAlive DOM 恢复后还原滚动位置 */
-watch(
-  () => route.fullPath,
-  to => {
-    const saved = scrollMemory.get(to);
-    nextTick(() => {
-      window.setTimeout(() => {
-        window.scrollTo(0, saved ?? 0);
-      }, 260);
-    });
-  }
-);
+/** 进入页面:进入过渡首帧前同步还原滚动位置(KeepAlive 缓存 DOM 高度完整,
+ *  第一帧即原位,无「先见顶部再跳回」的闪跳) */
+function onPortalEnter() {
+  window.scrollTo(0, scrollMemory.get(route.fullPath) ?? 0);
+}
 </script>
 
 <template>
@@ -72,20 +65,21 @@ watch(
          过渡淡入消除路由切换硬切 -->
     <div class="portal-content">
       <RouterView v-slot="{ Component }">
-        <Transition name="portal-fade" mode="out-in">
+        <Transition name="portal-fade" mode="out-in" @enter="onPortalEnter">
           <KeepAlive>
             <component :is="Component" />
           </KeepAlive>
         </Transition>
       </RouterView>
     </div>
-    <PortalSidebar />
     <PortalFooter />
+    <PortalBackTop />
   </div>
 </template>
 
 <style lang="scss" scoped>
-/* 门户基础观感:杂志纸感底 + 墨色正文(令牌来自 tokens.css) */
+/* 门户基础观感:杂志纸感底(纵向纵深渐变:暖粉纸色→微深暖→回归,灯下纸张的受光感)
+ * + 墨色正文(令牌来自 tokens.css,深色模式随令牌自动翻转) */
 .portal {
   font-family: var(
     --am-font-body,
@@ -97,7 +91,12 @@ watch(
   font-size: 16px;
   line-height: 1.7;
   color: var(--am-ink);
-  background: var(--am-bg);
+  background: linear-gradient(
+    180deg,
+    var(--am-bg) 0%,
+    var(--am-bg-deep) 45%,
+    var(--am-bg) 100%
+  );
 }
 
 /* 内容区最小高度:避免短页面(如空态列表页)切换时页脚大幅上跳 */

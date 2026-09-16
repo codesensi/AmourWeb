@@ -1,16 +1,25 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
-import { RouterLink } from "vue-router";
+import { computed, markRaw, onBeforeUnmount, onMounted, ref } from "vue";
+import { RouterLink, useRouter } from "vue-router";
 import {
   getAnniversaryList,
+  getFootprintList,
   getHeroes,
-  getMoments,
-  type MomentsItem
+  getLovePhoto,
+  type FootprintItem,
+  type LovePhotoItem
 } from "@/api/portal";
+import { fallbackAvatar } from "@/utils/avatar";
 import { resolveUserDisplay } from "@/utils/userDisplay";
+import { prefersReducedMotion } from "@/utils/motion";
 import { parseDateTime } from "@/utils/date";
 import { nextOccurrenceDays } from "@/utils/anniversary";
 import { usePortalSysConfig } from "@/layout/portal/usePortalSysConfig";
+import PortalWorldMap, {
+  type MapPoint
+} from "@/components/PortalWorldMap/index.vue";
+import PortalRollingNumber from "@/components/PortalRollingNumber/index.vue";
+import PortalNavIcon from "@/components/PortalNavIcon/index.vue";
 import reveal from "@/directives/reveal";
 
 defineOptions({ name: "PortalHome" });
@@ -28,6 +37,12 @@ const heroNames = ref<{ female: string; male: string }>({
   male: ""
 });
 
+/** 主角头像(展示链路已含 QQ 头像解析与兜底降级,恒非空) */
+const heroAvatars = ref<{ female: string; male: string }>({
+  female: fallbackAvatar,
+  male: fallbackAvatar
+});
+
 /** 封面主标题:两人名以「&」相连,均未维护时回退站点名 */
 const coverTitle = computed(() => {
   const names = [heroNames.value.female, heroNames.value.male].filter(Boolean);
@@ -37,7 +52,7 @@ const coverTitle = computed(() => {
 /** 目录锚点滚动:页内平滑滚动,不改动 URL hash(hash 路由下锚点会被当作路由路径);
  * 声明减少动态偏好时降级为瞬时定位 */
 function scrollToToc() {
-  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const reduced = prefersReducedMotion();
   document
     .getElementById("toc")
     ?.scrollIntoView({ behavior: reduced ? "auto" : "smooth" });
@@ -51,7 +66,7 @@ onMounted(async () => {
       resolveUserDisplay(data.female),
       resolveUserDisplay(data.male)
     ]);
-    // 仅取昵称文本用于封面排版,头像细节不在封面重复展示
+    heroAvatars.value = { female: female.avatar, male: male.avatar };
     heroNames.value = { female: female.name, male: male.name };
   } catch {
     // 后端不可用:回退站点名
@@ -82,46 +97,139 @@ const loveTime = computed(() => {
   return { days, hours: hrsold, minutes: minsold, seconds };
 });
 
+/** 计时器单元格:时/分/秒个位自动补 0(滚轮数字组件处理) */
+const timerCells = computed(() => {
+  const t = loveTime.value;
+  if (!t) return [];
+  return [
+    { label: "天", value: t.days },
+    { label: "时", value: t.hours, max: 23 },
+    { label: "分", value: t.minutes, max: 59 },
+    { label: "秒", value: t.seconds, max: 59 }
+  ];
+});
+
+/** 完整读法:滚轮数字对读屏是一串裸数字,由容器 aria-label 提供连贯读法 */
+const loveTimeAria = computed(() => {
+  const t = loveTime.value;
+  if (!t) return "";
+  return `已相爱 ${t.days} 天 ${t.hours} 小时 ${t.minutes} 分 ${t.seconds} 秒`;
+});
+
 /* ---------------- 目录 ---------------- */
 
-/** 目录条目:编号与全站导航一致(01 为封面自身,从 02 起) */
+/** 目录条目:语义图标与全站导航一致 */
 const tocItems = [
   {
-    no: "02",
+    icon: "moments",
     title: "点点滴滴",
     desc: "碎碎念,也要认真记录",
     path: "/moments"
   },
-  { no: "03", title: "恋爱画册", desc: "记录最美瞬间", path: "/love-photo" },
-  { no: "04", title: "恋爱清单", desc: "你与我之间的约定", path: "/love-list" },
-  { no: "05", title: "留言簿", desc: "写下我们的祝福", path: "/message" },
   {
-    no: "06",
+    icon: "photo",
+    title: "恋爱画册",
+    desc: "记录最美瞬间",
+    path: "/love-photo"
+  },
+  {
+    icon: "list",
+    title: "恋爱清单",
+    desc: "你与我之间的约定",
+    path: "/love-list"
+  },
+  {
+    icon: "message",
+    title: "留言簿",
+    desc: "写下我们的祝福",
+    path: "/message"
+  },
+  {
+    icon: "calendar",
     title: "纪念日",
     desc: "距离下一次心动还有几天",
     path: "/anniversary"
   },
   {
-    no: "07",
+    icon: "capsule",
     title: "时间胶囊",
     desc: "给未来的一封信",
     path: "/time-capsule"
   },
-  { no: "08", title: "情侣日记", desc: "同一天的两个视角", path: "/diary" },
-  { no: "09", title: "足迹", desc: "我们一起去过的城市", path: "/footprint" }
+  {
+    icon: "diary",
+    title: "情侣日记",
+    desc: "同一天的两个视角",
+    path: "/diary"
+  },
+  {
+    icon: "footprint",
+    title: "足迹",
+    desc: "我们一起去过的城市",
+    path: "/footprint"
+  }
 ];
 
-/* ---------------- 卷首语:最新一篇点滴 ---------------- */
+/* ---------------- 封面:漂浮光点(纯装饰) ---------------- */
 
-/** 卷首语文章(取最新一条;接口不可用/无数据时不渲染) */
-const featured = ref<MomentsItem | null>(null);
+/** 每颗光点的水平落位/尺寸/节奏;负延迟让首屏加载时即处于漂浮中段 */
+const coverHearts = [
+  { left: "10%", size: 16, duration: 9, delay: 0, opacity: 0.32 },
+  { left: "26%", size: 12, duration: 12, delay: -4.2, opacity: 0.22 },
+  { left: "48%", size: 14, duration: 10, delay: -7.5, opacity: 0.28 },
+  { left: "66%", size: 18, duration: 12, delay: -2.6, opacity: 0.3 },
+  { left: "86%", size: 13, duration: 13, delay: -5.8, opacity: 0.24 }
+];
+
+/* ---------------- 卷首语:足迹世界地图 ---------------- */
+
+/** 足迹原始数据(页面挂载后拉取一次) */
+const footprintItems = ref<FootprintItem[]>([]);
+
+/** 地图点位:有坐标的足迹按到访时间升序,依此连线
+ * (元素经 markRaw 剥离响应式,避免 echarts 每帧重绘遍历 Proxy) */
+const mapPoints = computed<MapPoint[]>(() =>
+  footprintItems.value
+    .filter(it => it.longitude != null && it.latitude != null)
+    .sort((a, b) => (a.arrivalDate ?? "").localeCompare(b.arrivalDate ?? ""))
+    .map(it =>
+      markRaw({
+        id: it.id,
+        city: it.city,
+        longitude: it.longitude as number,
+        latitude: it.latitude as number,
+        arrivalDate: it.arrivalDate,
+        remark: it.remark,
+        photoUrl: it.photoUrl
+      })
+    )
+);
+
+/** 选中的足迹详情(null=关闭) */
+const selectedPoint = ref<MapPoint | null>(null);
+
+const router = useRouter();
+
+function onMapSelect(point: MapPoint | null) {
+  selectedPoint.value = point;
+}
+
+function closeMapDetail() {
+  selectedPoint.value = null;
+}
+
+/** 浮层内直达足迹页(链接不可嵌套,改用编程导航) */
+function goFootprint() {
+  selectedPoint.value = null;
+  router.push("/footprint");
+}
 
 onMounted(async () => {
   try {
-    const { success, data } = await getMoments({ pageNumber: 1, pageSize: 1 });
-    if (success && data?.records.length) featured.value = data.records[0];
+    const { success, data } = await getFootprintList();
+    if (success && data) footprintItems.value = data;
   } catch {
-    // 静默降级
+    // 静默降级:地图卡片保持空态展示
   }
 });
 
@@ -151,47 +259,86 @@ onMounted(async () => {
     // 静默降级
   }
 });
+
+/* ---------------- 恋爱画册:最新一张照片 ---------------- */
+
+/** 最新照片(取画册第一张;接口不可用/为空时整卡不渲染) */
+const latestPhoto = ref<LovePhotoItem | null>(null);
+
+onMounted(async () => {
+  try {
+    const { success, data } = await getLovePhoto({
+      pageNumber: 1,
+      pageSize: 1
+    });
+    if (success && data?.records.length) latestPhoto.value = data.records[0];
+  } catch {
+    // 静默降级:照片缺失时隐藏卡片
+  }
+});
 </script>
 
 <template>
   <div>
     <!-- 封面:全幅晨光插画 + 超大衬线标题 + 恋爱计时器 -->
     <section class="cover">
+      <!-- 漂浮光点:错峰上浮的柔光小心形(纯装饰,不响应指针) -->
+      <div class="cover-hearts" aria-hidden="true">
+        <svg
+          v-for="(heart, i) in coverHearts"
+          :key="i"
+          class="cover-heart"
+          :style="{
+            left: heart.left,
+            width: `${heart.size}px`,
+            height: `${heart.size}px`,
+            animationDuration: `${heart.duration}s`,
+            animationDelay: `${heart.delay}s`,
+            '--heart-opacity': heart.opacity
+          }"
+          viewBox="0 0 24 24"
+        >
+          <path
+            fill="currentColor"
+            d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.08C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+          />
+        </svg>
+      </div>
       <div class="cover-inner">
+        <!-- 主角头像徽章:两张贴纸式小照轻倚,中缀一枚心动小心形(纯装饰) -->
+        <div class="cover-avatars" aria-hidden="true">
+          <img
+            :src="heroAvatars.female"
+            alt=""
+            class="cover-avatar cover-avatar-female"
+          />
+          <svg class="cover-avatar-heart" viewBox="0 0 24 24">
+            <path
+              fill="currentColor"
+              d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.08C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+            />
+          </svg>
+          <img
+            :src="heroAvatars.male"
+            alt=""
+            class="cover-avatar cover-avatar-male"
+          />
+        </div>
         <p class="cover-kicker">WELCOME TO OUR LITTLE WORLD · 我们的小世界</p>
-        <h1 class="cover-title">{{ coverTitle }}</h1>
-        <div v-if="loveTime" class="cover-timer" aria-label="恋爱计时">
-          <div class="timer-cell">
+        <h1 class="cover-title">
+          <span class="cover-title-text">{{ coverTitle }}</span>
+        </h1>
+        <div
+          v-if="loveTime"
+          class="cover-timer"
+          role="timer"
+          :aria-label="loveTimeAria"
+        >
+          <div v-for="cell in timerCells" :key="cell.label" class="timer-cell">
             <b class="timer-num">
-              <Transition name="timer-roll" mode="out-in">
-                <span :key="loveTime.days">{{ loveTime.days }}</span>
-              </Transition>
+              <PortalRollingNumber :value="cell.value" :max="cell.max" />
             </b>
-            <span class="timer-label">天</span>
-          </div>
-          <div class="timer-cell">
-            <b class="timer-num">
-              <Transition name="timer-roll" mode="out-in">
-                <span :key="loveTime.hours">{{ loveTime.hours }}</span>
-              </Transition>
-            </b>
-            <span class="timer-label">时</span>
-          </div>
-          <div class="timer-cell">
-            <b class="timer-num">
-              <Transition name="timer-roll" mode="out-in">
-                <span :key="loveTime.minutes">{{ loveTime.minutes }}</span>
-              </Transition>
-            </b>
-            <span class="timer-label">分</span>
-          </div>
-          <div class="timer-cell">
-            <b class="timer-num">
-              <Transition name="timer-roll" mode="out-in">
-                <span :key="loveTime.seconds">{{ loveTime.seconds }}</span>
-              </Transition>
-            </b>
-            <span class="timer-label">秒</span>
+            <span class="timer-label">{{ cell.label }}</span>
           </div>
         </div>
         <p v-if="loveTime" class="cover-note">我们已经相爱了这么久</p>
@@ -218,7 +365,7 @@ onMounted(async () => {
       </button>
     </section>
 
-    <!-- 目录:杂志目录条目式 -->
+    <!-- 目录:4×2 等宽 Bento 卡片(描边卡填满格子,左右视觉重量均衡) -->
     <section id="toc" class="toc">
       <div class="am-page">
         <header class="am-section-head">
@@ -227,56 +374,112 @@ onMounted(async () => {
         </header>
         <nav class="toc-list">
           <RouterLink
-            v-for="(item, i) in tocItems"
+            v-for="item in tocItems"
             :key="item.path"
-            v-reveal="i * 0.05"
+            v-reveal
             class="toc-item reveal"
             :to="item.path"
           >
-            <span class="toc-no">{{ item.no }}</span>
-            <span class="toc-main">
+            <span class="toc-head">
+              <span class="toc-icon-chip">
+                <PortalNavIcon :name="item.icon" class="toc-icon" />
+              </span>
               <span class="toc-title">{{ item.title }}</span>
-              <span class="toc-desc">{{ item.desc }}</span>
             </span>
-            <span class="toc-arrow" aria-hidden="true">→</span>
+            <span class="toc-desc">{{ item.desc }}</span>
           </RouterLink>
         </nav>
       </div>
     </section>
 
-    <!-- 卷首语:最新一篇点滴 -->
-    <section v-if="featured" class="editorial">
+    <!-- 足迹世界地图 + 纪念日预告:非对称双栏,右栏倒计时填充右区 -->
+    <section class="editorial">
       <div class="am-page">
-        <div v-reveal class="editorial-card reveal">
-          <p class="am-section-kicker">Love Letter · 写给彼此</p>
-          <RouterLink class="editorial-title" to="/moments">
-            {{ featured.title }}
-          </RouterLink>
-          <p class="editorial-meta">
-            {{ featured.author }} · 记录于 {{ featured.date }}
-          </p>
-          <RouterLink class="editorial-more" to="/moments">
-            阅读全部点滴 →
-          </RouterLink>
-        </div>
-      </div>
-    </section>
-
-    <!-- 纪念日预告:最近的一个 -->
-    <section v-if="nextAnniversary" class="teaser">
-      <div class="am-page">
-        <div v-reveal class="teaser-card reveal">
-          <div>
-            <p class="am-section-kicker">Countdown · 爱的倒计时</p>
-            <RouterLink class="teaser-name" to="/anniversary">
-              {{ nextAnniversary.name }}
+        <div class="editorial-grid">
+          <div v-reveal class="editorial-card footprint-card reveal">
+            <PortalWorldMap
+              class="footprint-map"
+              :points="mapPoints"
+              @select="onMapSelect"
+            />
+            <p class="am-section-kicker">Footprints · 足迹</p>
+            <span class="editorial-title">我们走过的每一座城</span>
+            <p class="editorial-meta">
+              已到访 {{ mapPoints.length }} 座城市,滚轮缩放、拖动漫游
+            </p>
+            <RouterLink to="/footprint" class="editorial-more">
+              查看全部足迹 →
             </RouterLink>
-            <p class="teaser-date">{{ nextAnniversary.date }}</p>
+            <span
+              v-if="selectedPoint"
+              class="footprint-detail"
+              :class="{ 'footprint-detail--photo': selectedPoint.photoUrl }"
+              :style="
+                selectedPoint.photoUrl
+                  ? {
+                      backgroundImage:
+                        `linear-gradient(rgb(15 18 25 / 55%), rgb(15 18 25 / 55%)), ` +
+                        `url('${selectedPoint.photoUrl}')`
+                    }
+                  : undefined
+              "
+              @click.stop
+            >
+              <span class="gd-city">{{ selectedPoint.city }}</span>
+              <span v-if="selectedPoint.arrivalDate" class="gd-date">
+                {{ selectedPoint.arrivalDate }}
+              </span>
+              <span v-if="selectedPoint.remark" class="gd-remark">
+                {{ selectedPoint.remark }}
+              </span>
+              <span class="gd-more" @click.stop="goFootprint">
+                查看全部足迹 →
+              </span>
+              <button
+                type="button"
+                class="gd-close"
+                aria-label="关闭详情"
+                @click.stop="closeMapDetail"
+              >
+                ×
+              </button>
+            </span>
           </div>
-          <div class="teaser-count">
-            <b class="teaser-days">{{ nextAnniversary.days }}</b>
-            <span class="teaser-unit">天后</span>
+          <div
+            v-if="nextAnniversary"
+            v-reveal="0.1"
+            class="teaser-card reveal"
+            :class="{ 'teaser-card--tall': !latestPhoto }"
+          >
+            <p class="am-section-kicker">Countdown · 爱的倒计时</p>
+            <div class="teaser-count">
+              <b class="teaser-days">{{ nextAnniversary.days }}</b>
+              <span class="teaser-unit">天后</span>
+            </div>
+            <div class="teaser-meta">
+              <p class="teaser-date">{{ nextAnniversary.date }}</p>
+              <RouterLink class="teaser-name" to="/anniversary">
+                {{ nextAnniversary.name }}
+              </RouterLink>
+            </div>
           </div>
+          <RouterLink
+            v-if="latestPhoto"
+            v-reveal="0.2"
+            class="photo-card reveal"
+            :class="{ 'photo-card--tall': !nextAnniversary }"
+            to="/love-photo"
+          >
+            <img
+              :src="latestPhoto.img"
+              :alt="latestPhoto.text"
+              class="photo-card-img"
+            />
+            <span class="am-section-kicker photo-card-kicker">
+              Album · 恋爱画册
+            </span>
+            <span class="photo-card-caption">{{ latestPhoto.text }}</span>
+          </RouterLink>
         </div>
       </div>
     </section>
@@ -301,15 +504,109 @@ onMounted(async () => {
 .cover::before {
   position: absolute;
   inset: 0;
+  z-index: 1;
   content: "";
   background: var(--am-cover-veil);
 }
 
+/* 漂浮光点:小心形自底部错峰上浮,播完渐隐再重来 */
+.cover-hearts {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.cover-heart {
+  position: absolute;
+  bottom: -36px;
+  color: var(--am-rose);
+  opacity: 0;
+  animation: cover-float 10s linear infinite;
+}
+
+@keyframes cover-float {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(0deg);
+  }
+
+  12% {
+    opacity: var(--heart-opacity, 0.3);
+  }
+
+  50% {
+    transform: translate(10px, -45vh) rotate(10deg);
+  }
+
+  86% {
+    opacity: var(--heart-opacity, 0.3);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-10px, -92vh) rotate(-8deg);
+  }
+}
+
 .cover-inner {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   color: var(--am-ink);
   text-align: center;
+}
+
+/* 主角头像徽章:两张贴纸式小照轻倚,中缀一枚心动小心形;入场编排在最前 */
+.cover-avatars {
+  display: flex;
+  gap: var(--am-space-md);
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--am-space-md);
+  animation: hero-in 0.7s var(--am-ease) backwards;
+}
+
+.cover-avatar {
+  width: clamp(56px, 7vw, 80px);
+  height: clamp(56px, 7vw, 80px);
+  object-fit: cover;
+  background: var(--am-card);
+  border: 3px solid rgb(255 253 250 / 90%);
+  border-radius: 50%;
+  box-shadow: 0 8px 20px rgb(20 16 14 / 16%);
+  transition: transform var(--am-duration) var(--am-ease);
+}
+
+.cover-avatar-female {
+  transform: rotate(-3deg);
+}
+
+.cover-avatar-male {
+  transform: rotate(3deg);
+}
+
+.cover-avatars:hover .cover-avatar {
+  transform: rotate(0deg);
+}
+
+.cover-avatar-heart {
+  width: 24px;
+  height: 24px;
+  color: var(--am-rose);
+  filter: drop-shadow(0 2px 4px rgb(20 16 14 / 18%));
+  animation: avatar-heart-beat 1.8s var(--am-ease) infinite;
+}
+
+@keyframes avatar-heart-beat {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.15);
+  }
 }
 
 /* 封面入场编排:kicker → 标题 → 计时器 → 注脚 依次上浮浮现;
@@ -323,9 +620,11 @@ onMounted(async () => {
 }
 
 .cover-title {
-  margin: 18px 0 40px;
+  margin: 14px 0 36px;
   font-family: var(--am-font-display);
-  font-size: clamp(3rem, 9vw, var(--am-text-giant));
+
+  /* 精美化字号:上限收敛到展示档 huge,与页面其他展示标题同一阶梯 */
+  font-size: clamp(2.4rem, 6vw, var(--am-text-huge));
   font-style: italic;
   font-weight: 700;
   line-height: 1.12;
@@ -333,7 +632,49 @@ onMounted(async () => {
   animation: hero-in 0.7s var(--am-ease) 0.15s backwards;
 }
 
-/* 恋爱计时器:等宽翻牌数字(窄屏 2×2 折行) */
+/* 流光扫过:文字按墨色渐变裁切,柔光带平时停在视野外,
+ * 滑过时自右向左掠过一次(仅 hover 设备且未偏好减弱动效) */
+.cover-title-text {
+  display: inline-block;
+
+  /* 斜体字形右倾出框:延伸背景盒覆盖末字笔画,负外边距回补占位,
+   * 否则出框部分不被渐变填充,视觉上末字被裁剪 */
+  padding: 0 0.12em;
+  margin: 0 -0.12em;
+}
+
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .cover-title:hover .cover-title-text {
+      animation: title-shimmer 1.8s var(--am-ease) 1;
+    }
+  }
+
+  .cover-title-text {
+    background-image: linear-gradient(
+      100deg,
+      var(--am-ink) 0% 45%,
+      var(--am-rose-soft) 50%,
+      var(--am-ink) 58% 100%
+    );
+    background-position: 100% 0;
+    background-clip: text;
+    background-size: 300% 100%;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+@keyframes title-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+
+  to {
+    background-position: 0% 0;
+  }
+}
+
+/* 恋爱计时器:滚轮数字(窄屏 2×2 折行) */
 .cover-timer {
   display: flex;
   flex-wrap: wrap;
@@ -380,35 +721,19 @@ onMounted(async () => {
   }
 }
 
-/* 计时器翻牌:数值变化时旧值上移淡出、新值自下浮入(等宽字体不跳宽) */
-.timer-roll-enter-active,
-.timer-roll-leave-active {
-  transition:
-    opacity var(--am-duration-fast) ease,
-    transform var(--am-duration-fast) ease;
-}
-
-.timer-roll-enter-from {
-  opacity: 0;
-  transform: translateY(0.35em);
-}
-
-.timer-roll-leave-to {
-  opacity: 0;
-  transform: translateY(-0.35em);
-}
-
 @media (prefers-reduced-motion: reduce) {
   .cover-kicker,
+  .cover-avatars,
   .cover-title,
   .cover-timer,
-  .cover-note {
+  .cover-note,
+  .cover-avatar-heart {
     animation: none;
   }
 
-  .timer-roll-enter-active,
-  .timer-roll-leave-active {
-    transition: none;
+  /* 漂浮光点一并静默,保持纯静态封面 */
+  .cover-heart {
+    display: none;
   }
 }
 
@@ -417,7 +742,7 @@ onMounted(async () => {
   position: absolute;
   bottom: 24px;
   left: 50%;
-  z-index: 1;
+  z-index: 2;
   display: grid;
   place-items: center;
   width: 44px;
@@ -467,82 +792,359 @@ onMounted(async () => {
 /* ---------------- 目录 ---------------- */
 .toc {
   padding-top: var(--am-space-lg);
+
+  /* 锚点滚动留白:避免粘性头部(85px)盖住区块标题 */
+  scroll-margin-top: 88px;
 }
 
+/* 首页目录:题头不画满宽分隔线,避免与第一行卡片上缘连成一线
+ * (仅本页局部覆盖;其他页面共用的 am-section-head 分隔线不受影响) */
+.toc .am-section-head {
+  border-bottom: 0;
+}
+
+/* 目录:4×2 等宽 Bento 卡片(窄屏回落两列) */
 .toc-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--am-space-md);
 }
 
-/* 目录条目:编号 + 标题 + 描述 + 箭头,hover 编号变玫瑰、标题右移 */
+/* 目录条目:描边卡片,图标与目录名同行、说明弱化,内容整体居中 */
 .toc-item {
   display: flex;
-  gap: var(--am-space-md);
-  align-items: baseline;
-  padding: 20px 0;
-  color: var(--am-ink);
-  text-decoration: none;
-  border-bottom: 1px solid var(--am-line);
-}
-
-.toc-no {
-  font-family: var(--am-font-mono);
-  font-size: var(--am-text-sm);
-  color: var(--am-ink-tertiary);
-  transition: color var(--am-duration) ease;
-}
-
-.toc-main {
-  display: flex;
-  flex-basis: auto;
   flex-direction: column;
-  gap: 2px;
+  gap: 10px;
+  align-items: center;
+  padding: var(--am-space-md) var(--am-space-sm);
+  color: var(--am-ink);
+  text-align: center;
+  text-decoration: none;
+  background: transparent;
+  border: 1px solid var(--am-line);
+  border-radius: var(--am-radius);
+  transition:
+    background-color var(--am-duration) var(--am-ease),
+    box-shadow var(--am-duration) var(--am-ease),
+    transform var(--am-duration) var(--am-ease);
+}
+
+.toc-item:hover,
+.toc-item:focus-visible {
+  background: var(--am-bg-deep);
+  box-shadow: var(--am-shadow-hover);
+  transform: translateY(-4px);
+}
+
+/* 图标 + 目录名一行:磁贴与标题垂直居中对齐 */
+.toc-head {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* 图标磁贴:玫瑰软底圆角小方块,描边图标居中,与全站线描风格一致 */
+.toc-icon-chip {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  color: var(--am-rose);
+  background: var(--am-rose-soft);
+  border-radius: calc(var(--am-radius) - 4px);
   transition: transform var(--am-duration) var(--am-ease);
+}
+
+.toc-icon {
+  width: 20px;
+  height: 20px;
 }
 
 .toc-title {
   font-family: var(--am-font-display);
-  font-size: clamp(1.4rem, 3vw, var(--am-text-lg));
+  font-size: clamp(1.25rem, 2vw, 1.4rem);
   font-weight: 700;
+  line-height: 1.3;
 }
 
+/* 目录说明:弱化为小号辅助文字 */
 .toc-desc {
-  font-size: var(--am-text-sm);
+  font-size: var(--am-text-xs);
+  line-height: 1.5;
   color: var(--am-ink-secondary);
 }
 
-.toc-arrow {
-  margin-left: auto;
+@media (prefers-reduced-motion: no-preference) {
+  .toc-item:hover .toc-icon-chip {
+    transform: scale(1.06);
+  }
+}
+
+/* 足迹世界地图卡:地图铺满整卡作背景,文字浮于其上 */
+.footprint-map {
+  position: absolute;
+  inset: 0;
+
+  /* 禁止选中:防止画布拖动连带触发链接的原生拖拽/文字选择 */
+  user-select: none;
+}
+
+.footprint-card .am-section-kicker,
+.footprint-card .editorial-title,
+.footprint-card .editorial-meta {
+  position: relative;
+  z-index: 1;
+
+  /* 文字不拦截指针:整卡面均可拖拽地图 */
+  pointer-events: none;
+}
+
+/* 跳转链接是明确的可点按钮,浮于地图之上 */
+.footprint-card .editorial-more {
+  position: relative;
+  z-index: 1;
+}
+
+/* 详情浮层:点击地点后的详细说明(层级高于重置视角按钮,打开时自然覆盖它) */
+.footprint-detail {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+  justify-content: center;
+  padding: var(--am-space-xl, 48px);
+  text-align: center;
+  background: var(--am-bg-deep);
+}
+
+.gd-city {
+  font-family: var(--am-font-display);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--am-ink);
+}
+
+.gd-date {
+  font-family: var(--am-font-mono);
+  font-size: var(--am-text-base);
+  color: var(--am-ink-secondary);
+  letter-spacing: 0.08em;
+}
+
+.gd-remark {
+  max-width: 34ch;
   font-size: var(--am-text-lg);
-  color: var(--am-ink-tertiary);
-  opacity: 0;
-  transition:
-    opacity var(--am-duration) ease,
-    transform var(--am-duration) var(--am-ease);
+  line-height: 1.7;
+  color: var(--am-ink-secondary);
 }
 
-.toc-item:hover .toc-no {
+.gd-more {
+  padding: 10px 26px;
+  font-size: var(--am-text-lg);
   color: var(--am-rose);
+  cursor: pointer;
+  border: 1px solid currentcolor;
+  border-radius: 999px;
 }
 
-.toc-item:hover .toc-main {
-  transform: translateX(6px);
+.gd-more:hover,
+.gd-more:focus-visible {
+  color: #fff;
+  text-decoration: none;
+  background: var(--am-rose);
 }
 
-.toc-item:hover .toc-arrow {
-  color: var(--am-rose);
-  opacity: 1;
-  transform: translateX(4px);
+.gd-close {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 32px;
+  height: 32px;
+  font-size: var(--am-text-lg);
+  color: var(--am-ink-secondary);
+  cursor: pointer;
+  background: none;
+  border: 0;
 }
 
-/* ---------------- 卷首语 ---------------- */
+.gd-close:hover {
+  color: var(--am-ink);
+}
+
+.gd-close:focus-visible {
+  outline: 2px solid var(--am-rose);
+  outline-offset: 2px;
+}
+
+/* 有足迹照片时:照片铺满浮层作背景(叠深色遮罩),文字切换为白系保证可读 */
+.footprint-detail--photo {
+  background-position: center;
+  background-size: cover;
+}
+
+.footprint-detail--photo .gd-city {
+  color: #fff;
+}
+
+.footprint-detail--photo .gd-date,
+.footprint-detail--photo .gd-remark {
+  color: rgb(255 255 255 / 72%);
+}
+
+.footprint-detail--photo .gd-more {
+  color: #fda4af;
+}
+
+.footprint-detail--photo .gd-more:hover,
+.footprint-detail--photo .gd-more:focus-visible {
+  color: #fff;
+}
+
+.footprint-detail--photo .gd-close {
+  color: rgb(255 255 255 / 72%);
+}
+
+.footprint-detail--photo .gd-close:hover {
+  color: #fff;
+}
+
+/* ---------------- 卷首语 + 纪念日预告 ---------------- */
 .editorial {
   padding-top: var(--am-space-2xl, 64px);
 }
 
+/* Bento 三卡组:左大卡跨两行,右侧倒计时/一言两小卡;统一卡体配平视觉重量 */
+.editorial-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  grid-auto-rows: minmax(120px, auto);
+  gap: var(--am-space-md);
+  align-items: stretch;
+}
+
+.editorial-grid > * {
+  transition:
+    transform var(--am-duration) var(--am-ease),
+    box-shadow var(--am-duration) var(--am-ease);
+}
+
+.editorial-grid > *:hover {
+  box-shadow: var(--am-shadow-hover);
+  transform: translateY(-4px);
+}
+
+/* 地图卡不参与 hover 抬升:避免 CSS transform 与画布交互层叠加产生布局反馈 */
+.editorial-grid > .footprint-card:hover {
+  transform: none;
+}
+
 .editorial-card {
-  padding: var(--am-space-lg) 0;
-  border-top: 3px solid var(--am-line-strong);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  grid-row: span 2;
+  padding: var(--am-space-lg);
+  overflow: hidden;
+  background: var(--am-card);
+  border: 1px solid var(--am-line);
+  border-radius: var(--am-radius);
+}
+
+/* 一言/倒计时在缺失彼此时各自占满右列 */
+.teaser-card--tall,
+.photo-card--tall {
+  grid-row: span 2;
+}
+
+/* 恋爱画册卡:图片满铺整卡,标签浮于左上角压暗渐变上,卡片趋近正方形 */
+.photo-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  aspect-ratio: 3 / 2;
+  padding: 0;
+  overflow: hidden;
+  background: var(--am-card);
+  border: 1px solid var(--am-line);
+  border-radius: var(--am-radius);
+}
+
+.photo-card-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--am-duration) var(--am-ease);
+}
+
+/* 顶部栏目浮层:平时纯图,悬停/聚焦时浮现;轻投影保证浅图上的可读性
+ * (浮层文字恒用暖白,不随主题切换) */
+.photo-card-kicker {
+  position: absolute;
+  inset: 0 0 auto;
+  padding: var(--am-space-sm);
+  color: rgb(255 251 245 / 90%);
+  text-align: center;
+  text-shadow: 0 1px 4px rgb(20 16 14 / 40%);
+  opacity: 0;
+  transform: translateY(-4px);
+  transition:
+    opacity var(--am-duration) var(--am-ease),
+    transform var(--am-duration) var(--am-ease);
+}
+
+/* 底部画册名称:居中弱化显示 */
+.photo-card-caption {
+  position: absolute;
+  inset: auto 0 0;
+  padding: var(--am-space-sm);
+  font-size: var(--am-text-xs);
+  line-height: 1.5;
+  color: rgb(255 251 245 / 75%);
+  text-align: center;
+  text-shadow: 0 1px 4px rgb(20 16 14 / 40%);
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    opacity var(--am-duration) var(--am-ease),
+    transform var(--am-duration) var(--am-ease);
+}
+
+/* 悬停/键盘聚焦:文字浮现 */
+.photo-card:hover .photo-card-kicker,
+.photo-card:focus-visible .photo-card-kicker,
+.photo-card:hover .photo-card-caption,
+.photo-card:focus-visible .photo-card-caption {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 触屏设备无悬停:文字常显 */
+@media (hover: none) {
+  .photo-card-kicker,
+  .photo-card-caption {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 减弱动效偏好:浮现无过渡,瞬时显隐 */
+@media (prefers-reduced-motion: reduce) {
+  .photo-card-kicker,
+  .photo-card-caption {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .photo-card:hover .photo-card-img {
+    transform: scale(1.04);
+  }
 }
 
 .editorial-title {
@@ -554,6 +1156,7 @@ onMounted(async () => {
   line-height: 1.2;
   color: var(--am-ink);
   text-decoration: none;
+  transition: color var(--am-duration-fast) ease;
 }
 
 .editorial-title:hover {
@@ -568,40 +1171,48 @@ onMounted(async () => {
 
 .editorial-more {
   display: inline-block;
-  margin-top: 14px;
+  align-self: flex-start;
+  padding-top: 14px;
+  margin-top: auto;
   font-size: var(--am-text-sm);
   color: var(--am-rose);
   text-decoration: none;
+  transition: transform var(--am-duration-fast) var(--am-ease);
 }
 
 .editorial-more:hover {
   text-decoration: underline;
   text-underline-offset: 4px;
+  transform: translateX(2px);
 }
 
 /* ---------------- 纪念日预告 ---------------- */
-.teaser {
-  padding: var(--am-space-lg) 0 var(--am-space-2xl, 64px);
-}
-
 .teaser-card {
   display: flex;
-  gap: var(--am-space-md);
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 6px;
   padding: var(--am-space-lg);
   background: var(--am-rose-soft);
   border-radius: var(--am-radius);
 }
 
+/* 底部落款:日期居左,纪念日名落到右下角 */
+.teaser-meta {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
 .teaser-name {
   display: inline-block;
-  margin: 8px 0 4px;
+  margin: 0;
   font-family: var(--am-font-display);
   font-size: var(--am-text-lg);
   font-weight: 700;
   color: var(--am-ink);
   text-decoration: none;
+  transition: color var(--am-duration-fast) ease;
 }
 
 .teaser-name:hover {
@@ -616,14 +1227,16 @@ onMounted(async () => {
 
 .teaser-count {
   display: flex;
-  gap: 6px;
+  flex: 1;
+  gap: 8px;
   align-items: baseline;
-  text-align: right;
+  justify-content: center;
+  margin-block: 0;
 }
 
 .teaser-days {
   font-family: var(--am-font-mono);
-  font-size: clamp(2.4rem, 6vw, var(--am-text-huge));
+  font-size: clamp(3rem, 8vw, var(--am-text-giant));
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--am-rose);
@@ -632,6 +1245,23 @@ onMounted(async () => {
 .teaser-unit {
   font-size: var(--am-text-sm);
   color: var(--am-ink-secondary);
+}
+
+/* 640px:目录回落两列,双栏区块上下堆叠 */
+@media (width <= 640px) {
+  .toc-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .editorial-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .editorial-card,
+  .teaser-card--tall,
+  .photo-card--tall {
+    grid-row: auto;
+  }
 }
 
 /* 375px 窄屏:计时器 2×2 折行,封面高度随地址栏动态视口收敛 */
@@ -644,6 +1274,16 @@ onMounted(async () => {
 
   .timer-cell {
     flex: 1 1 40%;
+  }
+
+  /* 375px 窄屏:卡片内边距与磁贴同步收敛,避免内容拥挤 */
+  .toc-item {
+    padding: var(--am-space-sm);
+  }
+
+  .toc-icon-chip {
+    width: 36px;
+    height: 36px;
   }
 }
 </style>

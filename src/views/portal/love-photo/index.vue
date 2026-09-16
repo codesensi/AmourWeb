@@ -3,6 +3,9 @@ import { computed, onMounted, ref } from "vue";
 import { getLovePhoto, type LovePhotoItem } from "@/api/portal";
 import { usePagedList } from "@/hooks/usePagedList";
 import PortalLoadMore from "@/components/PortalLoadMore/index.vue";
+import PortalGhostTile from "@/components/PortalGhostTile/index.vue";
+import { useLightbox } from "@/hooks/useLightbox";
+import { scrollToTop } from "@/utils/motion";
 import PortalSkeleton from "@/components/PortalSkeleton/index.vue";
 import PortalLightbox, {
   type LightboxItem
@@ -49,10 +52,14 @@ const visibleItems = computed(() => {
   );
 });
 
-/* ---------------- 影院模式 ---------------- */
+/** 切换分册:重置型操作,回到页首欣赏新分册(尊重 reduced-motion) */
+function switchTag(tag: string) {
+  if (tag === activeTag.value) return;
+  activeTag.value = tag;
+  scrollToTop();
+}
 
-const lightboxOpen = ref(false);
-const lightboxIndex = ref(0);
+/* ---------------- 影院模式 ---------------- */
 
 /** 影院模式数据源:带图注的图片列表 */
 const lightboxItems = computed<LightboxItem[]>(() =>
@@ -61,11 +68,15 @@ const lightboxItems = computed<LightboxItem[]>(() =>
     caption: `${it.text} · ${it.date}`
   }))
 );
+const { lightboxOpen, lightboxIndex, openAt: openLightbox } = useLightbox();
 
-/** 打开影院模式(索引按当前分册计算) */
-function openLightbox(i: number) {
-  lightboxIndex.value = i;
-  lightboxOpen.value = true;
+/** 杂志式网格节奏:每 7 张一循环——0 大图(2×2)、3 横幅(2×1)、5 竖幅(1×2) */
+function spanClass(i: number) {
+  const m = i % 7;
+  if (m === 0) return "album-item-featured";
+  if (m === 3) return "album-item-wide";
+  if (m === 5) return "album-item-tall";
+  return "";
 }
 </script>
 
@@ -86,7 +97,7 @@ function openLightbox(i: number) {
         class="album-tag"
         :class="{ active: tag === activeTag }"
         type="button"
-        @click="activeTag = tag"
+        @click="switchTag(tag)"
       >
         {{ tag }}
       </button>
@@ -101,6 +112,7 @@ function openLightbox(i: number) {
           :key="`${it.img}-${i}`"
           v-reveal="(i % 3 || 0) * 0.06"
           class="album-item reveal"
+          :class="spanClass(i)"
           role="button"
           tabindex="0"
           :aria-label="`查看照片:${it.text}`"
@@ -122,6 +134,9 @@ function openLightbox(i: number) {
             <time class="album-date">{{ it.date }}</time>
           </figcaption>
         </figure>
+
+        <!-- 加载更多:网格尾部幽灵占位(300ms 防闪烁),数据到达后由真实照片接管 -->
+        <PortalGhostTile v-if="loading" variant="block" :count="6" />
       </div>
 
       <!-- 首屏加载:杂志线框骨架屏 -->
@@ -182,26 +197,45 @@ function openLightbox(i: number) {
   border-color: var(--am-rose);
 }
 
-/* 瀑布流:多列布局,列间距即册页间距 */
+/* 杂志式网格:固定行高 + dense 流,大小交错打破均质;阅读顺序仍为时间线 */
 .album-grid {
-  column-count: 3;
-  column-gap: var(--am-space-sm);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: 200px;
+  grid-auto-flow: dense;
+  gap: var(--am-space-md);
 }
 
-/* 册页:无阴影卡片,层次靠底色与悬浮图注 */
+/* 册页:相纸底衬,层次靠纸边与悬浮图注 */
 .album-item {
+  --album-mat: 8px;
+
   position: relative;
-  margin: 0 0 var(--am-space-sm);
+  padding: var(--album-mat);
   overflow: hidden;
   cursor: zoom-in;
-  background: var(--am-bg-deep);
-  break-inside: avoid;
+  background: var(--am-card);
+  border: 1px solid var(--am-line);
+}
+
+/* 大小节奏:每 7 张中 1 大 1 横 1 竖(纯索引取模,不依赖数据契约) */
+.album-item-featured {
+  grid-row: span 2;
+  grid-column: span 2;
+}
+
+.album-item-wide {
+  grid-column: span 2;
+}
+
+.album-item-tall {
+  grid-row: span 2;
 }
 
 .album-img {
   display: block;
   width: 100%;
-  aspect-ratio: 3 / 4;
+  height: 100%;
   object-fit: cover;
   transition: transform 0.5s var(--am-ease);
 }
@@ -211,8 +245,36 @@ function openLightbox(i: number) {
   visibility: hidden;
 }
 
-.album-item:hover .album-img {
-  transform: scale(1.03);
+/* 相纸微倾:错落倾角打破呆板,悬停转正抬升(尊重 reduced-motion) */
+@media (prefers-reduced-motion: no-preference) {
+  .album-item {
+    transition:
+      rotate var(--am-duration) var(--am-ease),
+      translate var(--am-duration) var(--am-ease),
+      box-shadow var(--am-duration) ease;
+  }
+
+  .album-item:nth-child(7n + 1) {
+    rotate: -1.2deg;
+  }
+
+  .album-item:nth-child(7n + 3) {
+    rotate: 0.9deg;
+  }
+
+  .album-item:nth-child(7n + 5) {
+    rotate: 1.2deg;
+  }
+
+  .album-item:nth-child(7n + 6) {
+    rotate: -0.9deg;
+  }
+
+  .album-item:hover {
+    box-shadow: var(--am-shadow-hover);
+    rotate: 0deg;
+    translate: 0 -4px;
+  }
 }
 
 /* 键盘可达:Tab 聚焦时玫瑰色焦点环,图注同步浮现 */
@@ -225,10 +287,10 @@ function openLightbox(i: number) {
   opacity: 1;
 }
 
-/* 图注:悬浮浮现 */
+/* 图注:悬浮浮现,覆盖范围与照片区对齐(不压相纸边) */
 .album-caption {
   position: absolute;
-  inset: auto 0 0;
+  inset: auto var(--album-mat) var(--album-mat);
   display: flex;
   gap: 8px;
   align-items: baseline;
@@ -259,6 +321,13 @@ function openLightbox(i: number) {
   color: rgb(250 247 242 / 72%);
 }
 
+/* 幽灵占位:沿用相纸衬边(形状与呼吸由 PortalGhostTile 组件内置) */
+.album-grid :deep(.portal-ghost) {
+  padding: 8px;
+  border: 1px solid var(--am-line);
+  border-radius: 0;
+}
+
 /* 分册切换:整墙交叉淡入淡出(opacity 合成器属性,不触发重排) */
 .album-fade-enter-active,
 .album-fade-leave-active {
@@ -272,13 +341,21 @@ function openLightbox(i: number) {
 
 @media (width <= 960px) {
   .album-grid {
-    column-count: 2;
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: 180px;
   }
 }
 
 @media (width <= 560px) {
   .album-grid {
-    column-count: 1;
+    grid-template-columns: 1fr;
+    grid-auto-rows: 240px;
+  }
+
+  /* 单列下取消横向跨列,大图仍保留纵向加高 */
+  .album-item-featured,
+  .album-item-wide {
+    grid-column: auto;
   }
 }
 </style>

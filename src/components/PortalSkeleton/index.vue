@@ -44,7 +44,7 @@ withDefaults(defineProps<{ rows?: number }>(), { rows: 3 });
   );
   background-size: 200% 100%;
   border-radius: 3px;
-  animation: skel-pulse 1.6s ease-in-out infinite;
+  animation: am-shimmer 1.6s ease-in-out infinite;
 }
 
 .skel-kicker {
@@ -75,16 +75,6 @@ withDefaults(defineProps<{ rows?: number }>(), { rows: 3 });
 
 .skel-row .skel-line:nth-child(4) {
   animation-delay: 0.24s;
-}
-
-@keyframes skel-pulse {
-  0% {
-    background-position: 200% 0;
-  }
-
-  100% {
-    background-position: -200% 0;
-  }
 }
 
 /* 减少动态:骨架屏停止呼吸,静态灰块仍表达占位结构 */

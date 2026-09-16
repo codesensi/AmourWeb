@@ -94,15 +94,30 @@ hr {
   margin: 10px 0;
   padding: 0;
   border: none;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--am-line, #eee);
   clear: both;
   overflow: hidden;
   background: 0 0;
 }
 
+/* 链接默认色走语义令牌(原 #333 硬编码升级),链接色随深浅主题联动 */
 a {
-  color: #333;
+  color: var(--am-ink, #333);
   text-decoration: none;
+}
+
+/* 文本选区:玫瑰底奶油字,呼应杂志强调色 */
+::selection {
+  color: var(--am-cta-text, #fff8f5);
+  background: var(--am-rose, #e11d48);
+}
+
+/* 键盘可达性:所有可聚焦元素统一玫瑰色焦点环(仅键盘触发,不影响鼠标点击) */
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--am-rose, #e11d48);
+  outline-offset: 2px;
 }
 
 a cite {

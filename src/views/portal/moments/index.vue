@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
+import { RouterLink } from "vue-router";
 import { getMoments, type MomentsItem } from "@/api/portal";
 import { usePagedList } from "@/hooks/usePagedList";
 import PortalLoadMore from "@/components/PortalLoadMore/index.vue";
@@ -15,6 +16,15 @@ const { items, loading, hasMore, loadMore } =
   usePagedList<MomentsItem>(getMoments);
 
 onMounted(() => loadMore());
+
+/** 富文本摘要:去标签取纯文本并统一截断,引导进入详情页阅读全文 */
+function excerptOf(html: string, max = 96): string {
+  const text = html
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return text.length > max ? `${text.slice(0, max)}...` : text;
+}
 </script>
 
 <template>
@@ -34,14 +44,27 @@ onMounted(() => loadMore());
       class="moment reveal"
     >
       <div class="moment-body">
-        <h2 class="moment-title">{{ it.title }}</h2>
-        <!-- 数据模型无详情页:标题即正文入口(纯文本渲染) -->
-        <span
-          v-for="dot in 3"
-          :key="dot"
-          class="moment-rule"
-          aria-hidden="true"
-        />
+        <h2 class="moment-title">
+          <RouterLink :to="`/moments/${it.id}`" class="moment-link">
+            {{ it.title }}
+          </RouterLink>
+        </h2>
+        <p class="moment-excerpt">{{ excerptOf(it.content) }}</p>
+        <RouterLink :to="`/moments/${it.id}`" class="moment-more">
+          阅读全文
+          <svg
+            class="moment-more-arrow"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M5 12h14m0 0l-6-6m6 6l-6 6" />
+          </svg>
+        </RouterLink>
       </div>
       <div class="moment-aside">
         <span class="moment-index">{{ String(i + 1).padStart(2, "0") }}</span>
@@ -76,7 +99,7 @@ onMounted(() => loadMore());
   gap: var(--am-space-lg);
   align-items: flex-end;
   justify-content: space-between;
-  contain-intrinsic-size: auto 120px;
+  contain-intrinsic-size: auto 160px;
   padding: var(--am-space-lg) 0;
   content-visibility: auto;
   border-bottom: 1px solid var(--am-line);
@@ -87,31 +110,62 @@ onMounted(() => loadMore());
   min-width: 0;
 }
 
-/* 标题即内容:衬线大字 + 悬停玫瑰下划线 */
+/* 标题:衬线大字,悬停玫瑰色 + 下划线浮现 */
 .moment-title {
   margin: 0;
   font-family: var(--am-font-display);
   font-size: clamp(1.4rem, 3.4vw, var(--am-text-lg));
   font-weight: 700;
   line-height: 1.35;
+}
+
+.moment-link {
   color: var(--am-ink);
   text-decoration: underline transparent;
   text-decoration-thickness: 2px;
   text-underline-offset: 6px;
-  transition: color var(--am-duration) ease;
+  transition:
+    color var(--am-duration) ease,
+    text-decoration-color var(--am-duration) ease;
 }
 
-.moment:hover .moment-title {
+.moment-link:hover {
   color: var(--am-rose);
+  text-decoration-color: currentcolor;
 }
 
-/* 装饰细线:呼应印刷排版的段落节奏 */
-.moment-rule {
-  display: block;
-  width: 32px;
-  height: 1px;
-  margin-top: 10px;
-  background: var(--am-line);
+/* 摘要:纯文本两行截断 */
+.moment-excerpt {
+  display: -webkit-box;
+  margin: 8px 0 0;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  font-size: var(--am-text-sm);
+  line-height: 1.8;
+  color: var(--am-ink-secondary);
+  -webkit-box-orient: vertical;
+}
+
+/* 阅读全文:等宽小字 + 箭头悬停右移 */
+.moment-more {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 12px;
+  font-family: var(--am-font-mono);
+  font-size: var(--am-text-xs);
+  color: var(--am-rose);
+  letter-spacing: 0.12em;
+}
+
+.moment-more-arrow {
+  width: 14px;
+  height: 14px;
+  transition: transform var(--am-duration) var(--am-ease);
+}
+
+.moment-more:hover .moment-more-arrow {
+  transform: translateX(4px);
 }
 
 /* 右侧署名栏:序号 + 作者 + 日期纵排 */

@@ -3,6 +3,7 @@ import type { Directive } from "vue";
 /** 携带观察者句柄的元素类型(内部标记,不进入业务代码) */
 interface RevealHTMLElement extends HTMLElement {
   __revealObserver?: IntersectionObserver;
+  __revealed?: boolean;
 }
 
 /**
@@ -28,6 +29,7 @@ const reveal: Directive<HTMLElement, number | undefined> = {
         for (const entry of entries) {
           if (entry.isIntersecting) {
             el.classList.add("is-visible");
+            (el as RevealHTMLElement).__revealed = true;
             io.disconnect();
           }
         }
@@ -37,6 +39,13 @@ const reveal: Directive<HTMLElement, number | undefined> = {
     io.observe(el);
     // 元素卸载时断开监听,避免泄漏
     (el as RevealHTMLElement).__revealObserver = io;
+  },
+  updated(el) {
+    // KeepAlive 页面切换回渗时 Vue 会整体重写 class 属性,把指令外部追加的
+    // is-visible 抹掉;已涌现的元素必须在补丁后补写,否则内容永久隐没
+    if ((el as RevealHTMLElement).__revealed) {
+      el.classList.add("is-visible");
+    }
   },
   unmounted(el) {
     (el as RevealHTMLElement).__revealObserver?.disconnect();

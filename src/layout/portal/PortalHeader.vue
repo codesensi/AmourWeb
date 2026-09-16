@@ -2,20 +2,21 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { RouterLink } from "vue-router";
+import PortalNavIcon from "@/components/PortalNavIcon/index.vue";
 
 defineOptions({ name: "PortalHeader" });
 
-/** 目录式导航:一级条目 + 「更多」分组(杂志目录编号贯穿全站) */
+/** 目录式导航:一级条目 + 「更多」分组(线性语义图标贯穿全站) */
 const NAV_ITEMS = [
-  { no: "01", title: "首页", path: "/" },
-  { no: "02", title: "点点滴滴", path: "/moments" },
-  { no: "03", title: "画册", path: "/love-photo" },
-  { no: "04", title: "清单", path: "/love-list" },
-  { no: "05", title: "留言簿", path: "/message" },
-  { no: "06", title: "纪念日", path: "/anniversary" },
-  { no: "07", title: "时间胶囊", path: "/time-capsule" },
-  { no: "08", title: "情侣日记", path: "/diary" },
-  { no: "09", title: "足迹", path: "/footprint" }
+  { icon: "home", title: "首页", path: "/" },
+  { icon: "moments", title: "点点滴滴", path: "/moments" },
+  { icon: "photo", title: "恋爱画册", path: "/love-photo" },
+  { icon: "list", title: "恋爱清单", path: "/love-list" },
+  { icon: "message", title: "留言簿", path: "/message" },
+  { icon: "calendar", title: "纪念日", path: "/anniversary" },
+  { icon: "capsule", title: "时间胶囊", path: "/time-capsule" },
+  { icon: "diary", title: "情侣日记", path: "/diary" },
+  { icon: "footprint", title: "足迹", path: "/footprint" }
 ];
 
 /** 桌面端一级目录项(其余收入「更多」下拉) */
@@ -38,11 +39,12 @@ const drawerOpen = ref(false);
 const drawerEl = ref<HTMLElement | null>(null);
 const menuBtn = ref<HTMLButtonElement | null>(null);
 
-/** 路由切换后自动收起抽屉 */
+/** 路由切换后自动收起抽屉与「更多」下拉 */
 watch(
   () => route.path,
   () => {
     drawerOpen.value = false;
+    closeNavMore();
   }
 );
 
@@ -50,6 +52,7 @@ watch(
 function onKeydown(event: KeyboardEvent) {
   if (event.key === "Escape") {
     drawerOpen.value = false;
+    closeNavMore();
     return;
   }
   if (event.key === "Tab" && drawerOpen.value && drawerEl.value) {
@@ -78,11 +81,13 @@ function onKeydown(event: KeyboardEvent) {
 onMounted(() => {
   window.addEventListener("scroll", onScroll, { passive: true });
   window.addEventListener("keydown", onKeydown);
+  document.addEventListener("click", onDocClick);
 });
 
 onUnmounted(() => {
   window.removeEventListener("scroll", onScroll);
   window.removeEventListener("keydown", onKeydown);
+  document.removeEventListener("click", onDocClick);
   systemDark.removeEventListener("change", onSystemTheme);
   document.body.style.removeProperty("overflow");
 });
@@ -158,6 +163,23 @@ function isActive(path: string) {
 const moreActive = computed(() =>
   moreItems.some(item => item.path === route.path)
 );
+
+/** 「更多」下拉:点击面板外 / Escape / 路由跳转后自动收起 */
+const navMoreRef = ref<HTMLDetailsElement | null>(null);
+
+function closeNavMore() {
+  if (navMoreRef.value?.open) navMoreRef.value.open = false;
+}
+
+/** 点击「更多」面板外区域时收起(面板内点击交给 details 原生开合) */
+function onDocClick(event: MouseEvent) {
+  if (
+    navMoreRef.value?.open &&
+    !navMoreRef.value.contains(event.target as Node)
+  ) {
+    closeNavMore();
+  }
+}
 </script>
 
 <template>
@@ -182,23 +204,40 @@ const moreActive = computed(() =>
           :key="item.path"
           class="nav-item"
           :class="{ active: isActive(item.path) }"
+          :aria-current="isActive(item.path) ? 'page' : undefined"
           :to="item.path"
         >
-          <span class="nav-no">{{ item.no }}</span>
+          <PortalNavIcon :name="item.icon" class="nav-icon" />
           {{ item.title }}
         </RouterLink>
 
-        <details class="nav-more" :open="moreActive">
-          <summary class="nav-item nav-more-trigger">更多 ▾</summary>
+        <details ref="navMoreRef" class="nav-more">
+          <summary
+            class="nav-item nav-more-trigger"
+            :class="{ active: moreActive }"
+          >
+            更多
+            <svg class="nav-more-caret" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M6 9l6 6 6-6"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </summary>
           <div class="nav-more-panel">
             <RouterLink
               v-for="item in moreItems"
               :key="item.path"
               class="nav-more-item"
               :class="{ active: isActive(item.path) }"
+              :aria-current="isActive(item.path) ? 'page' : undefined"
               :to="item.path"
             >
-              <span class="nav-more-no">{{ item.no }}</span>
+              <PortalNavIcon :name="item.icon" class="nav-more-icon" />
               {{ item.title }}
             </RouterLink>
           </div>
@@ -289,10 +328,11 @@ const moreActive = computed(() =>
             :key="item.path"
             class="drawer-item"
             :class="{ active: isActive(item.path) }"
+            :aria-current="isActive(item.path) ? 'page' : undefined"
             :style="{ '--drawer-delay': `${i * 45}ms` }"
             :to="item.path"
           >
-            <span class="drawer-no">{{ item.no }}</span>
+            <PortalNavIcon :name="item.icon" class="drawer-icon" />
             <span class="drawer-title">{{ item.title }}</span>
           </RouterLink>
         </nav>
@@ -325,12 +365,6 @@ const moreActive = computed(() =>
   max-width: var(--am-content-width);
   padding: 18px var(--am-space-md);
   margin: 0 auto;
-  transition: padding var(--am-duration) var(--am-ease);
-}
-
-.masthead-scrolled .masthead-inner {
-  padding-top: 10px;
-  padding-bottom: 10px;
 }
 
 /* 刊名 */
@@ -399,7 +433,7 @@ const moreActive = computed(() =>
   position: relative;
   display: inline-flex;
   gap: 6px;
-  align-items: baseline;
+  align-items: center;
   font-size: var(--am-text-sm);
   color: var(--am-ink-secondary);
   text-decoration: none;
@@ -408,7 +442,7 @@ const moreActive = computed(() =>
   transition: color var(--am-duration-fast) ease;
 }
 
-/* 悬停下划线从左向右生长(与全站 .am-link-underline 同手感) */
+/* 悬停下划线从左向右生长 */
 .nav-item::after {
   position: absolute;
   bottom: -4px;
@@ -439,14 +473,30 @@ const moreActive = computed(() =>
   transform: scaleX(1);
 }
 
-.nav-no {
-  font-family: var(--am-font-mono);
-  font-size: var(--am-text-xs);
-  color: var(--am-ink-tertiary);
+/* 图标不设色:继承条目文字颜色,悬停/激活自动联动 */
+.nav-icon {
+  width: 15px;
+  height: 15px;
 }
 
-.nav-item.active .nav-no {
-  color: var(--am-rose);
+/* 悬停微动效:描边加粗 + 轻浮起 + 玫瑰光晕(仅 transform/filter,不触发布局回流) */
+.nav-item:hover .nav-icon,
+.nav-item:focus-visible .nav-icon,
+.nav-more-item:hover .nav-more-icon,
+.nav-more-item.active .nav-more-icon,
+.drawer-item:hover .drawer-icon {
+  stroke-width: 2.2;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .nav-item:hover .nav-icon,
+  .nav-item:focus-visible .nav-icon,
+  .nav-more-item:hover .nav-more-icon,
+  .nav-more-item.active .nav-more-icon,
+  .drawer-item:hover .drawer-icon {
+    filter: drop-shadow(0 0 3px var(--am-rose));
+    transform: translateY(-1px);
+  }
 }
 
 /* 「更多」下拉 */
@@ -455,7 +505,21 @@ const moreActive = computed(() =>
 }
 
 .nav-more-trigger {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
   user-select: none;
+}
+
+/* 展开时箭头翻转(details 开合驱动) */
+.nav-more[open] .nav-more-caret {
+  transform: rotate(180deg);
+}
+
+.nav-more-caret {
+  width: 12px;
+  height: 12px;
+  transition: transform var(--am-duration-fast) var(--am-ease);
 }
 
 .nav-more-panel {
@@ -497,6 +561,7 @@ const moreActive = computed(() =>
 .nav-more-item {
   display: flex;
   gap: 10px;
+  align-items: center;
   padding: 9px 16px;
   font-size: var(--am-text-sm);
   color: var(--am-ink);
@@ -509,10 +574,9 @@ const moreActive = computed(() =>
   background: var(--am-rose-soft);
 }
 
-.nav-more-no {
-  font-family: var(--am-font-mono);
-  font-size: var(--am-text-xs);
-  color: var(--am-ink-tertiary);
+.nav-more-icon {
+  width: 14px;
+  height: 14px;
 }
 
 /* 主题切换按钮:与菜单按钮同组,线性图标 44px 触控目标 */
@@ -599,7 +663,7 @@ const moreActive = computed(() =>
 .drawer-item {
   display: flex;
   gap: 16px;
-  align-items: baseline;
+  align-items: center;
   padding: 14px 0;
   color: var(--am-ink);
   text-decoration: none;
@@ -614,9 +678,9 @@ const moreActive = computed(() =>
   color: var(--am-rose);
 }
 
-.drawer-no {
-  font-family: var(--am-font-mono);
-  font-size: var(--am-text-xs);
+.drawer-icon {
+  width: 20px;
+  height: 20px;
   color: var(--am-rose);
 }
 

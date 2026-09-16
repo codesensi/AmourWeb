@@ -3,6 +3,8 @@ import { computed, onMounted, ref } from "vue";
 import { getLoveList, type LoveListItem } from "@/api/portal";
 import { usePagedList } from "@/hooks/usePagedList";
 import PortalLoadMore from "@/components/PortalLoadMore/index.vue";
+import PortalGhostTile from "@/components/PortalGhostTile/index.vue";
+import { useLightbox } from "@/hooks/useLightbox";
 import PortalSkeleton from "@/components/PortalSkeleton/index.vue";
 import PortalLightbox, {
   type LightboxItem
@@ -46,8 +48,7 @@ const visibleItems = computed(() => {
 
 /* ---------------- 纪念照影院模式 ---------------- */
 
-const lightboxOpen = ref(false);
-const lightboxIndex = ref(0);
+const { lightboxOpen, lightboxIndex, openAt: openLightbox } = useLightbox();
 
 /** 纪念照数据源(仅已完成且带照片的项) */
 const photoItems = computed<LightboxItem[]>(() =>
@@ -59,10 +60,7 @@ const photoItems = computed<LightboxItem[]>(() =>
 /** 打开纪念照 */
 function openPhoto(item: LoveListItem) {
   const idx = photoItems.value.findIndex(p => p.url === item.img);
-  if (idx >= 0) {
-    lightboxIndex.value = idx;
-    lightboxOpen.value = true;
-  }
+  if (idx >= 0) openLightbox(idx);
 }
 </script>
 
@@ -152,6 +150,14 @@ function openPhoto(item: LoveListItem) {
               <img :src="it.img" :alt="`${it.text} 纪念照`" loading="lazy" />
             </button>
           </li>
+
+          <!-- 加载更多:幽灵占位(300ms 阈值防闪烁),与清单行同构 -->
+          <PortalGhostTile
+            v-if="loading && visibleItems.length > 0"
+            tag="li"
+            variant="row"
+            :count="6"
+          />
         </ul>
 
         <!-- 首屏加载:杂志线框骨架屏 -->
