@@ -245,7 +245,7 @@ async function loadMapData(): Promise<
 
 /** 中国省界线数据(懒加载,世界视角下不显示,放大后叠加显示) */
 let chinaBoundaries: number[][][] | null = null;
-let cnBordersVisible: boolean | null = null;
+let cnBordersVisible = false;
 let borderTimer = 0;
 const CN_BORDER_ZOOM = 3;
 
@@ -257,7 +257,7 @@ async function loadBoundaries() {
   chinaBoundaries = (await res.json()) as number[][][];
 }
 
-/** 漫游结束后按当前缩放级别切换省界线显隐 */
+/** 漫游结束后按当前缩放级别切换省界线显隐(跨越阈值才触发一次完整重建) */
 function syncCnBorders() {
   window.clearTimeout(borderTimer);
   borderTimer = window.setTimeout(() => {
@@ -266,14 +266,8 @@ function syncCnBorders() {
     const visible = (opt.geo?.[0]?.zoom ?? 1) >= CN_BORDER_ZOOM;
     if (visible !== cnBordersVisible) {
       cnBordersVisible = visible;
-      chart.setOption({
-        series: [
-          {
-            id: "cn-borders",
-            data: visible ? chinaBoundaries.map(coords => ({ coords })) : []
-          }
-        ]
-      });
+      /* 走完整重建而非对单条 series 部分更新,规避 polyline data 增量替换的边缘问题 */
+      refreshOption();
     }
   }, 150);
 }
