@@ -36,14 +36,19 @@ const hiddenOptions: Array<OptionsType> = [
   }
 ];
 
-// 状态选项（enable 字典驱动:0-启用,1-禁用;value 转数字与后端 status 对齐）
-const { options: enableOptions } = useDict(DICT_CODES.enable);
-const statusOptions = computed<Array<OptionsType>>(() =>
-  enableOptions.value.map(item => ({
-    label: item.dictLabel,
-    tip: item.dictLabel,
-    value: Number(item.dictValue)
-  }))
-);
+// 状态选项(enable 字典驱动:0-启用,1-禁用;value 转数字与后端 status 对齐)
+// useDict 依赖 vue-query 注入上下文,须在组件 setup 内调用,
+// 不能在模块顶层求值(否则菜单页路由加载即抛错,页面无法打开)
+export function useStatusOptions() {
+  const { options: enableOptions } = useDict(DICT_CODES.enable);
+  const statusOptions = computed<Array<OptionsType>>(() =>
+    enableOptions.value.map(item => ({
+      label: item.dictLabel,
+      tip: item.dictLabel,
+      value: Number(item.dictValue)
+    }))
+  );
+  return { statusOptions };
+}
 
-export { typeOptions, hiddenOptions, statusOptions };
+export { typeOptions, hiddenOptions };

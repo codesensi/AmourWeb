@@ -1,6 +1,6 @@
 // 恋爱清单 mock(GET /portal/love-list 分页;7 条清单,移植原站 PORTAL_MOCK.loveList)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
-import { mockPhoto } from "./mockPhoto";
+import { mockPhoto } from "./mock-photo";
 import { fakePageResponse } from "../utils";
 
 const loveList = [

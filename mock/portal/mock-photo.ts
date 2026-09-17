@@ -1,0 +1,25 @@
+/** 内联 SVG 占位图原始字符串(rawResponse 直出等非 data-uri 场景使用;from/to 为渐变色,缺省为原站蓝粉渐变) */
+export function mockPhotoSvg(
+  label: string,
+  from = "#ffd3d3",
+  to = "#cfe8ff"
+): string {
+  return (
+    '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400">' +
+    '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">' +
+    `<stop offset="0" stop-color="${from}"/><stop offset="1" stop-color="${to}"/></linearGradient></defs>` +
+    `<rect width="600" height="400" fill="url(#g)"/>` +
+    `<text x="300" y="205" font-size="26" fill="#ffffff" text-anchor="middle" font-family="serif">${label}</text></svg>`
+  );
+}
+
+/** 内联 SVG 占位图 data-uri 形态(保证离线可用;from/to 为渐变色,缺省为原站蓝粉渐变) */
+export function mockPhoto(
+  label: string,
+  from = "#ffd3d3",
+  to = "#cfe8ff"
+): string {
+  return (
+    "data:image/svg+xml;charset=utf-8," + encodeURIComponent(mockPhotoSvg(label, from, to))
+  );
+}

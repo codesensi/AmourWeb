@@ -1,6 +1,6 @@
 // 情侣日记 mock(GET /portal/diary 分页;双人日记按 user_id 分属两人)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
-import { mockPhoto } from "./mockPhoto";
+import { mockPhoto } from "./mock-photo";
 import { fakePageResponse } from "../utils";
 
 /** 两位记录人的展示信息(头像用内联 SVG 占位,保证离线可用) */

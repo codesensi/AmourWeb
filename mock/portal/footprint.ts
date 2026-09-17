@@ -1,6 +1,6 @@
 // 足迹地图 mock(GET /portal/footprint 全量列表;photoUrl 为内联 SVG 占位图)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
-import { mockPhoto } from "./mockPhoto";
+import { mockPhoto } from "./mock-photo";
 
 const footprints = [
   {

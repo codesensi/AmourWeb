@@ -2,7 +2,7 @@
 // 行数据契约对齐 MenuResponse:id/pid/title/type/path/component/sort/icon/perms/status/hidden/builtin/remark/createTime
 // 数据与 getCurrentUser.menus 同源(28 项 D/M/B),复制为独立工作副本,增删改仅落地内存,刷新页面即还原
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
-import { menus as seedMenus } from "./currentUser";
+import { menus as seedMenus } from "./current-user";
 
 /** 种子行固定创建时间(种子数据无 createTime 字段,列表"创建时间"列展示兜底) */
 const SEED_CREATE_TIME = "2026-06-28 09:00:00";

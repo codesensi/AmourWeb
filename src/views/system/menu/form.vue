@@ -5,7 +5,7 @@ import { formRules } from "./utils/rule";
 import { FormProps } from "./utils/types";
 import { IconSelect } from "@/components/ReIcon";
 import Segmented from "@/components/ReSegmented";
-import { hiddenOptions, statusOptions, typeOptions } from "./utils/enums";
+import { hiddenOptions, typeOptions, useStatusOptions } from "./utils/enums";
 
 const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
@@ -28,6 +28,9 @@ const props = withDefaults(defineProps<FormProps>(), {
 
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
+
+/** 状态选项由 enable 字典驱动,须在 setup 内取(注入上下文) */
+const { statusOptions } = useStatusOptions();
 
 /** 编辑态:菜单类型为结构性标识,创建后不允许修改 */
 const isEdit = computed(() => !!newFormInline.value.id);

@@ -1,6 +1,6 @@
 // 恋爱相册 mock(GET /portal/love-photo 分页;48 张渐变占位照片,移植原站 PORTAL_MOCK.photos)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
-import { mockPhoto } from "./mockPhoto";
+import { mockPhoto } from "./mock-photo";
 import { fakePageResponse } from "../utils";
 
 /** 占位图渐变色池:批量生成的示例照片循环取色,视觉上区分页与页 */

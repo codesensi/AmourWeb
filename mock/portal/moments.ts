@@ -2,7 +2,7 @@
 // content 为富文本 HTML:mock 为本地静态内容(无注入风险);接入后端后须净化(DOMPurify)再渲染
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 import { fakePageResponse } from "../utils";
-import { mockPhoto } from "./mockPhoto";
+import { mockPhoto } from "./mock-photo";
 
 const moments = [
   {

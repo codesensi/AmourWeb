@@ -2,6 +2,7 @@
 // 行数据契约对齐 FileItem:id 为雪花 ID 字符串(避免前端精度丢失);
 // delFlag 仅用于 mock 内部区分文件列表/回收站,响应中剔除以对齐 FileItem 展示字段
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
+import { mockPhotoSvg } from "./portal/mock-photo";
 
 /** 当前时间,格式对齐后端 createTime(yyyy-MM-dd HH:mm:ss) */
 const formatNow = () => {
@@ -230,6 +231,22 @@ export default defineFakeRoute([
       if (index === -1) return fail("文件不存在");
       files.splice(index, 1);
       return ok(null, "彻底删除成功");
+    }
+  },
+  // 文件预览(GET /file/view/:id,免登录分发;mock 以占位 SVG 直出,非 JSON 响应)
+  {
+    url: "/file/view/:id",
+    method: "get",
+    rawResponse: (req, res) => {
+      const id = String(req.url ?? "")
+        .split("?")[0]
+        .split("/")
+        .pop();
+      const target = files.find(item => item.id === id);
+      const svg = mockPhotoSvg(target?.originalName ?? `文件 ${id || "未知"}`);
+      res.statusCode = 200;
+      res.setHeader("Content-Type", "image/svg+xml;charset=utf-8");
+      res.end(svg);
     }
   },
   // 下载(GET /file/download/:id;mock 不产出二进制流,前端按响应 Content-Type 识别降级)
