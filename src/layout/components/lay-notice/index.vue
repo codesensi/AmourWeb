@@ -44,10 +44,22 @@ const onMarkAsRead = async () => {
   await markNoticesRead();
   notices.value = notices.value.map(item => ({ ...item, read: true }));
 };
+
+/** 面板关闭即复位为列表视图:避免下次打开仍停留在上次未退出的详情 */
+const onVisibleChange = (visible: boolean) => {
+  if (!visible) {
+    currentNotice.value = null;
+  }
+};
 </script>
 
 <template>
-  <el-dropdown ref="dropdownRef" trigger="click" placement="bottom-end">
+  <el-dropdown
+    ref="dropdownRef"
+    trigger="click"
+    placement="bottom-end"
+    @visible-change="onVisibleChange"
+  >
     <span
       :class="['dropdown-badge', 'navbar-bg-hover', 'select-none', 'mr-1.75']"
     >
@@ -169,7 +181,7 @@ const onMarkAsRead = async () => {
 }
 
 .noticeList-container {
-  padding: 15px 24px 0;
+  padding: 15px 0 0;
 }
 
 .noticeDetail-container {

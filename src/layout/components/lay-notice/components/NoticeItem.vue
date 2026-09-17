@@ -48,8 +48,13 @@ const emit = defineEmits<{ open: [item: NoticeItem] }>();
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: 12px 0;
+  padding: 12px 24px;
   cursor: pointer;
+
+  /* 悬停加深,对齐用户列表(表格行)的悬停底色 */
+  &:hover {
+    background-color: var(--el-fill-color-light);
+  }
 
   .notice-container-text {
     display: flex;
