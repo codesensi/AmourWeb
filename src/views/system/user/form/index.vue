@@ -3,7 +3,7 @@ import { ref } from "vue";
 import ReCol from "@/components/ReCol";
 import ReAvatarUpload from "@/components/ReAvatarUpload";
 import { DictSelect } from "@/components/DictSelect";
-import { DICT_CODES } from "@/api/dict";
+import { DICT_CODES } from "@/api/sys-dict";
 import { useDict } from "@/hooks/useDict";
 import { formRules } from "../utils/rule";
 import { FormProps } from "../utils/types";

@@ -1,5 +1,5 @@
-import { getLogPage, type SysLogItem } from "@/api/log";
-import { DICT_CODES } from "@/api/dict";
+import { getLogPage, type SysLogItem } from "@/api/sys-log";
+import { DICT_CODES } from "@/api/sys-dict";
 import { useDict } from "@/hooks/useDict";
 import { usePageQuery, usePublicHooks } from "@/views/system/hooks";
 import { computed, reactive, ref, toRaw } from "vue";

@@ -1,5 +1,5 @@
 import { ref } from "vue";
-import { getSysConfig } from "@/api/sysConfig";
+import { getSysConfig } from "@/api/sys-config";
 import { queryClient } from "@/plugins/vueQuery";
 import { queryKeys } from "@/hooks/queryKeys";
 
@@ -44,7 +44,9 @@ async function fetchSysConfigAll(): Promise<Partial<SysConfig>> {
   );
   const config: Partial<SysConfig> = {};
   for (const item of res.data ?? []) {
-    const field = ALL_FIELDS.find(f => SYS_CONFIG_KEYS[f].key === item.configKey);
+    const field = ALL_FIELDS.find(
+      f => SYS_CONFIG_KEYS[f].key === item.configKey
+    );
     if (!field || item.configValue == null) continue;
     (config as Record<string, unknown>)[field] = SYS_CONFIG_KEYS[field].boolean
       ? item.configValue === "true"

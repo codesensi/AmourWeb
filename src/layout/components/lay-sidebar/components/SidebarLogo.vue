@@ -2,7 +2,7 @@
 import { onMounted } from "vue";
 import { getTopMenu } from "@/router/utils";
 import { useNav } from "@/layout/hooks/useNav";
-import { initSiteLogo } from "@/utils/sysConfig";
+import { initSiteLogo } from "@/utils/sys-config";
 
 defineProps({
   collapse: Boolean

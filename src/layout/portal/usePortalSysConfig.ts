@@ -1,5 +1,5 @@
 import { inject, provide, ref, type InjectionKey, type Ref } from "vue";
-import type { SysConfig } from "@/utils/sysConfig";
+import type { SysConfig } from "@/utils/sys-config";
 
 /** 门户站点配置的注入键(带类型约束,替代字符串 key 与 props 双通道下发) */
 const PORTAL_SYS_CONFIG_KEY: InjectionKey<Ref<Partial<SysConfig>>> =

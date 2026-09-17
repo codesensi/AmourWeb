@@ -1,6 +1,6 @@
 import { computed } from "vue";
 import { useDict } from "@/hooks/useDict";
-import { DICT_CODES } from "@/api/dict";
+import { DICT_CODES } from "@/api/sys-dict";
 import type { OptionsType } from "@/components/ReSegmented";
 
 /** 菜单类型选项（与后端 sys_menu.type 对齐:D-目录,M-菜单,B-按钮;纯前端路由语义,保留静态常量) */

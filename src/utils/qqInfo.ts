@@ -1,4 +1,4 @@
-import { getQqInfo } from "@/api/portal";
+import { getQqInfo } from "@/api/qq-info";
 import { fallbackAvatar, notifyFallbackAvatar } from "@/utils/avatar";
 
 /** QQ 号格式校验正则(与后端 QqInfoRequest 的 @Pattern 对齐:6~12 位数字) */

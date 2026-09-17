@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { getFootprintList, type FootprintItem } from "@/api/portal";
+import { getFootprintList, type FootprintItem } from "@/api/portal/footprint";
 import reveal from "@/directives/reveal";
 import { useLightbox } from "@/hooks/useLightbox";
 import { queryKeys } from "@/hooks/queryKeys";

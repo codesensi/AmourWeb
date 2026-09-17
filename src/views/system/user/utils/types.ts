@@ -1,4 +1,4 @@
-import type { SysRoleOption } from "@/api/system";
+import type { SysRoleOption } from "@/api/sys-role";
 
 interface FormItemProps {
   /** 用户ID(后端序列化为字符串,编辑时透传) */

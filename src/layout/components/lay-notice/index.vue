@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import { getNoticeList, markNoticesRead, type NoticeItem } from "@/api/notice";
+import {
+  getNoticeList,
+  markNoticesRead,
+  type NoticeItem
+} from "@/api/sys-notice";
 import NoticeList from "./components/NoticeList.vue";
 
 import BellIcon from "~icons/lucide/bell";

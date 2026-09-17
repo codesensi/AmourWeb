@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { computed, onUnmounted, reactive, ref } from "vue";
-import { getMessage, sendMessage, type MessageItem } from "@/api/portal";
+import {
+  getMessage,
+  sendMessage,
+  type MessageItem
+} from "@/api/portal/message";
 import { message } from "@/utils/message";
 import { fallbackAvatar, notifyFallbackAvatar } from "@/utils/avatar";
 import { fetchQqInfo, QQ_PATTERN } from "@/utils/qqInfo";
@@ -16,15 +20,14 @@ const vReveal = reveal;
 
 /** 门户「加载更多」分页加载(每页 6 条);快照头像缺失时提示使用默认头像。
  * 留言为访客可写数据源,staleTime=0,每次激活都校验最新数据 */
-const { items, totalRow, loading, hasMore, loadMore, refresh } = usePortalList<
-  MessageItem
->(queryKeys.message(), getMessage, {
-  onLoaded: records => {
-    if (records.some(record => !record.avatar)) {
-      notifyFallbackAvatar();
+const { items, totalRow, loading, hasMore, loadMore, refresh } =
+  usePortalList<MessageItem>(queryKeys.message(), getMessage, {
+    onLoaded: records => {
+      if (records.some(record => !record.avatar)) {
+        notifyFallbackAvatar();
+      }
     }
-  }
-});
+  });
 
 /** 提交留言后重载列表:失效缓存并重拉已加载的分页,回页首查看最新状态 */
 function reloadMessages() {

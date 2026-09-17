@@ -6,7 +6,7 @@ import {
   resetRouter,
   routerArrays
 } from "../utils";
-import { type LoginRequest, type LoginResult, login, logout } from "@/api/user";
+import { type LoginRequest, type LoginResult, login, logout } from "@/api/auth";
 import { useMultiTagsStoreHook } from "./multiTags";
 import { setToken, removeToken, getStoredUserInfo } from "@/utils/auth";
 

@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { storeToRefs } from "pinia";
 import { getConfig, siteTitle } from "@/config";
-import { LOGO_FALLBACK, siteLogo } from "@/utils/sysConfig";
+import { LOGO_FALLBACK, siteLogo } from "@/utils/sys-config";
 import { useRouter } from "vue-router";
 import { emitter } from "@/utils/mitt";
 import { fallbackAvatar, notifyFallbackAvatar } from "@/utils/avatar";

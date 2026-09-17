@@ -1,4 +1,4 @@
-import type { AnniversaryItem } from "@/api/portal";
+import type { AnniversaryItem } from "@/api/portal/anniversary";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 

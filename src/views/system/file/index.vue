@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { reactive, ref } from "vue";
 import { formatSize, useFileDetail, useFilePage } from "./utils/hook";
-import { DICT_CODES } from "@/api/dict";
+import { DICT_CODES } from "@/api/sys-dict";
 import { useDict } from "@/hooks/useDict";
 import { useLazyTabs } from "@/views/system/hooks";
 import { ReCodeBlock } from "@/components/ReCodeBlock";

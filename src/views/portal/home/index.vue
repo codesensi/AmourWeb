@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { computed, markRaw, onBeforeUnmount, ref, watch } from "vue";
 import { RouterLink, useRouter } from "vue-router";
-import {
-  getAnniversaryList,
-  getFootprintList,
-  getHeroes,
-  getLovePhoto
-} from "@/api/portal";
+import { getAnniversaryList } from "@/api/portal/anniversary";
+import { getFootprintList } from "@/api/portal/footprint";
+import { getHeroes } from "@/api/portal/hero";
+import { getLovePhoto } from "@/api/portal/love-photo";
 import { fallbackAvatar } from "@/utils/avatar";
 import { resolveUserDisplay } from "@/utils/userDisplay";
 import { prefersReducedMotion } from "@/utils/motion";

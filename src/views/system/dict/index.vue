@@ -5,7 +5,7 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import { DictSelect } from "@/components/DictSelect";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { hasPerms } from "@/utils/auth";
-import { DICT_CODES } from "@/api/dict";
+import { DICT_CODES } from "@/api/sys-dict";
 
 import Delete from "~icons/ep/delete";
 import EditPen from "~icons/ep/edit-pen";

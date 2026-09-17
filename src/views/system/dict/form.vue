@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { DICT_CODES } from "@/api/dict";
+import { DICT_CODES } from "@/api/sys-dict";
 import { useDict } from "@/hooks/useDict";
 import { formRules } from "./utils/rule";
 import { FormProps } from "./utils/types";

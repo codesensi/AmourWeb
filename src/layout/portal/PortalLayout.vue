@@ -9,7 +9,7 @@ import {
   applySiteLogo,
   fetchSysConfig,
   type SysConfig
-} from "@/utils/sysConfig";
+} from "@/utils/sys-config";
 // 门户样式入口(「双人小站」:base 元素级重置 + 设计令牌)
 import "@/assets/portal/index.css";
 

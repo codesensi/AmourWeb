@@ -3,7 +3,7 @@ import App from "./App.vue";
 import router from "./router";
 import { setupStore } from "@/store";
 import { getConfig, siteTitle } from "@/config";
-import { fetchSysConfig } from "@/utils/sysConfig";
+import { fetchSysConfig } from "@/utils/sys-config";
 import { getPlatformConfig } from "./config";
 import { MotionPlugin } from "@vueuse/motion";
 import { VueQueryPlugin } from "@tanstack/vue-query";

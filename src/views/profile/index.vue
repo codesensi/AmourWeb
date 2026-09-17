@@ -3,7 +3,7 @@
 // 资料表单/改用户名/改密码分别由 components/ 下子组件承载
 import { reactive, ref } from "vue";
 import { useUserStoreHook } from "@/store/modules/user";
-import { getCurrentUser } from "@/api/user";
+import { getCurrentUser } from "@/api/auth";
 import type { ProfileInfo } from "@/api/profile";
 import ProfileForm from "./components/ProfileForm.vue";
 import RenameCard from "./components/RenameCard.vue";

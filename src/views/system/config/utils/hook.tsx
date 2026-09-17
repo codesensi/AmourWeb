@@ -3,9 +3,9 @@ import { DictTag } from "@/components/DictTag";
 import { usePageQuery, openFormDialog } from "../../hooks";
 import editForm from "../form.vue";
 import type { FormItemProps } from "./types";
-import { getConfigPage, updateConfig } from "@/api/sysConfig";
-import type { SysConfigPageItem } from "@/api/sysConfig";
-import { DICT_CODES } from "@/api/dict";
+import { getConfigPage, updateConfig } from "@/api/sys-config";
+import type { SysConfigPageItem } from "@/api/sys-config";
+import { DICT_CODES } from "@/api/sys-dict";
 import { useDict } from "@/hooks/useDict";
 import { ref, toRaw, reactive, watch } from "vue";
 

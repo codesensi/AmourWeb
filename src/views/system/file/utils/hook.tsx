@@ -1,6 +1,6 @@
 import { reactive, ref, toRaw } from "vue";
 import { usePageQuery } from "../../hooks";
-import { DICT_CODES } from "@/api/dict";
+import { DICT_CODES } from "@/api/sys-dict";
 import { useDict } from "@/hooks/useDict";
 import { DictTag } from "@/components/DictTag";
 import {

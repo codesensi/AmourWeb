@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { NoticeItem } from "@/api/notice";
+import type { NoticeItem } from "@/api/sys-notice";
 
 defineProps<{
   noticeItem: NoticeItem;

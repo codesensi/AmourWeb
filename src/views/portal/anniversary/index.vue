@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { getAnniversaryList, type AnniversaryItem } from "@/api/portal";
+import {
+  getAnniversaryList,
+  type AnniversaryItem
+} from "@/api/portal/anniversary";
 import { anniversaryMonthDay, nextOccurrenceDays } from "@/utils/anniversary";
 import reveal from "@/directives/reveal";
 import { queryKeys } from "@/hooks/queryKeys";

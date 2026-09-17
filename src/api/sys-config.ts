@@ -14,7 +14,7 @@ export interface SysConfigItem {
   configGroup: string;
 }
 
-/** 系统公共配置响应(GET /portal/config/list-by-keys;免登录,键值数组由 utils/sysConfig 归一化后供组件消费) */
+/** 系统公共配置响应(GET /portal/config/list-by-keys;免登录,键值数组由 utils/sys-config 归一化后供组件消费) */
 export type SysConfigResult = ApiResult<Array<SysConfigItem>>;
 
 /** 获取系统公共配置

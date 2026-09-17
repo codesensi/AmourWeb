@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref } from "vue";
-import { getTimeCapsule, type TimeCapsuleItem } from "@/api/portal";
+import {
+  getTimeCapsule,
+  type TimeCapsuleItem
+} from "@/api/portal/time-capsule";
 import { queryKeys } from "@/hooks/queryKeys";
 import { usePortalList } from "@/hooks/usePortalQuery";
 import PortalLoadMore from "@/components/PortalLoadMore/index.vue";

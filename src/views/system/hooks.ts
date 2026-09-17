@@ -14,7 +14,7 @@ import { ElSwitch, ElTag } from "element-plus";
 import type { PaginationProps, TableColumnRenderer } from "@pureadmin/table";
 import type { FormInstance } from "element-plus";
 import type { ApiResult, PageQuery, PageResult } from "@/api/types";
-import { DICT_CODES } from "@/api/dict";
+import { DICT_CODES } from "@/api/sys-dict";
 import { useDict } from "@/hooks/useDict";
 import { hasPerms } from "@/utils/auth";
 import { addDialog } from "@/components/ReDialog";

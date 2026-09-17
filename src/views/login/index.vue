@@ -18,7 +18,7 @@ import {
   fetchSysConfig,
   LOGO_FALLBACK,
   siteLogo
-} from "@/utils/sysConfig";
+} from "@/utils/sys-config";
 import { initRouter, getTopMenu } from "@/router/utils";
 import { bg, illustration } from "./utils/static";
 import { ref, toRaw, reactive, watch, computed, onMounted } from "vue";

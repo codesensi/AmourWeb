@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { reactive, ref } from "vue";
-import { DICT_CODES } from "@/api/dict";
+import { DICT_CODES } from "@/api/sys-dict";
 import { hasPerms } from "@/utils/auth";
 import { useLazyTabs } from "@/views/system/hooks";
 import { useLogPage, useLogDetail } from "./utils/hook";

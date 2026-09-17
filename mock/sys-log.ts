@@ -4,7 +4,7 @@
 // 过滤对齐后端:用户名模糊、状态精确、类型集合取交集,按 ID 倒序(最新在前)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
-/** 日志行数据(契约对齐 LogPageResponse / api/log.ts SysLogItem) */
+/** 日志行数据(契约对齐 LogPageResponse / api/sys-log.ts SysLogItem) */
 type LogRow = {
   id: string;
   username: string;
@@ -1064,8 +1064,7 @@ function buildPage(
   const pageSize = Number(query.pageSize ?? 20);
   const username = String(query.username ?? "");
   const status = query.status == null ? "" : String(query.status);
-  // 多选类型逗号分隔下发(对齐 api/log.ts getLogPage),空则取端点全量类型域
-  // 多选类型逗号分隔下发(对齐 api/log.ts getLogPage),空则取端点全量类型域;
+  // 多选类型逗号分隔下发(对齐 api/sys-log.ts getLogPage),空则取端点全量类型域;
   // 注意先剔除空串再转数字:Number("") === 0 会混入类型域把结果过滤成空
   const logTypes = String(query.logTypes ?? "")
     .split(",")

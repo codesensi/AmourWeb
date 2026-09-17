@@ -2,7 +2,7 @@
 // @ts-nocheck
 import { emitter } from "@/utils/mitt";
 import { useNav } from "@/layout/hooks/useNav";
-import { initSiteLogo } from "@/utils/sysConfig";
+import { initSiteLogo } from "@/utils/sys-config";
 import LaySearch from "../lay-search/index.vue";
 import LayNotice from "../lay-notice/index.vue";
 import { responsiveStorageNameSpace } from "@/config";

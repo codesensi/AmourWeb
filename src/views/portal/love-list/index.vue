@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { getLoveList, type LoveListItem } from "@/api/portal";
+import { getLoveList, type LoveListItem } from "@/api/portal/love-list";
 import { queryKeys } from "@/hooks/queryKeys";
 import { usePortalList } from "@/hooks/usePortalQuery";
 import PortalLoadMore from "@/components/PortalLoadMore/index.vue";
@@ -188,9 +188,7 @@ function openPhoto(item: LoveListItem) {
       @close="lightboxOpen = false"
       @switch="(i: number) => (lightboxIndex = i)"
     >
-      <p v-if="currentCaption"
-        class="viewer-caption"
-      >{{ currentCaption }}</p>
+      <p v-if="currentCaption" class="viewer-caption">{{ currentCaption }}</p>
     </el-image-viewer>
   </div>
 </template>

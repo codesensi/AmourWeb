@@ -14,20 +14,20 @@ import {
 } from "../../hooks";
 import { addDialog } from "@/components/ReDialog";
 import type { FormItemProps } from "../utils/types";
-import type { SysRoleItem } from "@/api/system";
+import type { SysRoleItem } from "@/api/sys-role";
 import { deviceDetection } from "@pureadmin/utils";
 import { useDict } from "@/hooks/useDict";
-import { DICT_CODES } from "@/api/dict";
+import { DICT_CODES } from "@/api/sys-dict";
 import {
   assignMenus,
   changeRoleStatus,
   deleteRole,
-  getMenuList,
-  getRolePage,
   getRoleMenuIds,
+  getRolePage,
   insertRole,
   updateRole
-} from "@/api/system";
+} from "@/api/sys-role";
+import { getMenuList } from "@/api/sys-menu";
 import { type Ref, reactive, ref, onMounted, h, toRaw, watch } from "vue";
 
 export function useRole(treeRef: Ref, tableRef: Ref) {

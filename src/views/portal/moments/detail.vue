@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from "vue-router";
-import { getMoment } from "@/api/portal";
+import { getMoment } from "@/api/portal/moments";
 import reveal from "@/directives/reveal";
 import { queryKeys } from "@/hooks/queryKeys";
 import { usePortalQuery } from "@/hooks/usePortalQuery";

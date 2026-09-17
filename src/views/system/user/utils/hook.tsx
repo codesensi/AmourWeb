@@ -15,12 +15,12 @@ import {
 import { addDialog } from "@/components/ReDialog";
 import type { FormItemProps, RoleFormItemProps } from "../utils/types";
 import { deviceDetection } from "@pureadmin/utils";
-import type { SysRoleOption, SysUserItem } from "@/api/system";
+import type { SysRoleOption } from "@/api/sys-role";
+import type { SysUserItem } from "@/api/sys-user";
 import { useDict } from "@/hooks/useDict";
-import { DICT_CODES } from "@/api/dict";
+import { DICT_CODES } from "@/api/sys-dict";
 import {
   deleteUser,
-  getRoleList,
   getUserPage,
   getUserRoleIds,
   insertUser,
@@ -28,7 +28,8 @@ import {
   resetUserPwd,
   changeUserStatus,
   assignRoles
-} from "@/api/system";
+} from "@/api/sys-user";
+import { getRoleList } from "@/api/sys-role";
 import { type Ref, h, ref, toRaw, computed, reactive, onMounted } from "vue";
 
 export function useUser(tableRef: Ref) {

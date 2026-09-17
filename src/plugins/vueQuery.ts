@@ -4,7 +4,7 @@ import { QueryClient } from "@tanstack/vue-query";
  * 全局唯一 QueryClient 单例。
  * <p>
  * main.ts 经 VueQueryPlugin 注册本实例供组件内 useQuery/usePortalQuery 使用;
- * utils/sysConfig 等非组件上下文直接 import 本实例调 fetchQuery,
+ * utils/sys-config 等非组件上下文直接 import 本实例调 fetchQuery,
  * 两类入口共享同一份查询缓存与在途请求(同 key 并发只发一次网络请求)。
  */
 export const queryClient = new QueryClient({

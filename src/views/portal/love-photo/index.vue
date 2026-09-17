@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { getLovePhoto, type LovePhotoItem } from "@/api/portal";
+import { getLovePhoto, type LovePhotoItem } from "@/api/portal/love-photo";
 import { queryKeys } from "@/hooks/queryKeys";
 import { usePortalList } from "@/hooks/usePortalQuery";
 import PortalLoadMore from "@/components/PortalLoadMore/index.vue";

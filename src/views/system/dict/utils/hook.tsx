@@ -21,13 +21,13 @@ import {
   insertDictType,
   updateDict,
   updateDictType
-} from "@/api/dict";
+} from "@/api/sys-dict";
 import { useQueryClient } from "@tanstack/vue-query";
 import { useDict } from "@/hooks/useDict";
 import { queryKeys } from "@/hooks/queryKeys";
-import { DICT_CODES } from "@/api/dict";
+import { DICT_CODES } from "@/api/sys-dict";
 import { h, ref, toRaw, reactive, computed, onMounted } from "vue";
-import type { SysDictPageItem, SysDictTypeItem } from "@/api/dict";
+import type { SysDictPageItem, SysDictTypeItem } from "@/api/sys-dict";
 
 export function useDictPage() {
   const queryClient = useQueryClient();

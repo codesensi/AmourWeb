@@ -703,7 +703,7 @@ export default defineFakeRoute([
       };
     }
   },
-  // 批量查询(GET /portal/dict/list-by-codes?codes=逗号分隔编码;对齐 api/dict.ts getDictByCodes)
+  // 批量查询(GET /portal/dict/list-by-codes?codes=逗号分隔编码;对齐 api/sys-dict.ts getDictByCodes)
   {
     url: "/portal/dict/list-by-codes",
     method: "get",

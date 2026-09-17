@@ -16,13 +16,13 @@ import {
   insertMenu,
   updateMenu,
   changeMenuStatus
-} from "@/api/system";
-import type { MenuUpsertRequest } from "@/api/system";
+} from "@/api/sys-menu";
+import type { MenuUpsertRequest } from "@/api/sys-menu";
 import type { FormItemProps } from "../utils/types";
-import type { MenuItem } from "@/api/user";
+import type { MenuItem } from "@/api/auth";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { useDict } from "@/hooks/useDict";
-import { DICT_CODES } from "@/api/dict";
+import { DICT_CODES } from "@/api/sys-dict";
 import { reactive, ref, onMounted, h } from "vue";
 import { cloneDeep, isAllEmpty } from "@pureadmin/utils";
 

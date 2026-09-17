@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { RouterLink } from "vue-router";
-import { getPortalSaying, type SayingData, getVisitTotal } from "@/api/portal";
+import { getPortalSaying, type SayingData } from "@/api/portal/saying";
+import { getVisitTotal } from "@/api/portal/visit";
 import { usePortalSysConfig } from "./usePortalSysConfig";
 import { prefersReducedMotion } from "@/utils/motion";
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
-import { getDiary, type DiaryItem } from "@/api/portal";
+import { getDiary, type DiaryItem } from "@/api/portal/diary";
 import { queryKeys } from "@/hooks/queryKeys";
 import { usePortalList } from "@/hooks/usePortalQuery";
 import PortalLoadMore from "@/components/PortalLoadMore/index.vue";
