@@ -20,7 +20,7 @@ export type SysDictGroup = {
   items: Array<SysDictItem>;
 };
 
-/** 字典编码注册表 —— 前端唯一编码来源,避免散落魔法字符串(与后端 sys_dict.dict_code 对齐) */
+/** 字典编码注册表 —— 前端唯一编码来源,避免散落魔法字符串(与后端 sys_dict_type.dict_code 对齐) */
 export const DICT_CODES = {
   /** 性别 */
   gender: "gender",
@@ -55,22 +55,66 @@ export const getDictByCodes = (codes: Array<string>) => {
   );
 };
 
-/** 字典类型(后端按 dict_code 聚合的类型概要,管理页左侧列表数据源) */
+/** 字典类型(后端 sys_dict_type 下发,管理页左侧列表数据源) */
 export type SysDictTypeItem = {
+  /** 主键ID(后端序列化为字符串,避免 JS 精度丢失) */
+  id: string;
   /** 字典编码 */
   dictCode: string;
   /** 字典名称 */
   dictName: string;
   /** 该编码下的条目数 */
   count: number;
+  /** 是否内置:0-否,1-是(内置类型禁删、编码不可改) */
+  builtin?: number;
+  remark?: string;
 };
 
-/** 字典类型列表(GET /sys/dict/type-list,管理端) */
+/** 字典类型列表(GET /sys/dict/type/list,管理端) */
 export const getDictTypeList = () => {
   return http.request<ApiResult<Array<SysDictTypeItem>>>(
     "get",
-    "/sys/dict/type-list"
+    "/sys/dict/type/list"
   );
+};
+
+/** 字典类型管理-新增请求参数(对齐后端 DictTypeInsertRequest) */
+export type DictTypeInsertRequest = {
+  /** 字典编码(kebab-case,如 gender、menu-type;全生命周期唯一) */
+  dictCode: string;
+  /** 字典名称 */
+  dictName: string;
+  /** 备注 */
+  remark?: string;
+};
+
+/** 字典类型管理-修改请求参数(对齐后端 DictTypeUpdateRequest;编码与内置标识不可修改) */
+export type DictTypeUpdateRequest = {
+  /** 字典类型ID(后端 Long 序列化为字符串) */
+  id: string;
+  /** 字典名称 */
+  dictName: string;
+  /** 备注 */
+  remark?: string;
+};
+
+/** 字典类型管理-新增(POST /sys/dict/type/insert) */
+export const insertDictType = (data: DictTypeInsertRequest) => {
+  return http.request<ApiResult<null>>("post", "/sys/dict/type/insert", {
+    data
+  });
+};
+
+/** 字典类型管理-修改(PUT /sys/dict/type/update) */
+export const updateDictType = (data: DictTypeUpdateRequest) => {
+  return http.request<ApiResult<null>>("put", "/sys/dict/type/update", {
+    data
+  });
+};
+
+/** 字典类型管理-删除(DELETE /sys/dict/type/delete/{id},内置类型/含条目类型后端禁删) */
+export const deleteDictType = (id: string) => {
+  return http.request<ApiResult<null>>("delete", `/sys/dict/type/delete/${id}`);
 };
 
 /** 字典管理-行数据(分页) */
@@ -108,17 +152,17 @@ export type SysDictQuery = PageQuery & {
   status?: string;
 };
 
-/** 字典管理-分页查询(GET /sys/dict/page) */
+/** 字典管理-分页查询(GET /sys/dict/data/page) */
 export const getDictPage = (params?: SysDictQuery) => {
   return http.request<ApiResult<PageResult<SysDictPageItem>>>(
     "get",
-    "/sys/dict/page",
+    "/sys/dict/data/page",
     { params: omitEmpty(params) }
   );
 };
 
-/** 字典管理-新增请求参数(对齐后端 DictInsertRequest;字典名称由后端按编码继承组内已有名称,不在可提交字段之列) */
-export type DictInsertRequest = {
+/** 字典管理-新增条目请求参数(对齐后端 DictDataInsertRequest;字典名称由后端取自所属字典类型,不在可提交字段之列,编码须为已创建类型) */
+export type DictDataInsertRequest = {
   /** 字典编码(kebab-case,如 gender、menu-type) */
   dictCode: string;
   /** 字典值(统一字符串存储) */
@@ -133,8 +177,8 @@ export type DictInsertRequest = {
   remark?: string;
 };
 
-/** 字典管理-修改请求参数(对齐后端 DictUpdateRequest;字典编码/名称与内置标识不可修改,状态经 change-status 单独维护) */
-export type DictUpdateRequest = {
+/** 字典管理-修改条目请求参数(对齐后端 DictDataUpdateRequest;字典编码/名称与内置标识不可修改,状态经 change-status 单独维护) */
+export type DictDataUpdateRequest = {
   /** 字典条目ID(后端 Long 序列化为字符串) */
   id: string;
   /** 字典值(统一字符串存储;内置条目不允许修改) */
@@ -155,14 +199,18 @@ export type DictChangeStatusRequest = {
   status: number;
 };
 
-/** 字典管理-新增(POST /sys/dict/insert) */
-export const insertDict = (data: DictInsertRequest) => {
-  return http.request<ApiResult<null>>("post", "/sys/dict/insert", { data });
+/** 字典管理-新增条目(POST /sys/dict/data/insert) */
+export const insertDict = (data: DictDataInsertRequest) => {
+  return http.request<ApiResult<null>>("post", "/sys/dict/data/insert", {
+    data
+  });
 };
 
-/** 字典管理-修改(PUT /sys/dict/update) */
-export const updateDict = (data: DictUpdateRequest) => {
-  return http.request<ApiResult<null>>("put", "/sys/dict/update", { data });
+/** 字典管理-修改条目(PUT /sys/dict/data/update) */
+export const updateDict = (data: DictDataUpdateRequest) => {
+  return http.request<ApiResult<null>>("put", "/sys/dict/data/update", {
+    data
+  });
 };
 
 /** 字典管理-修改状态(PUT /sys/dict/change-status) */
@@ -172,7 +220,7 @@ export const changeDictStatus = (data: DictChangeStatusRequest) => {
   });
 };
 
-/** 字典管理-删除(DELETE /sys/dict/delete/{id},内置条目后端禁删) */
+/** 字典管理-删除条目(DELETE /sys/dict/data/delete/{id},内置条目后端禁删) */
 export const deleteDict = (id: string) => {
-  return http.request<ApiResult<null>>("delete", `/sys/dict/delete/${id}`);
+  return http.request<ApiResult<null>>("delete", `/sys/dict/data/delete/${id}`);
 };

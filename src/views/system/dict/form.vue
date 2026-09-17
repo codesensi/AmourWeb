@@ -50,7 +50,7 @@ defineExpose({ getRef });
     </el-form-item>
 
     <el-form-item label="字典名称" prop="dictName">
-      <!-- 字典名称即类型名(组内共享):新增时预填当前类型中文名,修改时回填原值,均由后端按组内首条自动继承 -->
+      <!-- 字典名称即类型名(归 sys_dict_type 管理):新增时预填当前类型名,修改时回填原值,均只作展示 -->
       <el-input v-model="newFormInline.dictName" disabled />
     </el-form-item>
 

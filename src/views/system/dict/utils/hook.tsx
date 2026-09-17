@@ -1,4 +1,4 @@
-import { emphasize, message } from "@/utils/message";
+import { confirmAction, emphasize, message } from "@/utils/message";
 import {
   openFormDialog,
   useBatchDelete,
@@ -9,14 +9,18 @@ import {
   useStatusSwitch
 } from "../../hooks";
 import editForm from "../form.vue";
+import typeForm from "../type-form.vue";
 import type { FormItemProps } from "./types";
 import {
   changeDictStatus,
   deleteDict,
+  deleteDictType,
   getDictPage,
   getDictTypeList,
   insertDict,
-  updateDict
+  insertDictType,
+  updateDict,
+  updateDictType
 } from "@/api/dict";
 import { useQueryClient } from "@tanstack/vue-query";
 import { useDict } from "@/hooks/useDict";
@@ -78,6 +82,83 @@ export function useDictPage() {
     search();
   }
 
+  // ===== 左侧:字典类型管理(新建/重命名/删除) =====
+  const typeFormRef = ref();
+
+  /** 新建/修改类型弹窗(修改时编码锁定,对齐后端"编码创建后不可改"约定) */
+  function openTypeDialog(title: string, row?: SysDictTypeItem) {
+    openFormDialog({
+      title: `${title}字典类型`,
+      editForm: typeForm,
+      formRef: typeFormRef,
+      formInline: {
+        title,
+        id: row?.id,
+        dictCode: row?.dictCode ?? "",
+        dictName: row?.dictName ?? "",
+        remark: row?.remark ?? ""
+      },
+      submit: async curData => {
+        if (title === "修改") {
+          await updateDictType({
+            id: curData.id!,
+            dictName: curData.dictName,
+            remark: curData.remark
+          });
+        } else {
+          await insertDictType({
+            dictCode: curData.dictCode,
+            dictName: curData.dictName,
+            remark: curData.remark
+          });
+        }
+        message(
+          h("span", [
+            `${title === "新增" ? "成功新增" : "成功修改"}字典类型`,
+            emphasize(curData.dictName)
+          ]),
+          { type: "success" }
+        );
+        await loadTypes();
+        // 新建后选中新类型保持主从联动;重命名后刷新右侧行数据(类型名回填)
+        if (title === "新增") {
+          handleSelect(curData.dictCode);
+        } else {
+          search();
+        }
+      }
+    });
+  }
+
+  /** 新建类型 */
+  function openTypeCreate() {
+    openTypeDialog("新增");
+  }
+
+  /** 重命名类型 */
+  function openTypeRename(row: SysDictTypeItem) {
+    openTypeDialog("修改", row);
+  }
+
+  /** 删除类型(后端校验内置禁删、存在条目禁删) */
+  async function handleTypeDelete(row: SysDictTypeItem) {
+    const confirmed = await confirmAction(
+      h("span", [
+        "确认要删除字典类型",
+        emphasize(row.dictName),
+        "吗?请先确保该类型下已无字典条目"
+      ])
+    );
+    if (!confirmed) return;
+    await deleteDictType(row.id);
+    message(h("span", ["成功删除字典类型", emphasize(row.dictName)]), {
+      type: "success"
+    });
+    // 选中项被删除时 loadTypes 内部回退到第一项
+    await loadTypes();
+    search();
+  }
+
   // ===== 右侧:选中类型下的字典数据 =====
   const form = reactive({
     dictValue: "",
@@ -127,7 +208,9 @@ export function useDictPage() {
       ]),
     // 状态影响消费端的 list-by-codes 结果,提交成功后同步刷新字典缓存
     afterSubmit: row =>
-      queryClient.invalidateQueries({ queryKey: queryKeys.dict(row.dictCode).key })
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.dict(row.dictCode).key
+      })
   });
   // 状态开关列统一渲染(内置行禁用启停 + 权限门控,加载态来自 useStatusSwitch)
   const statusColumn = useStatusColumn<Required<SysDictPageItem>>({
@@ -295,6 +378,9 @@ export function useDictPage() {
     selectedName,
     handleSelect,
     loadTypes,
+    openTypeCreate,
+    openTypeRename,
+    handleTypeDelete,
     // 右侧
     form,
     loading,

@@ -549,6 +549,95 @@ const dicts = [
   }
 ];
 
+// 字典类型种子(对齐后端 sys_dict_type 99000 段种子:12 个内置类型)
+const dictTypes = [
+  {
+    id: "99001",
+    dictCode: "gender",
+    dictName: "性别",
+    builtin: 1,
+    remark: "与 GenderEnum(U/M/F) 对齐"
+  },
+  {
+    id: "99002",
+    dictCode: "enable",
+    dictName: "启用状态",
+    builtin: 1,
+    remark: "与 EnableEnum(0/1) 对齐"
+  },
+  {
+    id: "99003",
+    dictCode: "yes",
+    dictName: "是否",
+    builtin: 1,
+    remark: "与 YesEnum(1/0) 对齐"
+  },
+  {
+    id: "99004",
+    dictCode: "del-flag",
+    dictName: "删除标识",
+    builtin: 1,
+    remark: "与 DelFlagEnum(1/0) 对齐"
+  },
+  {
+    id: "99005",
+    dictCode: "menu-type",
+    dictName: "菜单类型",
+    builtin: 1,
+    remark: "与 MenuType(D/M/B) 对齐"
+  },
+  {
+    id: "99006",
+    dictCode: "image-type",
+    dictName: "图形验证码类型",
+    builtin: 1,
+    remark: "与 ImageType(spec/gif/chinese/chinese-gif/arithmetic) 对齐"
+  },
+  {
+    id: "99007",
+    dictCode: "success",
+    dictName: "成功状态",
+    builtin: 1,
+    remark: "与 SuccessEnum(1/0) 对齐"
+  },
+  {
+    id: "99008",
+    dictCode: "config-group",
+    dictName: "配置分组",
+    builtin: 1,
+    remark: "与 sys_config.config_group(base/site/captcha/file/rate-limit) 对齐"
+  },
+  {
+    id: "99009",
+    dictCode: "config-value-type",
+    dictName: "配置值类型",
+    builtin: 1,
+    remark:
+      "与 sys_config.value_type(STRING/INTEGER/LONG/BOOLEAN/DATETIME) 对齐"
+  },
+  {
+    id: "99010",
+    dictCode: "file-storage-type",
+    dictName: "存储类型",
+    builtin: 1,
+    remark: "与 StorageTypeEnum(local/oss) 对齐"
+  },
+  {
+    id: "99011",
+    dictCode: "biz-type",
+    dictName: "文件业务类型",
+    builtin: 1,
+    remark: "与 FileBizTypeEnum(infra/avatar/photo/markdown) 对齐"
+  },
+  {
+    id: "99012",
+    dictCode: "log-type",
+    dictName: "日志类型",
+    builtin: 1,
+    remark: "与 LogTypeEnum 对齐"
+  }
+];
+
 /** 组装分组结构(仅启用条目,按 sort 升序,入参编码顺序下发) */
 function groupByCodes(codes: Array<string>) {
   return codes
@@ -592,33 +681,25 @@ const fail = (msg: string) => ({
 });
 
 export default defineFakeRoute([
-  // 字典类型列表(GET /sys/dict/type-list,按编码聚合,含条目数)
+  // 字典类型列表(GET /sys/dict/type/list,类型表 + 组内条目数,含禁用条目)
   {
-    url: "/sys/dict/type-list",
+    url: "/sys/dict/type/list",
     method: "get",
     response: () => {
-      const typeMap = new Map<
-        string,
-        { dictCode: string; dictName: string; count: number }
-      >();
-      for (const item of dicts) {
-        const exist = typeMap.get(item.dictCode);
-        if (exist) {
-          exist.count += 1;
-        } else {
-          typeMap.set(item.dictCode, {
-            dictCode: item.dictCode,
-            dictName: item.dictName,
-            count: 1
-          });
-        }
-      }
+      const data = dictTypes.map(type => ({
+        id: type.id,
+        dictCode: type.dictCode,
+        dictName: type.dictName,
+        builtin: type.builtin,
+        count: dicts.filter(item => item.dictCode === type.dictCode).length,
+        remark: type.remark
+      }));
       return {
         success: true,
         code: 200,
         msg: "操作成功",
         timestamp: Date.now(),
-        data: [...typeMap.values()]
+        data
       };
     }
   },
@@ -640,10 +721,10 @@ export default defineFakeRoute([
       };
     }
   },
-  // 分页查询(GET /sys/dict/page;过滤与排序对齐后端:编码/名称/值模糊,状态精确,
+  // 分页查询(GET /sys/dict/data/page;过滤与排序对齐后端:编码/名称/值模糊,状态精确,
   // 排序为编码升序 → 组内 sort 升序 → id 升序)
   {
-    url: "/sys/dict/page",
+    url: "/sys/dict/data/page",
     method: "get",
     response: ({ query }) => {
       const pageNumber = Number(query.pageNumber ?? 1);
@@ -684,25 +765,28 @@ export default defineFakeRoute([
       };
     }
   },
-  // 新增(POST /sys/dict/insert,落地内存数据;同编码下字典值唯一;字典名称自动继承组内首条,对齐后端校验)
+  // 新增(POST /sys/dict/data/insert,落地内存数据;类型必须存在 + 同编码下字典值唯一,对齐后端校验)
   {
-    url: "/sys/dict/insert",
+    url: "/sys/dict/data/insert",
     method: "post",
     response: ({ body }) => {
       const dictCode = String(body?.dictCode ?? "");
       const dictValue = String(body?.dictValue ?? "");
+      const type = dictTypes.find(item => item.dictCode === dictCode);
+      if (!type) {
+        return fail(`字典类型[${dictCode}]不存在，请先创建字典类型`);
+      }
       const exists = dicts.some(
         item => item.dictCode === dictCode && item.dictValue === dictValue
       );
       if (exists) {
         return fail(`字典编码[${dictCode}]下字典值[${dictValue}]已存在`);
       }
-      const first = dicts.find(item => item.dictCode === dictCode);
       const maxId = Math.max(...dicts.map(item => Number(item.id)), 0);
       dicts.push({
         id: String(maxId + 1),
         dictCode,
-        dictName: first?.dictName ?? dictCode,
+        dictName: type.dictName,
         dictValue,
         dictLabel: body?.dictLabel ?? "",
         sort: body?.sort ?? 1,
@@ -714,10 +798,10 @@ export default defineFakeRoute([
       return ok();
     }
   },
-  // 修改(PUT /sys/dict/update,落地内存数据;字典编码/字典名称/内置标识/创建时间不可改;
-  // 内置条目锁定字典值,对齐后端 DictUpdateRequest 与 builtin 校验)
+  // 修改(PUT /sys/dict/data/update,落地内存数据;字典编码/字典名称/内置标识/创建时间不可改;
+  // 内置条目锁定字典值,对齐后端 DictDataUpdateRequest 与 builtin 校验)
   {
-    url: "/sys/dict/update",
+    url: "/sys/dict/data/update",
     method: "put",
     response: ({ body }) => {
       const target = dicts.find(item => item.id === String(body?.id));
@@ -735,10 +819,10 @@ export default defineFakeRoute([
       return ok();
     }
   },
-  // 删除(DELETE /sys/dict/delete/:id,落地内存数据;id 支持英文逗号分隔批量,
+  // 删除(DELETE /sys/dict/data/delete/:id,落地内存数据;id 支持英文逗号分隔批量,
   // 内置条目不可删且整批失败,对齐后端校验)
   {
-    url: "/sys/dict/delete/:id",
+    url: "/sys/dict/data/delete/:id",
     method: "delete",
     response: ({ params }) => {
       const ids = String(params.id)
@@ -771,6 +855,71 @@ export default defineFakeRoute([
       if (!target) return fail("字典条目不存在");
       if (target.builtin === 1) return fail("内置字典条目不允许更改状态");
       target.status = Number(body?.status);
+      return ok();
+    }
+  },
+  // 新增类型(POST /sys/dict/type/insert,落地内存数据;编码全生命周期唯一,对齐后端校验)
+  {
+    url: "/sys/dict/type/insert",
+    method: "post",
+    response: ({ body }) => {
+      const dictCode = String(body?.dictCode ?? "");
+      if (dictTypes.some(type => type.dictCode === dictCode)) {
+        return fail(`字典编码[${dictCode}]已存在`);
+      }
+      const maxId = Math.max(...dictTypes.map(type => Number(type.id)), 0);
+      dictTypes.push({
+        id: String(maxId + 1),
+        dictCode,
+        dictName: body?.dictName ?? "",
+        builtin: 0,
+        remark: body?.remark ?? ""
+      });
+      return ok();
+    }
+  },
+  // 修改类型(PUT /sys/dict/type/update,落地内存数据;编码与内置标识不可改;
+  // 类型名同步组内条目的展示字段,对齐后端 page 的 dictName 回填)
+  {
+    url: "/sys/dict/type/update",
+    method: "put",
+    response: ({ body }) => {
+      const target = dictTypes.find(type => type.id === String(body?.id));
+      if (!target) return fail("字典类型不存在");
+      target.dictName = body?.dictName ?? target.dictName;
+      target.remark = body?.remark ?? target.remark;
+      for (const item of dicts) {
+        if (item.dictCode === target.dictCode) {
+          item.dictName = target.dictName;
+        }
+      }
+      return ok();
+    }
+  },
+  // 删除类型(DELETE /sys/dict/type/delete/:id,落地内存数据;内置禁删、存在条目禁删,整批失败)
+  {
+    url: "/sys/dict/type/delete/:id",
+    method: "delete",
+    response: ({ params }) => {
+      const ids = String(params.id)
+        .split(",")
+        .map(item => item.trim())
+        .filter(Boolean);
+      const targets = dictTypes.filter(type => ids.includes(type.id));
+      if (targets.length < ids.length) return fail("字典类型不存在");
+      if (targets.some(type => type.builtin === 1)) {
+        return fail("内置字典类型不允许删除");
+      }
+      const hasItems = targets.filter(type =>
+        dicts.some(item => item.dictCode === type.dictCode)
+      );
+      if (hasItems.length) {
+        return fail("字典类型下存在字典条目，请先删除条目");
+      }
+      for (const target of targets) {
+        const index = dictTypes.indexOf(target);
+        if (index !== -1) dictTypes.splice(index, 1);
+      }
       return ok();
     }
   }

@@ -25,6 +25,9 @@ const {
   selectedCode,
   selectedName,
   handleSelect,
+  openTypeCreate,
+  openTypeRename,
+  handleTypeDelete,
   form,
   loading,
   columns,
@@ -57,7 +60,7 @@ const {
           v-for="item in filteredTypes"
           :key="item.dictCode"
           :class="[
-            'flex-bc   gap-1 rounded-sm px-3 py-2 cursor-pointer select-none transition-colors',
+            'group flex-bc gap-1 rounded-sm px-3 py-2 cursor-pointer select-none transition-colors',
             item.dictCode === selectedCode
               ? 'bg-(--el-color-primary-light-9) text-primary'
               : 'hover:bg-[#0000000f] dark:hover:bg-[#ffffff1f]'
@@ -72,7 +75,30 @@ const {
               {{ item.dictCode }}
             </p>
           </div>
-          <el-tag size="small" effect="plain">{{ item.count }}</el-tag>
+          <el-tag size="small" effect="plain" class="group-hover:hidden">{{
+            item.count
+          }}</el-tag>
+          <!-- 悬停操作:重命名/删除(内置类型禁删,与后端校验对齐) -->
+          <span class="hidden group-hover:flex items-center">
+            <el-button
+              v-if="hasPerms('system:dict:update')"
+              class="p-0!"
+              link
+              type="primary"
+              size="small"
+              :icon="useRenderIcon(EditPen)"
+              @click.stop="openTypeRename(item)"
+            />
+            <el-button
+              v-if="hasPerms('system:dict:delete') && item.builtin === 0"
+              class="p-0!"
+              link
+              type="danger"
+              size="small"
+              :icon="useRenderIcon(Delete)"
+              @click.stop="handleTypeDelete(item)"
+            />
+          </span>
         </div>
         <el-empty
           v-if="filteredTypes.length === 0"
@@ -80,6 +106,17 @@ const {
           description="暂无字典类型"
         />
       </el-scrollbar>
+      <!-- 新建类型固定在类型列表下方 -->
+      <el-button
+        v-if="hasPerms('system:dict:insert')"
+        class="mt-2"
+        type="primary"
+        plain
+        :icon="useRenderIcon(AddFill)"
+        @click="openTypeCreate"
+      >
+        新建类型
+      </el-button>
     </div>
 
     <!-- 右侧:选中类型下的字典数据(从) -->
