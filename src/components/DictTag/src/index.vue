@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { useDictStoreHook } from "@/store/modules/dict";
+import { useDict } from "@/hooks/useDict";
 
 type TagType = "success" | "warning" | "primary" | "info" | "danger";
 
@@ -26,18 +26,15 @@ const props = withDefaults(
   }
 );
 
-const store = useDictStoreHook();
-// 仅在 setup 时按初始 dictCode 拉取一次:store 内部有缓存,重复挂载不重复请求。
-// 当前所有调用方的 dictCode 均为静态字面量;若未来需要动态切换编码,
-// 需改为 watch(dictCode, code => store.load([code])) 并处理旧编码缓存
-store.load([props.dictCode]);
+/** 组内条目(响应式);取数走查询层,key 携带编码,重复挂载不重复请求 */
+const { options } = useDict(props.dictCode);
 
 /** 反查展示标签;未命中回退为原值 */
 const label = computed(() => {
   if (props.value == null || props.value === "") return "";
-  const item = store
-    .group(props.dictCode)
-    .find(candidate => candidate.dictValue === String(props.value));
+  const item = options.value.find(
+    candidate => candidate.dictValue === String(props.value)
+  );
   return item ? item.dictLabel : String(props.value);
 });
 

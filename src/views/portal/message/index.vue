@@ -1,32 +1,34 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive, ref } from "vue";
+import { computed, onUnmounted, reactive, ref } from "vue";
 import { getMessage, sendMessage, type MessageItem } from "@/api/portal";
 import { message } from "@/utils/message";
 import { fallbackAvatar, notifyFallbackAvatar } from "@/utils/avatar";
 import { fetchQqInfo, QQ_PATTERN } from "@/utils/qqInfo";
 import { scrollToTop } from "@/utils/motion";
-import { usePagedList } from "@/hooks/usePagedList";
+import { queryKeys } from "@/hooks/queryKeys";
+import { usePortalList } from "@/hooks/usePortalQuery";
 import PortalLoadMore from "@/components/PortalLoadMore/index.vue";
-import PortalSkeleton from "@/components/PortalSkeleton/index.vue";
 import reveal from "@/directives/reveal";
 
 defineOptions({ name: "PortalMessage" });
 
 const vReveal = reveal;
 
-/** 门户「加载更多」分页加载(每页 6 条);快照头像缺失时提示使用默认头像 */
-const { items, totalRow, loading, hasMore, loadMore, reset } =
-  usePagedList<MessageItem>(getMessage, {
-    onLoaded: records => {
-      if (records.some(record => !record.avatar)) {
-        notifyFallbackAvatar();
-      }
+/** 门户「加载更多」分页加载(每页 6 条);快照头像缺失时提示使用默认头像。
+ * 留言为访客可写数据源,staleTime=0,每次激活都校验最新数据 */
+const { items, totalRow, loading, hasMore, loadMore, refresh } = usePortalList<
+  MessageItem
+>(queryKeys.message(), getMessage, {
+  onLoaded: records => {
+    if (records.some(record => !record.avatar)) {
+      notifyFallbackAvatar();
     }
-  });
+  }
+});
 
-/** 提交留言后重载列表:清空旧内容并重建流加载,回页首查看最新状态 */
+/** 提交留言后重载列表:失效缓存并重拉已加载的分页,回页首查看最新状态 */
 function reloadMessages() {
-  reset();
+  refresh();
   scrollToTop();
 }
 
@@ -161,8 +163,6 @@ async function submit() {
 /** 防连点恢复定时器:组件卸载时清理,避免卸载后仍写响应式状态 */
 let submitTimer: ReturnType<typeof setTimeout> | undefined;
 onUnmounted(() => clearTimeout(submitTimer));
-
-onMounted(() => loadMore());
 </script>
 
 <template>
@@ -279,7 +279,7 @@ onMounted(() => loadMore());
     </div>
 
     <!-- 首屏加载:杂志线框骨架屏(>300ms 可感知) -->
-    <PortalSkeleton v-if="loading && items.length === 0" :rows="2" />
+    <el-skeleton v-if="loading && items.length === 0" :rows="2" animated />
 
     <div v-if="!loading && items.length === 0" class="am-empty">
       还没有明信片,来投递第一张吧~

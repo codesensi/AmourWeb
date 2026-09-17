@@ -1,26 +1,23 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, ref } from "vue";
 import { getLovePhoto, type LovePhotoItem } from "@/api/portal";
-import { usePagedList } from "@/hooks/usePagedList";
+import { queryKeys } from "@/hooks/queryKeys";
+import { usePortalList } from "@/hooks/usePortalQuery";
 import PortalLoadMore from "@/components/PortalLoadMore/index.vue";
 import PortalGhostTile from "@/components/PortalGhostTile/index.vue";
 import { useLightbox } from "@/hooks/useLightbox";
 import { scrollToTop } from "@/utils/motion";
-import PortalSkeleton from "@/components/PortalSkeleton/index.vue";
-import PortalLightbox, {
-  type LightboxItem
-} from "@/components/PortalLightbox/index.vue";
 import reveal from "@/directives/reveal";
 
 defineOptions({ name: "PortalLovePhoto" });
 
 const vReveal = reveal;
 
-/** 门户「加载更多」分页加载(每页 6 张) */
-const { items, loading, hasMore, loadMore } =
-  usePagedList<LovePhotoItem>(getLovePhoto);
-
-onMounted(() => loadMore());
+/** 门户「加载更多」分页加载(每页 6 张);首拉与 KeepAlive 激活校验由查询层接管 */
+const { items, loading, hasMore, loadMore } = usePortalList<LovePhotoItem>(
+  queryKeys.lovePhoto(),
+  getLovePhoto
+);
 
 /** 图片加载失败兜底:隐藏破图,回落占位底色 */
 function onImgError(event: Event) {
@@ -62,13 +59,18 @@ function switchTag(tag: string) {
 /* ---------------- 影院模式 ---------------- */
 
 /** 影院模式数据源:带图注的图片列表 */
-const lightboxItems = computed<LightboxItem[]>(() =>
+const lightboxItems = computed(() =>
   visibleItems.value.map(it => ({
     url: it.img,
     caption: `${it.text} · ${it.date}`
   }))
 );
 const { lightboxOpen, lightboxIndex, openAt: openLightbox } = useLightbox();
+
+/** 当前图注(el-image-viewer 的 default 插槽内展示) */
+const currentCaption = computed(
+  () => lightboxItems.value[lightboxIndex.value]?.caption
+);
 
 /** 杂志式网格节奏:每 7 张一循环——0 大图(2×2)、3 横幅(2×1)、5 竖幅(1×2) */
 function spanClass(i: number) {
@@ -140,7 +142,7 @@ function spanClass(i: number) {
       </div>
 
       <!-- 首屏加载:杂志线框骨架屏 -->
-      <PortalSkeleton v-else-if="loading" key="skeleton" :rows="3" />
+      <el-skeleton v-else-if="loading" key="skeleton" :rows="3" animated />
 
       <div v-else key="empty" class="am-empty">相册整理中,敬请期待…</div>
     </Transition>
@@ -148,16 +150,41 @@ function spanClass(i: number) {
     <!-- 「加载更多」按钮(门户列表页共用组件) -->
     <PortalLoadMore :loading="loading" :has-more="hasMore" @load="loadMore" />
 
-    <!-- 影院模式 -->
-    <PortalLightbox
-      v-model:open="lightboxOpen"
-      v-model:index="lightboxIndex"
-      :items="lightboxItems"
-    />
+    <!-- 影院模式:EP 内置键盘/缩放/循环切换;default 插槽承载图注 -->
+    <el-image-viewer
+      v-if="lightboxOpen"
+      :url-list="lightboxItems.map(p => p.url)"
+      :initial-index="lightboxIndex"
+      hide-on-click-modal
+      teleported
+      @close="lightboxOpen = false"
+      @switch="(i: number) => (lightboxIndex = i)"
+    >
+      <p v-if="currentCaption"
+        class="viewer-caption"
+      >{{ currentCaption }}</p>
+    </el-image-viewer>
   </div>
 </template>
 
 <style scoped>
+.viewer-caption {
+  position: absolute;
+  bottom: 52px;
+  left: 50%;
+  max-width: 80%;
+  padding: 8px 20px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: var(--am-text-sm);
+  color: #fff;
+  white-space: nowrap;
+  background: rgb(0 0 0 / 45%);
+  border-radius: 999px;
+  backdrop-filter: blur(4px);
+  transform: translateX(-50%);
+}
+
 .album-intro {
   margin-top: 6px;
   font-size: var(--am-text-sm);

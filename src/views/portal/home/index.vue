@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import { computed, markRaw, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, markRaw, onBeforeUnmount, ref, watch } from "vue";
 import { RouterLink, useRouter } from "vue-router";
 import {
   getAnniversaryList,
   getFootprintList,
   getHeroes,
-  getLovePhoto,
-  type FootprintItem,
-  type LovePhotoItem
+  getLovePhoto
 } from "@/api/portal";
 import { fallbackAvatar } from "@/utils/avatar";
 import { resolveUserDisplay } from "@/utils/userDisplay";
@@ -19,8 +17,9 @@ import PortalWorldMap, {
   type MapPoint
 } from "@/components/PortalWorldMap/index.vue";
 import PortalRollingNumber from "@/components/PortalRollingNumber/index.vue";
-import PortalNavIcon from "@/components/PortalNavIcon/index.vue";
 import reveal from "@/directives/reveal";
+import { queryKeys } from "@/hooks/queryKeys";
+import { usePortalQuery } from "@/hooks/usePortalQuery";
 
 defineOptions({ name: "PortalHome" });
 
@@ -58,20 +57,22 @@ function scrollToToc() {
     ?.scrollIntoView({ behavior: reduced ? "auto" : "smooth" });
 }
 
-onMounted(async () => {
-  try {
-    const { success, data } = await getHeroes();
-    if (!success || !data) return;
+/** 主角资料查询:数据到达后经展示链路解析昵称与头像(含兜底降级,恒非空) */
+const { data: heroesData } = usePortalQuery(queryKeys.heroes(), getHeroes);
+
+watch(
+  heroesData,
+  async heroes => {
+    if (!heroes) return;
     const [female, male] = await Promise.all([
-      resolveUserDisplay(data.female),
-      resolveUserDisplay(data.male)
+      resolveUserDisplay(heroes.female),
+      resolveUserDisplay(heroes.male)
     ]);
     heroAvatars.value = { female: female.avatar, male: male.avatar };
     heroNames.value = { female: female.name, male: male.name };
-  } catch {
-    // 后端不可用:回退站点名
-  }
-});
+  },
+  { immediate: true }
+);
 
 /* ---------------- 封面:恋爱计时器(每秒刷新) ---------------- */
 
@@ -183,13 +184,16 @@ const coverHearts = [
 
 /* ---------------- 卷首语:足迹世界地图 ---------------- */
 
-/** 足迹原始数据(页面挂载后拉取一次) */
-const footprintItems = ref<FootprintItem[]>([]);
+/** 足迹原始数据(缓存 5 分钟,KeepAlive 激活时过期重拉) */
+const { data: footprintItems } = usePortalQuery(
+  queryKeys.footprint(),
+  getFootprintList
+);
 
 /** 地图点位:有坐标的足迹按到访时间升序,依此连线
  * (元素经 markRaw 剥离响应式,避免 echarts 每帧重绘遍历 Proxy) */
 const mapPoints = computed<MapPoint[]>(() =>
-  footprintItems.value
+  (footprintItems.value ?? [])
     .filter(it => it.longitude != null && it.latitude != null)
     .sort((a, b) => (a.arrivalDate ?? "").localeCompare(b.arrivalDate ?? ""))
     .map(it =>
@@ -224,58 +228,37 @@ function goFootprint() {
   router.push("/footprint");
 }
 
-onMounted(async () => {
-  try {
-    const { success, data } = await getFootprintList();
-    if (success && data) footprintItems.value = data;
-  } catch {
-    // 静默降级:地图卡片保持空态展示
-  }
-});
-
 /* ---------------- 纪念日预告:最近的一个 ---------------- */
 
-/** 最近纪念日(名称 + 倒计时天数 + 日期文案) */
-const nextAnniversary = ref<{
-  name: string;
-  date: string;
-  days: number;
-} | null>(null);
+/** 最近纪念日(封面焦点):数据到达时按当日计算最近一次 occurrence */
+const { data: anniversaryItems } = usePortalQuery(
+  queryKeys.anniversaryList(),
+  getAnniversaryList
+);
 
-onMounted(async () => {
-  try {
-    const { success, data } = await getAnniversaryList();
-    if (!success || !data?.length) return;
-    let best: { name: string; date: string; days: number } | null = null;
-    for (const item of data) {
-      const days = nextOccurrenceDays(item, new Date(now.value));
-      if (days === null) continue;
-      if (!best || days < best.days) {
-        best = { name: item.name, date: item.anniversaryDate, days };
-      }
+const nextAnniversary = computed(() => {
+  const data = anniversaryItems.value;
+  if (!data?.length) return null;
+  let best: { name: string; date: string; days: number } | null = null;
+  for (const item of data) {
+    const days = nextOccurrenceDays(item, new Date());
+    if (days === null) continue;
+    if (!best || days < best.days) {
+      best = { name: item.name, date: item.anniversaryDate, days };
     }
-    nextAnniversary.value = best;
-  } catch {
-    // 静默降级
   }
+  return best;
 });
 
 /* ---------------- 恋爱画册:最新一张照片 ---------------- */
 
 /** 最新照片(取画册第一张;接口不可用/为空时整卡不渲染) */
-const latestPhoto = ref<LovePhotoItem | null>(null);
+const { data: latestPhotoPage } = usePortalQuery(
+  queryKeys.latestPhoto(),
+  () => getLovePhoto({ pageNumber: 1, pageSize: 1 })
+);
 
-onMounted(async () => {
-  try {
-    const { success, data } = await getLovePhoto({
-      pageNumber: 1,
-      pageSize: 1
-    });
-    if (success && data?.records.length) latestPhoto.value = data.records[0];
-  } catch {
-    // 静默降级:照片缺失时隐藏卡片
-  }
-});
+const latestPhoto = computed(() => latestPhotoPage.value?.records[0] ?? null);
 </script>
 
 <template>
@@ -382,7 +365,10 @@ onMounted(async () => {
           >
             <span class="toc-head">
               <span class="toc-icon-chip">
-                <PortalNavIcon :name="item.icon" class="toc-icon" />
+                <IconifyIconOffline
+                  :icon="`portal/${item.icon}`"
+                  class="toc-icon"
+                />
               </span>
               <span class="toc-title">{{ item.title }}</span>
             </span>
@@ -856,8 +842,12 @@ onMounted(async () => {
 }
 
 .toc-icon {
+  display: block;
   width: 20px;
   height: 20px;
+
+  /* 对齐门户线描视觉(lucide 内置 stroke-width 2) */
+  stroke-width: 1.8;
 }
 
 .toc-title {

@@ -2,7 +2,6 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { RouterLink } from "vue-router";
-import PortalNavIcon from "@/components/PortalNavIcon/index.vue";
 
 defineOptions({ name: "PortalHeader" });
 
@@ -207,7 +206,7 @@ function onDocClick(event: MouseEvent) {
           :aria-current="isActive(item.path) ? 'page' : undefined"
           :to="item.path"
         >
-          <PortalNavIcon :name="item.icon" class="nav-icon" />
+          <IconifyIconOffline :icon="`portal/${item.icon}`" class="nav-icon" />
           {{ item.title }}
         </RouterLink>
 
@@ -237,7 +236,10 @@ function onDocClick(event: MouseEvent) {
               :aria-current="isActive(item.path) ? 'page' : undefined"
               :to="item.path"
             >
-              <PortalNavIcon :name="item.icon" class="nav-more-icon" />
+              <IconifyIconOffline
+                :icon="`portal/${item.icon}`"
+                class="nav-more-icon"
+              />
               {{ item.title }}
             </RouterLink>
           </div>
@@ -332,7 +334,10 @@ function onDocClick(event: MouseEvent) {
             :style="{ '--drawer-delay': `${i * 45}ms` }"
             :to="item.path"
           >
-            <PortalNavIcon :name="item.icon" class="drawer-icon" />
+            <IconifyIconOffline
+              :icon="`portal/${item.icon}`"
+              class="drawer-icon"
+            />
             <span class="drawer-title">{{ item.title }}</span>
           </RouterLink>
         </nav>
@@ -473,10 +478,32 @@ function onDocClick(event: MouseEvent) {
   transform: scaleX(1);
 }
 
-/* 图标不设色:继承条目文字颜色,悬停/激活自动联动 */
+/* 图标不设色:继承条目文字颜色,悬停/激活自动联动;
+   stroke-width 显式 1.8 对齐原线描视觉(lucide 内置 2),悬停加粗至 2.2 */
+.nav-icon,
+.nav-more-icon,
+.drawer-icon {
+  display: block;
+  flex-shrink: 0;
+  stroke-width: 1.8;
+  transition:
+    transform var(--am-duration-fast) var(--am-ease),
+    stroke-width var(--am-duration-fast) var(--am-ease),
+    filter var(--am-duration-fast) var(--am-ease);
+}
+
 .nav-icon {
   width: 15px;
   height: 15px;
+}
+
+/* 降级:减弱动效偏好下仅保留描边变化,关闭位移与光晕 */
+@media (prefers-reduced-motion: reduce) {
+  .nav-icon,
+  .nav-more-icon,
+  .drawer-icon {
+    transition: stroke-width var(--am-duration-fast) var(--am-ease);
+  }
 }
 
 /* 悬停微动效:描边加粗 + 轻浮起 + 玫瑰光晕(仅 transform/filter,不触发布局回流) */

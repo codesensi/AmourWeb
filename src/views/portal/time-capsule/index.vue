@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, ref } from "vue";
 import { getTimeCapsule, type TimeCapsuleItem } from "@/api/portal";
-import { usePagedList } from "@/hooks/usePagedList";
+import { queryKeys } from "@/hooks/queryKeys";
+import { usePortalList } from "@/hooks/usePortalQuery";
 import PortalLoadMore from "@/components/PortalLoadMore/index.vue";
-import PortalSkeleton from "@/components/PortalSkeleton/index.vue";
 import reveal from "@/directives/reveal";
 
 defineOptions({ name: "PortalTimeCapsule" });
 
 const vReveal = reveal;
 
-/** 门户「加载更多」分页加载(每页 6 封) */
-const { items, loading, hasMore, loadMore } =
-  usePagedList<TimeCapsuleItem>(getTimeCapsule);
-
-onMounted(() => loadMore());
+/** 门户「加载更多」分页加载(每页 6 封);首拉与 KeepAlive 激活校验由查询层接管 */
+const { items, loading, hasMore, loadMore } = usePortalList<TimeCapsuleItem>(
+  queryKeys.timeCapsule(),
+  getTimeCapsule
+);
 
 /** 已展开的信件 id 集合(到期信点击封面后展开) */
 const opened = ref(new Set<number>());
@@ -134,7 +134,7 @@ const formatOpenTime = computed(
     </div>
 
     <!-- 首屏加载:杂志线框骨架屏 -->
-    <PortalSkeleton v-if="loading && items.length === 0" :rows="2" />
+    <el-skeleton v-if="loading && items.length === 0" :rows="2" animated />
 
     <div v-if="!loading && items.length === 0" class="am-empty">
       还没有寄出过信,第一封时间胶囊正在书写…

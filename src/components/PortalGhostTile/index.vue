@@ -51,7 +51,7 @@ onUnmounted(() => clearTimeout(timer));
 </template>
 
 <style scoped>
-/* 呼吸占位:与 PortalSkeleton 同源的灰色渐变,不引入位移避免抖动 */
+/* 呼吸占位:灰色渐变脉冲,不引入位移避免抖动 */
 .portal-ghost {
   min-height: var(--portal-ghost-min-h, 72px);
   background: linear-gradient(

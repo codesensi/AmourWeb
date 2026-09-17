@@ -18,13 +18,15 @@ import {
   insertDict,
   updateDict
 } from "@/api/dict";
-import { useDictStoreHook } from "@/store/modules/dict";
+import { useQueryClient } from "@tanstack/vue-query";
 import { useDict } from "@/hooks/useDict";
+import { queryKeys } from "@/hooks/queryKeys";
 import { DICT_CODES } from "@/api/dict";
 import { h, ref, toRaw, reactive, computed, onMounted } from "vue";
 import type { SysDictPageItem, SysDictTypeItem } from "@/api/dict";
 
 export function useDictPage() {
+  const queryClient = useQueryClient();
   // ===== 左侧:字典类型列表 =====
   const types = ref<Array<SysDictTypeItem>>([]);
   const typeKeyword = ref("");
@@ -124,7 +126,8 @@ export function useDictPage() {
         "字典条目"
       ]),
     // 状态影响消费端的 list-by-codes 结果,提交成功后同步刷新字典缓存
-    afterSubmit: row => useDictStoreHook().refresh(row.dictCode)
+    afterSubmit: row =>
+      queryClient.invalidateQueries({ queryKey: queryKeys.dict(row.dictCode).key })
   });
   // 状态开关列统一渲染(内置行禁用启停 + 权限门控,加载态来自 useStatusSwitch)
   const statusColumn = useStatusColumn<Required<SysDictPageItem>>({
@@ -148,7 +151,9 @@ export function useDictPage() {
     // 删除影响消费端的 list-by-codes 结果,同步刷新涉及编码的字典缓存与左侧类型计数
     afterDeleted: async rows => {
       for (const code of new Set(rows.map(item => item.dictCode))) {
-        await useDictStoreHook().refresh(code);
+        await queryClient.invalidateQueries({
+          queryKey: queryKeys.dict(code).key
+        });
       }
       await loadTypes();
       search();
@@ -241,7 +246,9 @@ export function useDictPage() {
           await insertDict(curData);
         }
         // 写后联动:刷新消费端字典缓存 + 左侧类型计数 + 右侧表格
-        await useDictStoreHook().refresh(curData.dictCode);
+        await queryClient.invalidateQueries({
+          queryKey: queryKeys.dict(curData.dictCode).key
+        });
         await loadTypes();
         search();
         message(

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { useDictStoreHook } from "@/store/modules/dict";
+import { useDict } from "@/hooks/useDict";
 
 defineOptions({ name: "DictSelect", inheritAttrs: false });
 
@@ -14,14 +14,8 @@ const props = withDefaults(
   { valueType: "string" }
 );
 
-const store = useDictStoreHook();
-// 仅在 setup 时按初始编码拉取一次:store 内部有缓存,重复挂载不重复请求;
-// 当前所有调用方的 dictCode 均为静态字面量;若未来需要动态切换编码,
-// 需改为 watch(dictCode, code => store.load([code]))
-store.load([props.dictCode]);
-
-/** 组内条目(响应式,首次加载完成后自动更新) */
-const options = computed(() => store.group(props.dictCode));
+/** 组内条目(响应式);取数走查询层,key 携带编码,重复挂载不重复请求 */
+const { options } = useDict(props.dictCode);
 
 /** 依据 valueType 转换选项绑定值 */
 function parseValue(dictValue: string) {

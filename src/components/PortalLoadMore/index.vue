@@ -2,7 +2,7 @@
 defineOptions({ name: "PortalLoadMore" });
 
 defineProps<{
-  /** 是否处于加载中(文案切换与防重入由 usePagedList 的 loading 驱动) */
+  /** 是否处于加载中(文案切换与防重入由 usePortalList 的 loading 驱动) */
   loading: boolean;
   /** 是否还有更多数据(到底后隐藏按钮) */
   hasMore: boolean;

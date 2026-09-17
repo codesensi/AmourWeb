@@ -1,43 +1,37 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed } from "vue";
 import { getFootprintList, type FootprintItem } from "@/api/portal";
-import PortalSkeleton from "@/components/PortalSkeleton/index.vue";
-import PortalLightbox, {
-  type LightboxItem
-} from "@/components/PortalLightbox/index.vue";
 import reveal from "@/directives/reveal";
 import { useLightbox } from "@/hooks/useLightbox";
+import { queryKeys } from "@/hooks/queryKeys";
+import { usePortalQuery } from "@/hooks/usePortalQuery";
 
 defineOptions({ name: "PortalFootprint" });
 
 const vReveal = reveal;
 
-/** 足迹全量列表(接口不可用/为空时展示空态) */
-const items = ref<FootprintItem[]>([]);
-/** 首屏加载态:骨架屏展示窗口 */
-const loading = ref(true);
+/** 足迹全量列表(接口不可用/为空时展示空态);首拉与 KeepAlive 激活校验由查询层接管 */
+const { data: items, isLoading: loading } = usePortalQuery(
+  queryKeys.footprint(),
+  getFootprintList
+);
 
 /** 按到访日期升序排列(时间轴按旅程推进) */
 const journey = computed(() =>
-  [...items.value].sort((a, b) =>
+  [...(items.value ?? [])].sort((a, b) =>
     (a.arrivalDate ?? "").localeCompare(b.arrivalDate ?? "")
   )
 );
 
-onMounted(async () => {
-  try {
-    const { success, data } = await getFootprintList();
-    if (success && data) items.value = data;
-  } catch {
-    // 静默降级
-  } finally {
-    loading.value = false;
-  }
-});
-
 /* ---------------- 纪念照影院模式 ---------------- */
 
 const { lightboxOpen, lightboxIndex, openAt: openLightbox } = useLightbox();
+
+/** 影院模式图片项 */
+interface LightboxItem {
+  url: string;
+  caption?: string;
+}
 
 /** 带照片的足迹(影院模式数据源) */
 const photoItems = computed<LightboxItem[]>(() =>
@@ -47,6 +41,11 @@ const photoItems = computed<LightboxItem[]>(() =>
       url: it.photoUrl as string,
       caption: `${it.city}${it.arrivalDate ? ` · ${it.arrivalDate}` : ""}`
     }))
+);
+
+/** 当前图注(el-image-viewer 的 default 插槽内展示) */
+const currentCaption = computed(
+  () => photoItems.value[lightboxIndex.value]?.caption
 );
 
 /** 打开纪念照 */
@@ -119,18 +118,24 @@ function coordText(it: FootprintItem): string {
     </ol>
 
     <!-- 首屏加载:杂志线框骨架屏;加载完为空则展示空态 -->
-    <PortalSkeleton v-if="loading" :rows="3" />
+    <el-skeleton v-if="loading" :rows="3" animated />
 
     <div v-else-if="!journey.length" class="am-empty">
       地图上还没有脚印,第一站正在计划中…
     </div>
 
-    <!-- 纪念照影院模式 -->
-    <PortalLightbox
-      v-model:open="lightboxOpen"
-      v-model:index="lightboxIndex"
-      :items="photoItems"
-    />
+    <!-- 纪念照影院模式:EP 内置键盘/缩放/循环切换;default 插槽承载图注 -->
+    <el-image-viewer
+      v-if="lightboxOpen"
+      :url-list="photoItems.map(p => p.url)"
+      :initial-index="lightboxIndex"
+      hide-on-click-modal
+      teleported
+      @close="lightboxOpen = false"
+      @switch="(i: number) => (lightboxIndex = i)"
+    >
+      <p v-if="currentCaption" class="viewer-caption">{{ currentCaption }}</p>
+    </el-image-viewer>
   </div>
 </template>
 
@@ -251,6 +256,24 @@ function coordText(it: FootprintItem): string {
   font-size: var(--am-text-sm);
   line-height: 1.8;
   color: var(--am-ink-secondary);
+}
+
+/* 影院模式图注:viewer 层内底部居中,半透明墨底白字 */
+.viewer-caption {
+  position: absolute;
+  bottom: 52px;
+  left: 50%;
+  max-width: 80%;
+  padding: 8px 20px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: var(--am-text-sm);
+  color: #fff;
+  white-space: nowrap;
+  background: rgb(0 0 0 / 45%);
+  border-radius: 999px;
+  backdrop-filter: blur(4px);
+  transform: translateX(-50%);
 }
 
 @media (width <= 640px) {

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { getMoment, type MomentsItem } from "@/api/portal";
-import PortalSkeleton from "@/components/PortalSkeleton/index.vue";
+import { getMoment } from "@/api/portal";
 import reveal from "@/directives/reveal";
+import { queryKeys } from "@/hooks/queryKeys";
+import { usePortalQuery } from "@/hooks/usePortalQuery";
 
 defineOptions({ name: "PortalMomentDetail" });
 
@@ -12,32 +12,12 @@ const vReveal = reveal;
 const route = useRoute();
 const router = useRouter();
 
-/** 文章详情(接口不可用/未命中时展示空态) */
-const article = ref<MomentsItem | null>(null);
-const loading = ref(true);
-
-/** 拉取文章详情;未命中(id 无效)时保持空态展示 */
-async function fetchDetail() {
-  loading.value = true;
-  try {
-    const { success, data } = await getMoment(Number(route.params.id));
-    if (success && data) article.value = data;
-  } catch {
-    // 静默降级为空态
-  } finally {
-    loading.value = false;
-  }
-}
-
-/** 同组件路由参数变化(如深链直达/文章间跳转)时重新拉取 */
-watch(
-  () => route.params.id,
-  id => {
-    if (id) fetchDetail();
-  }
+/** 文章详情(接口不可用/未命中时展示空态);
+ * key 携带路由参数,文章间跳转/深链直达时自动重新拉取 */
+const { data: article, isLoading: loading } = usePortalQuery(
+  () => queryKeys.moment(Number(route.params.id)),
+  () => getMoment(Number(route.params.id))
 );
-
-onMounted(fetchDetail);
 
 /** 返回列表:始终 push,深链直达时也能回到点点滴滴 */
 function goBack() {
@@ -64,7 +44,7 @@ function goBack() {
     </button>
 
     <!-- 首屏加载:杂志线框骨架屏 -->
-    <PortalSkeleton v-if="loading" :rows="3" />
+    <el-skeleton v-if="loading" :rows="3" animated />
 
     <article v-else-if="article" v-reveal class="moment-article reveal">
       <p class="moment-kicker">Little Moments · 甜甜的日常</p>

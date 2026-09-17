@@ -41,6 +41,11 @@ import RiTerminalWindowLine from "~icons/ri/terminal-window-line?raw";
 import RiCheckboxCircleLine from "~icons/ri/checkbox-circle-line?raw";
 import RiBarChartHorizontalLine from "~icons/ri/bar-chart-horizontal-line?raw";
 
+// https://icon-sets.iconify.design/lucide/?keyword=lucide —— 门户导航线描图标
+// (lucide 为 Feather 社区延续版,24×24 圆头线描,与门户杂志线框风同源;
+//  注意门户路由不经管理端 layout,portal/* 的注册在 main.ts 全局执行,
+//  见 src/components/ReIcon/src/portalIcons.ts)
+
 const icons = [
   // Element Plus Icon: https://github.com/element-plus/element-plus-icons
   ["ep/menu", EpMenu],

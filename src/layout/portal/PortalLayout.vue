@@ -3,7 +3,6 @@ import { onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import PortalHeader from "./PortalHeader.vue";
 import PortalFooter from "./PortalFooter.vue";
-import PortalBackTop from "@/components/PortalBackTop/index.vue";
 import { providePortalSysConfig } from "./usePortalSysConfig";
 import {
   applySiteFavicon,
@@ -73,7 +72,14 @@ function onPortalEnter() {
       </RouterView>
     </div>
     <PortalFooter />
-    <PortalBackTop />
+    <!-- 回到顶部:EP 内置滚动监听与显隐(600px 浮现),样式经门户作用域对齐线框风 -->
+    <el-backtop
+      :visibility-height="600"
+      :right="24"
+      :bottom="32"
+      class="portal-backtop"
+      aria-label="回到顶部"
+    />
   </div>
 </template>
 
@@ -102,6 +108,22 @@ function onPortalEnter() {
 /* 内容区最小高度:避免短页面(如空态列表页)切换时页脚大幅上跳 */
 .portal-content {
   min-height: 60vh;
+}
+
+/* 回到顶部:对齐门户线框风(圆形墨线框 + 玫瑰色悬停),覆盖 EP 默认白块阴影 */
+.portal-backtop {
+  color: var(--am-ink-secondary);
+  background: var(--am-card);
+  border: 1px solid var(--am-line);
+  box-shadow: none;
+  transition:
+    color var(--am-duration) ease,
+    border-color var(--am-duration) ease;
+}
+
+.portal-backtop:hover {
+  color: var(--am-rose);
+  border-color: var(--am-rose);
 }
 
 /* 路由切换过渡:进入时轻微上移淡入,离开仅快速淡出,消除瞬间替换的闪屏感 */

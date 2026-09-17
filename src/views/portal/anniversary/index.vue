@@ -1,18 +1,21 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed } from "vue";
 import { getAnniversaryList, type AnniversaryItem } from "@/api/portal";
-import PortalSkeleton from "@/components/PortalSkeleton/index.vue";
 import { anniversaryMonthDay, nextOccurrenceDays } from "@/utils/anniversary";
 import reveal from "@/directives/reveal";
+import { queryKeys } from "@/hooks/queryKeys";
+import { usePortalQuery } from "@/hooks/usePortalQuery";
 
 defineOptions({ name: "PortalAnniversary" });
 
 const vReveal = reveal;
 
-/** 纪念日全量列表(接口不可用/为空时展示空态) */
-const items = ref<AnniversaryItem[]>([]);
-/** 首屏加载态:骨架屏展示窗口 */
-const loading = ref(true);
+/** 纪念日全量列表(接口不可用/为空时展示空态);
+ * 数据极低频,缓存后不再重拉,倒计时由本地时钟每秒驱动 */
+const { data: items, isLoading: loading } = usePortalQuery(
+  queryKeys.anniversaryList(),
+  getAnniversaryList
+);
 
 /** 类型文案与线描图标标识 */
 const TYPE_META: Record<number, { label: string; icon: string }> = {
@@ -27,7 +30,7 @@ function typeMeta(type: number | undefined) {
 
 /** 全量条目附倒计时(按剩余天数升序;一次性过去日期不展示) */
 const countdownItems = computed(() => {
-  return items.value
+  return (items.value ?? [])
     .map(item => ({ item, days: nextOccurrenceDays(item) }))
     .filter(
       (it): it is { item: AnniversaryItem; days: number } => it.days !== null
@@ -37,17 +40,6 @@ const countdownItems = computed(() => {
 
 /** 最近纪念日(封面焦点) */
 const nearest = computed(() => countdownItems.value[0] ?? null);
-
-onMounted(async () => {
-  try {
-    const { success, data } = await getAnniversaryList();
-    if (success && data) items.value = data;
-  } catch {
-    // 静默降级:保持空态
-  } finally {
-    loading.value = false;
-  }
-});
 </script>
 
 <template>
@@ -159,7 +151,7 @@ onMounted(async () => {
     </ol>
 
     <!-- 首屏加载:杂志线框骨架屏;加载完为空则展示空态 -->
-    <PortalSkeleton v-if="loading" :rows="3" />
+    <el-skeleton v-if="loading" :rows="3" animated />
 
     <div v-else-if="!countdownItems.length" class="am-empty">
       日历还是空的,去后台添加第一个纪念日吧…

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { getDiary, type DiaryItem } from "@/api/portal";
-import { usePagedList } from "@/hooks/usePagedList";
+import { queryKeys } from "@/hooks/queryKeys";
+import { usePortalList } from "@/hooks/usePortalQuery";
 import PortalLoadMore from "@/components/PortalLoadMore/index.vue";
-import PortalSkeleton from "@/components/PortalSkeleton/index.vue";
 import { fallbackAvatar } from "@/utils/avatar";
 import { prefersReducedMotion } from "@/utils/motion";
 import reveal from "@/directives/reveal";
@@ -12,13 +12,13 @@ defineOptions({ name: "PortalDiary" });
 
 const vReveal = reveal;
 
-/** 门户「加载更多」分页加载(每页 12 篇:双栏布局左右各 6 篇) */
-const { items, loading, hasMore, loadMore } = usePagedList<DiaryItem>(
+/** 门户「加载更多」分页加载(每页 12 篇:双栏布局左右各 6 篇);
+ * 首拉与 KeepAlive 激活校验由查询层接管 */
+const { items, loading, hasMore, loadMore } = usePortalList<DiaryItem>(
+  queryKeys.diary(),
   getDiary,
   { pageSize: 12 }
 );
-
-onMounted(() => loadMore());
 
 /** 展开状态(超过 2 行截断展开) */
 const expanded = ref(new Set<number>());
@@ -108,7 +108,7 @@ function scheduleMeasure() {
 let measureRaf = 0;
 
 /* 新数据渲染后与展开/收起后都要重新量测;
- * usePagedList 对 items 是原地 push,必须监听 length 而非 ref 本身 */
+ * 分页扁平列表是 computed 重算结果,监听 length 以过滤无关引用变化 */
 watch(
   () => items.value.length,
   () => nextTick(measureOverflow)
@@ -252,7 +252,7 @@ function moodIcon(mood: string | null): string | null {
     </div>
 
     <!-- 首屏加载:杂志线框骨架屏 -->
-    <PortalSkeleton v-if="loading && items.length === 0" :rows="2" />
+    <el-skeleton v-if="loading && items.length === 0" :rows="2" animated />
 
     <div v-if="!loading && items.length === 0" class="am-empty">
       今天还没有日记,写下第一篇吧…

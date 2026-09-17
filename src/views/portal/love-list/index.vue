@@ -1,25 +1,22 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, ref } from "vue";
 import { getLoveList, type LoveListItem } from "@/api/portal";
-import { usePagedList } from "@/hooks/usePagedList";
+import { queryKeys } from "@/hooks/queryKeys";
+import { usePortalList } from "@/hooks/usePortalQuery";
 import PortalLoadMore from "@/components/PortalLoadMore/index.vue";
 import PortalGhostTile from "@/components/PortalGhostTile/index.vue";
 import { useLightbox } from "@/hooks/useLightbox";
-import PortalSkeleton from "@/components/PortalSkeleton/index.vue";
-import PortalLightbox, {
-  type LightboxItem
-} from "@/components/PortalLightbox/index.vue";
 import reveal from "@/directives/reveal";
 
 defineOptions({ name: "PortalLoveList" });
 
 const vReveal = reveal;
 
-/** 门户「加载更多」分页加载(每页 6 条) */
-const { items, loading, hasMore, loadMore } =
-  usePagedList<LoveListItem>(getLoveList);
-
-onMounted(() => loadMore());
+/** 门户「加载更多」分页加载(每页 6 条);首拉与 KeepAlive 激活校验由查询层接管 */
+const { items, loading, hasMore, loadMore } = usePortalList<LoveListItem>(
+  queryKeys.loveList(),
+  getLoveList
+);
 
 /* ---------------- 进度统计 ---------------- */
 
@@ -51,10 +48,15 @@ const visibleItems = computed(() => {
 const { lightboxOpen, lightboxIndex, openAt: openLightbox } = useLightbox();
 
 /** 纪念照数据源(仅已完成且带照片的项) */
-const photoItems = computed<LightboxItem[]>(() =>
+const photoItems = computed(() =>
   visibleItems.value
     .filter(it => it.done && it.img)
     .map(it => ({ url: it.img as string, caption: it.text }))
+);
+
+/** 当前图注(el-image-viewer 的 default 插槽内展示) */
+const currentCaption = computed(
+  () => photoItems.value[lightboxIndex.value]?.caption
 );
 
 /** 打开纪念照 */
@@ -161,7 +163,7 @@ function openPhoto(item: LoveListItem) {
         </ul>
 
         <!-- 首屏加载:杂志线框骨架屏 -->
-        <PortalSkeleton v-if="loading && items.length === 0" :rows="4" />
+        <el-skeleton v-if="loading && items.length === 0" :rows="4" animated />
 
         <div v-if="!loading && items.length === 0" class="am-empty">
           清单还是空的,写下第一个约定吧…
@@ -176,16 +178,41 @@ function openPhoto(item: LoveListItem) {
       </div>
     </div>
 
-    <!-- 纪念照影院模式 -->
-    <PortalLightbox
-      v-model:open="lightboxOpen"
-      v-model:index="lightboxIndex"
-      :items="photoItems"
-    />
+    <!-- 纪念照影院模式:EP 内置键盘/缩放/循环切换;default 插槽承载图注 -->
+    <el-image-viewer
+      v-if="lightboxOpen"
+      :url-list="photoItems.map(p => p.url)"
+      :initial-index="lightboxIndex"
+      hide-on-click-modal
+      teleported
+      @close="lightboxOpen = false"
+      @switch="(i: number) => (lightboxIndex = i)"
+    >
+      <p v-if="currentCaption"
+        class="viewer-caption"
+      >{{ currentCaption }}</p>
+    </el-image-viewer>
   </div>
 </template>
 
 <style scoped>
+.viewer-caption {
+  position: absolute;
+  bottom: 52px;
+  left: 50%;
+  max-width: 80%;
+  padding: 8px 20px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: var(--am-text-sm);
+  color: #fff;
+  white-space: nowrap;
+  background: rgb(0 0 0 / 45%);
+  border-radius: 999px;
+  backdrop-filter: blur(4px);
+  transform: translateX(-50%);
+}
+
 .list-intro {
   margin-top: 6px;
   font-size: var(--am-text-sm);

@@ -1,21 +1,20 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
 import { RouterLink } from "vue-router";
 import { getMoments, type MomentsItem } from "@/api/portal";
-import { usePagedList } from "@/hooks/usePagedList";
+import { queryKeys } from "@/hooks/queryKeys";
+import { usePortalList } from "@/hooks/usePortalQuery";
 import PortalLoadMore from "@/components/PortalLoadMore/index.vue";
-import PortalSkeleton from "@/components/PortalSkeleton/index.vue";
 import reveal from "@/directives/reveal";
 
 defineOptions({ name: "PortalMoments" });
 
 const vReveal = reveal;
 
-/** 门户「加载更多」分页加载(每页 6 条) */
-const { items, loading, hasMore, loadMore } =
-  usePagedList<MomentsItem>(getMoments);
-
-onMounted(() => loadMore());
+/** 门户「加载更多」分页加载(每页 6 条);首拉与 KeepAlive 激活校验由查询层接管 */
+const { items, loading, hasMore, loadMore } = usePortalList<MomentsItem>(
+  queryKeys.moments(),
+  getMoments
+);
 
 /** 富文本摘要:去标签取纯文本并统一截断,引导进入详情页阅读全文 */
 function excerptOf(html: string, max = 96): string {
@@ -74,7 +73,7 @@ function excerptOf(html: string, max = 96): string {
     </article>
 
     <!-- 首屏加载:杂志线框骨架屏 -->
-    <PortalSkeleton v-if="loading && items.length === 0" :rows="3" />
+    <el-skeleton v-if="loading && items.length === 0" :rows="3" animated />
 
     <div v-if="!loading && items.length === 0" class="am-empty">
       暂无记录,第一篇正在路上…
