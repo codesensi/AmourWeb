@@ -4,7 +4,7 @@
 import { reactive, ref } from "vue";
 import { useUserStoreHook } from "@/store/modules/user";
 import { getCurrentUser } from "@/api/auth";
-import type { ProfileInfo } from "@/api/profile";
+import type { ProfileInfo } from "@/api/user-profile";
 import ProfileForm from "./components/ProfileForm.vue";
 import RenameCard from "./components/RenameCard.vue";
 import PasswordCard from "./components/PasswordCard.vue";

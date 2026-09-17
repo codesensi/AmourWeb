@@ -5,7 +5,7 @@ import { message } from "@/utils/message";
 import { useUserStoreHook } from "@/store/modules/user";
 import { ZxcvbnFactory } from "@zxcvbn-ts/core";
 import type { FormInstance } from "element-plus";
-import { updatePassword } from "@/api/profile";
+import { updatePassword } from "@/api/user-profile";
 import { confirmAction } from "@/utils/message";
 import keyIcon from "~icons/ep/key";
 

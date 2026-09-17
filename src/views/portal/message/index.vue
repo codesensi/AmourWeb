@@ -7,9 +7,9 @@ import {
 } from "@/api/portal/message";
 import { message } from "@/utils/message";
 import { fallbackAvatar, notifyFallbackAvatar } from "@/utils/avatar";
-import { fetchQqInfo, QQ_PATTERN } from "@/utils/qqInfo";
+import { fetchQqInfo, QQ_PATTERN } from "@/utils/qq-info";
 import { scrollToTop } from "@/utils/motion";
-import { queryKeys } from "@/hooks/queryKeys";
+import { queryKeys } from "@/hooks/query-keys";
 import { usePortalList } from "@/hooks/usePortalQuery";
 import PortalLoadMore from "@/components/PortalLoadMore/index.vue";
 import reveal from "@/directives/reveal";

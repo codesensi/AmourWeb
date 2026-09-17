@@ -7,7 +7,7 @@ import { DictSelect } from "@/components/DictSelect";
 import { message } from "@/utils/message";
 import { useUserStoreHook } from "@/store/modules/user";
 import type { FormInstance, FormRules } from "element-plus";
-import { updateProfile, type ProfileInfo } from "@/api/profile";
+import { updateProfile, type ProfileInfo } from "@/api/user-profile";
 import warningFilledIcon from "~icons/ep/warning-filled";
 
 const props = defineProps<{

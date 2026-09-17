@@ -4,7 +4,7 @@ import { siteTitle } from "@/config";
 import NProgress from "@/utils/progress";
 import { buildHierarchyTree } from "@/utils/tree";
 import remainingRouter from "./modules/remaining";
-import { useMultiTagsStoreHook } from "@/store/modules/multiTags";
+import { useMultiTagsStoreHook } from "@/store/modules/multi-tags";
 import { usePermissionStoreHook } from "@/store/modules/permission";
 import { isUrl, openLink, cloneDeep, isAllEmpty } from "@pureadmin/utils";
 import {

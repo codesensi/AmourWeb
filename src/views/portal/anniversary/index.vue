@@ -6,7 +6,7 @@ import {
 } from "@/api/portal/anniversary";
 import { anniversaryMonthDay, nextOccurrenceDays } from "@/utils/anniversary";
 import reveal from "@/directives/reveal";
-import { queryKeys } from "@/hooks/queryKeys";
+import { queryKeys } from "@/hooks/query-keys";
 import { usePortalQuery } from "@/hooks/usePortalQuery";
 
 defineOptions({ name: "PortalAnniversary" });

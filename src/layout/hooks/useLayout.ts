@@ -1,7 +1,7 @@
 import { computed } from "vue";
 import { routerArrays } from "../types";
 import { useGlobal } from "@pureadmin/utils";
-import { useMultiTagsStore } from "@/store/modules/multiTags";
+import { useMultiTagsStore } from "@/store/modules/multi-tags";
 
 export function useLayout() {
   const { $storage, $config } = useGlobal<GlobalPropertiesApi>();

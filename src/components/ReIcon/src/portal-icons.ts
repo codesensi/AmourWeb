@@ -1,5 +1,5 @@
 // 门户导航图标注册(lucide 线描集):在 main.ts 全局执行,
-// 门户路由不经管理端 layout(offlineIcon.ts 的注册时机),故 portal/* 独立在此注册。
+// 门户路由不经管理端 layout(offline-icon.ts 的注册时机),故 portal/* 独立在此注册。
 // key 与门户路由 meta 的 icon 语义名对齐,PortalHeader/home 经
 // IconifyIconOffline 以 "portal/<name>" 引用。
 import { getSvgInfo } from "@pureadmin/utils";

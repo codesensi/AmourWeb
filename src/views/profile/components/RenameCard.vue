@@ -4,7 +4,7 @@ import { computed, reactive, ref } from "vue";
 import { confirmAction, message } from "@/utils/message";
 import { useUserStoreHook } from "@/store/modules/user";
 import type { FormInstance, FormRules } from "element-plus";
-import { renameUser } from "@/api/profile";
+import { renameUser } from "@/api/user-profile";
 import editPenIcon from "~icons/ep/edit-pen";
 
 const props = defineProps<{

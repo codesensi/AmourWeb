@@ -7,7 +7,7 @@ import {
   routerArrays
 } from "../utils";
 import { type LoginRequest, type LoginResult, login, logout } from "@/api/auth";
-import { useMultiTagsStoreHook } from "./multiTags";
+import { useMultiTagsStoreHook } from "./multi-tags";
 import { setToken, removeToken, getStoredUserInfo } from "@/utils/auth";
 
 export const useUserStore = defineStore("pure-user", {

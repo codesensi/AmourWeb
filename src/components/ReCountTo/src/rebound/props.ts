@@ -1,5 +1,5 @@
 import type { PropType } from "vue";
-import propTypes from "@/utils/propTypes";
+import propTypes from "@/utils/prop-types";
 
 export const reboundProps = {
   delay: propTypes.number.def(1),

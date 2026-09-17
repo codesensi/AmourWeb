@@ -1,5 +1,5 @@
-import iconifyIconOffline from "./src/iconifyIconOffline";
-import iconifyIconOnline from "./src/iconifyIconOnline";
+import iconifyIconOffline from "./src/iconify-icon-offline";
+import iconifyIconOnline from "./src/iconify-icon-online";
 import iconSelect from "./src/Select.vue";
 import fontIcon from "./src/iconfont";
 

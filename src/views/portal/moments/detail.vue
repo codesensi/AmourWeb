@@ -2,7 +2,7 @@
 import { useRoute, useRouter } from "vue-router";
 import { getMoment } from "@/api/portal/moments";
 import reveal from "@/directives/reveal";
-import { queryKeys } from "@/hooks/queryKeys";
+import { queryKeys } from "@/hooks/query-keys";
 import { usePortalQuery } from "@/hooks/usePortalQuery";
 
 defineOptions({ name: "PortalMomentDetail" });

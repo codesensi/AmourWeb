@@ -2,10 +2,10 @@
 // @ts-nocheck
 import type { Props } from "../types";
 import { useResizeObserver } from "@pureadmin/utils";
-import { useEpThemeStoreHook } from "@/store/modules/epTheme";
+import { useEpThemeStoreHook } from "@/store/modules/ep-theme";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { ref, computed, getCurrentInstance, onMounted } from "vue";
-import EnterOutlined from "@/assets/svg/enter_outlined.svg?component";
+import EnterOutlined from "@/assets/svg/enter-outlined.svg?component";
 
 interface Emits {
   (e: "update:value", val: string): void;

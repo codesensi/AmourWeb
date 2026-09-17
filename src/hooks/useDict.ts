@@ -1,7 +1,7 @@
 import { computed } from "vue";
 import { useQueryClient } from "@tanstack/vue-query";
 import { getDictByCodes, type SysDictItem } from "@/api/sys-dict";
-import { queryKeys } from "@/hooks/queryKeys";
+import { queryKeys } from "@/hooks/query-keys";
 import { usePortalQuery } from "@/hooks/usePortalQuery";
 
 /**

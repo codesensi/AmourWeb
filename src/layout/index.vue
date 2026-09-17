@@ -1,8 +1,8 @@
 <script setup lang="ts">
 // @ts-nocheck
 import "animate.css";
-// 引入 src/components/ReIcon/src/offlineIcon.ts 文件中所有使用addIcon添加过的本地图标
-import "@/components/ReIcon/src/offlineIcon";
+// 引入 src/components/ReIcon/src/offline-icon.ts 文件中所有使用addIcon添加过的本地图标
+import "@/components/ReIcon/src/offline-icon";
 import { setType } from "./types";
 import { useLayout } from "./hooks/useLayout";
 import { useAppStoreHook } from "@/store/modules/app";
@@ -30,7 +30,7 @@ import LayContent from "./components/lay-content/index.vue";
 import LaySetting from "./components/lay-setting/index.vue";
 import NavVertical from "./components/lay-sidebar/NavVertical.vue";
 import NavHorizontal from "./components/lay-sidebar/NavHorizontal.vue";
-import BackTopIcon from "@/assets/svg/back_top.svg?component";
+import BackTopIcon from "@/assets/svg/back-top.svg?component";
 
 const appWrapperRef = ref();
 const { isDark } = useDark();

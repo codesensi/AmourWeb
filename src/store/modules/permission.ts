@@ -10,7 +10,7 @@ import {
   filterNoPermissionTree,
   formatFlatteningRoutes
 } from "../utils";
-import { useMultiTagsStoreHook } from "./multiTags";
+import { useMultiTagsStoreHook } from "./multi-tags";
 
 export const usePermissionStore = defineStore("pure-permission", {
   state: () => ({

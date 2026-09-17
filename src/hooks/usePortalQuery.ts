@@ -18,7 +18,7 @@ import {
   useQueryClient
 } from "@tanstack/vue-query";
 import type { ApiResult, PageQuery, PageResult } from "@/api/types";
-import type { PortalResource } from "@/hooks/queryKeys";
+import type { PortalResource } from "@/hooks/query-keys";
 
 /** 未显式声明 staleTime 时的新鲜度窗口,与 main.ts 的 QueryClient 默认值一致 */
 const DEFAULT_STALE_TIME = 60_000;

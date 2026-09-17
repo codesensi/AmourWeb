@@ -19,7 +19,7 @@ import {
 import { buildHierarchyTree } from "@/utils/tree";
 import { getStoredUserInfo } from "@/utils/auth";
 import { type menuType, routerArrays } from "@/layout/types";
-import { useMultiTagsStoreHook } from "@/store/modules/multiTags";
+import { useMultiTagsStoreHook } from "@/store/modules/multi-tags";
 import { usePermissionStoreHook } from "@/store/modules/permission";
 const IFrame = () => import("@/layout/frame.vue");
 // 目录型动态路由的容器组件(避免 path 兜底匹配到非组件模块)

@@ -9,7 +9,7 @@ import { onClickOutside } from "@vueuse/core";
 import TagChrome from "./components/TagChrome.vue";
 import { handleAliveRoute, getTopMenu } from "@/router/utils";
 import { useSettingStoreHook } from "@/store/modules/settings";
-import { useMultiTagsStoreHook } from "@/store/modules/multiTags";
+import { useMultiTagsStoreHook } from "@/store/modules/multi-tags";
 import { usePermissionStoreHook } from "@/store/modules/permission";
 import {
   ref,

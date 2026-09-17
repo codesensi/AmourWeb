@@ -24,27 +24,36 @@ export const queryKeys = {
     staleTime: 60_000
   }),
   /** 足迹到访城市列表 */
-  footprint: () => ({ key: ["footprint"], staleTime: 5 * 60_000 } as PortalResource),
+  footprint: () =>
+    ({ key: ["footprint"], staleTime: 5 * 60_000 }) as PortalResource,
   /** 纪念日全量列表 */
-  anniversaryList: () => ({ key: ["anniversary"], staleTime: Infinity } as PortalResource),
+  anniversaryList: () =>
+    ({ key: ["anniversary"], staleTime: Infinity }) as PortalResource,
   /** 点滴文章分页 */
-  moments: () => ({ key: ["moments"], staleTime: 30_000 } as PortalResource),
+  moments: () => ({ key: ["moments"], staleTime: 30_000 }) as PortalResource,
   /** 点滴文章详情(按 id 参数化) */
-  moment: (id: number) => ({ key: ["moment", id], staleTime: 30_000 } as PortalResource),
+  moment: (id: number) =>
+    ({ key: ["moment", id], staleTime: 30_000 }) as PortalResource,
   /** 恋爱日记分页 */
-  diary: () => ({ key: ["diary"], staleTime: 60_000 } as PortalResource),
+  diary: () => ({ key: ["diary"], staleTime: 60_000 }) as PortalResource,
   /** 恋爱画册分页 */
-  lovePhoto: () => ({ key: ["love-photo"], staleTime: 5 * 60_000 } as PortalResource),
+  lovePhoto: () =>
+    ({ key: ["love-photo"], staleTime: 5 * 60_000 }) as PortalResource,
   /** 恋爱清单分页 */
-  loveList: () => ({ key: ["love-list"], staleTime: 5 * 60_000 } as PortalResource),
+  loveList: () =>
+    ({ key: ["love-list"], staleTime: 5 * 60_000 }) as PortalResource,
   /** 留言板分页(访客可写,每次激活都校验) */
-  message: () => ({ key: ["message"], staleTime: 0 } as PortalResource),
+  message: () => ({ key: ["message"], staleTime: 0 }) as PortalResource,
   /** 时间胶囊分页 */
-  timeCapsule: () => ({ key: ["time-capsule"], staleTime: 60_000 } as PortalResource),
+  timeCapsule: () =>
+    ({ key: ["time-capsule"], staleTime: 60_000 }) as PortalResource,
   /** 画册最新一张(首页封面卡,独立于画册分页缓存) */
-  latestPhoto: () => ({ key: ["love-photo", "latest"], staleTime: 60_000 } as PortalResource),
+  latestPhoto: () =>
+    ({ key: ["love-photo", "latest"], staleTime: 60_000 }) as PortalResource,
   /** 字典分组(key 携带编码,同编码多组件共享缓存;staleTime=Infinity 常驻,管理侧改动后失效重拉) */
-  dict: (code: string) => ({ key: ["dict", code], staleTime: Infinity } as PortalResource),
+  dict: (code: string) =>
+    ({ key: ["dict", code], staleTime: Infinity }) as PortalResource,
   /** 站点公共配置(全键单次拉取;门户布局/登录页/站点标题经 fetchSysConfig 共享同一缓存,staleTime=Infinity 常驻) */
-  sysConfig: () => ({ key: ["sys-config"], staleTime: Infinity } as PortalResource)
+  sysConfig: () =>
+    ({ key: ["sys-config"], staleTime: Infinity }) as PortalResource
 };

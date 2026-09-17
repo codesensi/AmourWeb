@@ -7,7 +7,7 @@ import { fetchSysConfig } from "@/utils/sys-config";
 import { getPlatformConfig } from "./config";
 import { MotionPlugin } from "@vueuse/motion";
 import { VueQueryPlugin } from "@tanstack/vue-query";
-import { queryClient } from "@/plugins/vueQuery";
+import { queryClient } from "@/plugins/vue-query";
 import { createApp, type Directive } from "vue";
 import { useElementPlus } from "@/plugins/elementPlus";
 import { injectResponsiveStorage } from "@/utils/responsive";
@@ -44,7 +44,7 @@ const app = createApp(App);
 
 // 服务端数据查询层(@tanstack/vue-query):缓存、新鲜度(staleTime)、失效与
 // KeepAlive 激活校验统一由 QueryClient 承担;页面代码只声明 key + 拉取函数。
-// 实例经 plugins/vueQuery 单例导出,非组件上下文(sysConfig 站点配置)共享同一缓存
+// 实例经 plugins/vue-query 单例导出,非组件上下文(sysConfig 站点配置)共享同一缓存
 
 // 自定义指令
 import * as directives from "@/directives";
@@ -59,7 +59,7 @@ import {
   FontIcon
 } from "./components/ReIcon";
 // 门户导航图标注册(portal/*):全局执行,门户/管理端共享同一注册时机
-import "./components/ReIcon/src/portalIcons";
+import "./components/ReIcon/src/portal-icons";
 app.component("IconifyIconOffline", IconifyIconOffline);
 app.component("IconifyIconOnline", IconifyIconOnline);
 app.component("FontIcon", FontIcon);

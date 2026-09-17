@@ -1,7 +1,7 @@
 /**
  * 个人中心 mock(VITE_USE_MOCK=true 时由 vite-plugin-fake-server 按路由粒度拦截)。
  * 响应结构与后端 Result<T> 对齐(见 src/api/types.ts 的 ApiResult);
- * 接口路径与 src/api/profile.ts 一一对应(后端端点已落地,默认 VITE_USE_MOCK=false 走真接口)。
+ * 接口路径与 src/api/user-profile.ts 一一对应(后端端点已落地,默认 VITE_USE_MOCK=false 走真接口)。
  * 资料回显不走 mock:页面直接复用 /sys/user/current-user 现有接口。
  */
 import { defineFakeRoute } from "vite-plugin-fake-server/client";

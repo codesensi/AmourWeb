@@ -6,7 +6,7 @@ import { getFootprintList } from "@/api/portal/footprint";
 import { getHeroes } from "@/api/portal/hero";
 import { getLovePhoto } from "@/api/portal/love-photo";
 import { fallbackAvatar } from "@/utils/avatar";
-import { resolveUserDisplay } from "@/utils/userDisplay";
+import { resolveUserDisplay } from "@/utils/user-display";
 import { prefersReducedMotion } from "@/utils/motion";
 import { parseDateTime } from "@/utils/date";
 import { nextOccurrenceDays } from "@/utils/anniversary";
@@ -16,7 +16,7 @@ import PortalWorldMap, {
 } from "@/components/PortalWorldMap/index.vue";
 import PortalRollingNumber from "@/components/PortalRollingNumber/index.vue";
 import reveal from "@/directives/reveal";
-import { queryKeys } from "@/hooks/queryKeys";
+import { queryKeys } from "@/hooks/query-keys";
 import { usePortalQuery } from "@/hooks/usePortalQuery";
 
 defineOptions({ name: "PortalHome" });

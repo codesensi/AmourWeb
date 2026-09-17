@@ -1,7 +1,7 @@
 import { ref } from "vue";
 import { getSysConfig } from "@/api/sys-config";
-import { queryClient } from "@/plugins/vueQuery";
-import { queryKeys } from "@/hooks/queryKeys";
+import { queryClient } from "@/plugins/vue-query";
+import { queryKeys } from "@/hooks/query-keys";
 
 /** 站点公共配置键注册表 —— 前端唯一键源(字段名 → sys_config 配置键);新增配置键只改这里 */
 export const SYS_CONFIG_KEYS = {

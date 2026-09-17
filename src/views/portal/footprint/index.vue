@@ -3,7 +3,7 @@ import { computed } from "vue";
 import { getFootprintList, type FootprintItem } from "@/api/portal/footprint";
 import reveal from "@/directives/reveal";
 import { useLightbox } from "@/hooks/useLightbox";
-import { queryKeys } from "@/hooks/queryKeys";
+import { queryKeys } from "@/hooks/query-keys";
 import { usePortalQuery } from "@/hooks/usePortalQuery";
 
 defineOptions({ name: "PortalFootprint" });

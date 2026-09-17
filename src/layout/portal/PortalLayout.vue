@@ -87,6 +87,13 @@ function onPortalEnter() {
 /* 门户基础观感:杂志纸感底(纵向纵深渐变:暖粉纸色→微深暖→回归,灯下纸张的受光感)
  * + 墨色正文(令牌来自 tokens.css,深色模式随令牌自动翻转) */
 .portal {
+  display: flex;
+  flex-direction: column;
+
+  /* 纵向弹性布局:渐变纸底始终铺满视口,空数据等短页面时页脚贴底,
+   * 不再露出 body 默认白底(dvh 兜底移动端地址栏收放的动态视口) */
+  min-height: 100vh;
+  min-height: 100dvh;
   font-family: var(
     --am-font-body,
     Inter,
@@ -105,9 +112,9 @@ function onPortalEnter() {
   );
 }
 
-/* 内容区最小高度:避免短页面(如空态列表页)切换时页脚大幅上跳 */
+/* 内容区:弹性吸收 header 与 footer 之间的剩余高度(替代固定 min-height) */
 .portal-content {
-  min-height: 60vh;
+  flex: 1;
 }
 
 /* 回到顶部:对齐门户线框风(圆形墨线框 + 玫瑰色悬停),覆盖 EP 默认白块阴影 */

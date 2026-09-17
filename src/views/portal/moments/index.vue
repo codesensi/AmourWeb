@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { RouterLink } from "vue-router";
 import { getMoments, type MomentsItem } from "@/api/portal/moments";
-import { queryKeys } from "@/hooks/queryKeys";
+import { queryKeys } from "@/hooks/query-keys";
 import { usePortalList } from "@/hooks/usePortalQuery";
 import PortalLoadMore from "@/components/PortalLoadMore/index.vue";
 import reveal from "@/directives/reveal";

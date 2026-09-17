@@ -11,7 +11,7 @@ import type { tagsViewsType } from "../types";
 import { useRoute, useRouter } from "vue-router";
 import { responsiveStorageNameSpace } from "@/config";
 import { useSettingStoreHook } from "@/store/modules/settings";
-import { useMultiTagsStoreHook } from "@/store/modules/multiTags";
+import { useMultiTagsStoreHook } from "@/store/modules/multi-tags";
 import {
   isEqual,
   isBoolean,
