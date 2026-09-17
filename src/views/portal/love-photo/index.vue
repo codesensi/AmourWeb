@@ -160,9 +160,7 @@ function spanClass(i: number) {
       @close="lightboxOpen = false"
       @switch="(i: number) => (lightboxIndex = i)"
     >
-      <p v-if="currentCaption"
-        class="viewer-caption"
-      >{{ currentCaption }}</p>
+      <p v-if="currentCaption" class="viewer-caption">{{ currentCaption }}</p>
     </el-image-viewer>
   </div>
 </template>
@@ -329,8 +327,9 @@ function spanClass(i: number) {
   transition: opacity var(--am-duration) ease;
 }
 
+/* 图注仅随悬停/键盘聚焦浮现:focus-visible 避免鼠标点击后的残留焦点锁住深色背景 */
 .album-item:hover .album-caption,
-.album-item:focus-within .album-caption {
+.album-item:focus-visible .album-caption {
   opacity: 1;
 }
 

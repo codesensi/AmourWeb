@@ -253,9 +253,8 @@ const nextAnniversary = computed(() => {
 /* ---------------- 恋爱画册:最新一张照片 ---------------- */
 
 /** 最新照片(取画册第一张;接口不可用/为空时整卡不渲染) */
-const { data: latestPhotoPage } = usePortalQuery(
-  queryKeys.latestPhoto(),
-  () => getLovePhoto({ pageNumber: 1, pageSize: 1 })
+const { data: latestPhotoPage } = usePortalQuery(queryKeys.latestPhoto(), () =>
+  getLovePhoto({ pageNumber: 1, pageSize: 1 })
 );
 
 const latestPhoto = computed(() => latestPhotoPage.value?.records[0] ?? null);
@@ -381,7 +380,10 @@ const latestPhoto = computed(() => latestPhotoPage.value?.records[0] ?? null);
     <!-- 足迹世界地图 + 纪念日预告:非对称双栏,右栏倒计时填充右区 -->
     <section class="editorial">
       <div class="am-page">
-        <div class="editorial-grid">
+        <div
+          class="editorial-grid"
+          :class="{ 'editorial-grid--solo': !nextAnniversary && !latestPhoto }"
+        >
           <div v-reveal class="editorial-card footprint-card reveal">
             <PortalWorldMap
               class="footprint-map"
@@ -1014,6 +1016,16 @@ const latestPhoto = computed(() => latestPhotoPage.value?.records[0] ?? null);
   grid-auto-rows: minmax(120px, auto);
   gap: var(--am-space-md);
   align-items: stretch;
+}
+
+/* 倒计时与画册均无内容时:仅剩足迹地图卡,保持原宽水平居中 */
+.editorial-grid--solo {
+  grid-template-columns: minmax(0, 66.667%);
+  justify-content: center;
+}
+
+.editorial-grid--solo > .footprint-card {
+  grid-row: auto;
 }
 
 .editorial-grid > * {
