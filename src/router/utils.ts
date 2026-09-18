@@ -269,6 +269,8 @@ function initRouter() {
           });
           handleAsyncRoutes(cloneDeep(transformMenus(data.menus)));
         }
+        // 成功与失败都已尝试装配:置位标记,守卫据此避免重复装配死循环
+        usePermissionStoreHook().markDynamicRoutesLoaded();
         resolve(router);
       })
       .catch(() => {
@@ -276,6 +278,8 @@ function initRouter() {
         // 避免 Promise 永不 settle 导致刷新白屏、NProgress 挂起;
         // 错误提示由 http 拦截器统一弹出,此处不再重复提示
         useUserStoreHook().logOut();
+        // 登出同样视为"装配已尝试",配合 logOut 内部的 resetRouter 重置标记
+        usePermissionStoreHook().markDynamicRoutesLoaded();
         resolve(router);
       });
   });
@@ -448,9 +452,9 @@ function handleTopMenu(route) {
 function getTopMenu(tag = false): menuType {
   const wholeMenus = usePermissionStoreHook().wholeMenus;
   // 无子级的顶级菜单 children 为 undefined、无任何菜单权限时 wholeMenus 为空数组,
-  // 逐级判空后回退顶级菜单自身,避免 TypeError
+  // 逐级判空后回退顶级菜单自身;菜单为空(topMenu 为 undefined)时不添加标签页,避免 TypeError
   const topMenu = handleTopMenu(wholeMenus[0]?.children?.[0] ?? wholeMenus[0]);
-  tag && useMultiTagsStoreHook().handleTags("push", topMenu);
+  tag && topMenu && useMultiTagsStoreHook().handleTags("push", topMenu);
   return topMenu;
 }
 

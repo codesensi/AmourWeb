@@ -294,6 +294,18 @@ const dicts = [
     createTime: "2026-01-01 00:00:00"
   },
   {
+    id: "10706",
+    dictCode: "config-group",
+    dictName: "配置分组",
+    dictValue: "security",
+    dictLabel: "安全配置",
+    sort: 6,
+    status: 0,
+    builtin: 1,
+    remark: "密钥类配置:security.uapi-key/security.amap-key/security.amap-code",
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
     id: "10801",
     dictCode: "config-value-type",
     dictName: "配置值类型",
@@ -630,7 +642,7 @@ const dictTypes = [
     dictCode: "config-group",
     dictName: "配置分组",
     builtin: 1,
-    remark: "与 sys_config.config_group(base/site/captcha/file/rate-limit) 对齐"
+    remark: "与 sys_config.config_group(base/site/captcha/file/rate-limit/security) 对齐"
   },
   {
     id: "99009",

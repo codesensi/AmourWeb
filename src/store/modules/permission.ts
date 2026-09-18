@@ -21,9 +21,16 @@ export const usePermissionStore = defineStore("pure-permission", {
     // 整体路由（一维数组格式）
     flatteningRoutes: [],
     // 缓存页面keepAlive
-    cachePageList: []
+    cachePageList: [],
+    // 动态路由装配标记:initRouter 完成（成功或失败）后置位；
+    // 守卫据此区分"尚未装配"与"装配完成但无菜单",防止空菜单用户在导航中反复装配
+    dynamicRoutesLoaded: false
   }),
   actions: {
+    /** 标记动态路由装配完成（无论成功与否,由 initRouter 的 settled 时机调用） */
+    markDynamicRoutesLoaded() {
+      this.dynamicRoutesLoaded = true;
+    },
     /** 组装整体路由生成的菜单 */
     handleWholeMenus(routes: any[]) {
       this.wholeMenus = filterNoPermissionTree(
@@ -67,6 +74,8 @@ export const usePermissionStore = defineStore("pure-permission", {
     clearAllCachePage() {
       this.wholeMenus = [];
       this.cachePageList = [];
+      // 退出登录重置路由后允许重新装配动态路由
+      this.dynamicRoutesLoaded = false;
     }
   }
 });

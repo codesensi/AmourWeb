@@ -38,16 +38,6 @@ const configs = [
     updateTime: "2026-01-01 00:00:00"
   },
   {
-    id: "1004",
-    configKey: "uapi-key",
-    configValue: "",
-    valueType: "STRING",
-    configGroup: "base",
-    sensitive: 1,
-    remark: "UApiPro接口密钥(https://uapis.cn)",
-    updateTime: "2026-01-01 00:00:00"
-  },
-  {
     id: "1005",
     configKey: "trust-proxy-headers",
     configValue: "true",
@@ -175,6 +165,36 @@ const configs = [
     configGroup: "rate-limit",
     sensitive: 0,
     remark: "QQ信息接口-时间窗口(秒)",
+    updateTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "6001",
+    configKey: "security.uapi-key",
+    configValue: "",
+    valueType: "STRING",
+    configGroup: "security",
+    sensitive: 1,
+    remark: "UApiPro接口密钥(https://uapis.cn)",
+    updateTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "6002",
+    configKey: "security.amap-key",
+    configValue: "",
+    valueType: "STRING",
+    configGroup: "security",
+    sensitive: 0,
+    remark: "高德地图Web端JS API Key(足迹地图选点/门户足迹地图展示)",
+    updateTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "6003",
+    configKey: "security.amap-code",
+    configValue: "",
+    valueType: "STRING",
+    configGroup: "security",
+    sensitive: 1,
+    remark: "高德地图安全密钥(与Web端JS API Key配套,经后端代理注入,不下发浏览器)",
     updateTime: "2026-01-01 00:00:00"
   }
 ];

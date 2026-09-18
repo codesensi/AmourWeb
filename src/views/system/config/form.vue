@@ -80,12 +80,15 @@ const isImageConfig = computed(() =>
 );
 
 /** 可选(允许为空)的配置键:清空保存后由消费侧兜底 ——
- *  icp 整块隐藏、copyright-year 回落当前年份、uapi-key 按空值降级、logo/favicon 回退默认图标 */
+ *  icp 整块隐藏、copyright-year 回落当前年份、security.uapi-key 按空值降级、
+ *  security.amap-key/security.amap-code 未配置时地图组件降级(手动录入/echarts 世界地图)、logo/favicon 回退默认图标 */
 const OPTIONAL_CONFIG_KEYS = [
   "logo",
   "icp",
   "copyright-year",
-  "uapi-key",
+  "security.uapi-key",
+  "security.amap-key",
+  "security.amap-code",
   "favicon"
 ];
 /** 是否可选配置(必填校验放行) */

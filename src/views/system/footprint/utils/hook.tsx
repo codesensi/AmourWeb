@@ -1,0 +1,189 @@
+import editForm from "../form.vue";
+import { message } from "@/utils/message";
+import {
+  openFormDialog,
+  useBatchDelete,
+  usePageQuery
+} from "../../hooks";
+import {
+  deleteFootprint,
+  getFootprintPage,
+  insertFootprint,
+  updateFootprint
+} from "@/api/sys-footprint";
+import type { FootprintPageItem } from "@/api/sys-footprint";
+import { type Ref, reactive, ref, onMounted } from "vue";
+
+/** 行数据剔除服务端注入字段后的可编辑形态(与后端 FootprintUpdateRequest 对齐) */
+type FootprintUpdatePayload = {
+  id: string;
+  city: string;
+  longitude: number | null;
+  latitude: number | null;
+  arrivalDate: string | null;
+  photoUrl: string | null;
+  remark: string;
+};
+
+export function useFootprint(tableRef: Ref) {
+  const form = reactive({
+    city: "",
+    arrivalDateRange: [] as Array<string>
+  });
+  const formRef = ref();
+
+  // 分页查询公共骨架:分页状态 + 结果列表 + 加载态 + 序号守卫搜索 + 分页事件写回 + 表单重置
+  const {
+    pagination,
+    dataList,
+    loading,
+    search,
+    handleSizeChange,
+    handleCurrentChange,
+    resetForm
+  } = usePageQuery(query =>
+    getFootprintPage({
+      ...query,
+      city: form.city,
+      arrivalDateBegin: form.arrivalDateRange?.[0],
+      arrivalDateEnd: form.arrivalDateRange?.[1]
+    })
+  );
+
+  // 删除/批量删除/多选三件套(确认弹窗、成功提示与刷新联动由骨架统一)
+  const {
+    selectedNum,
+    handleDelete,
+    onbatchDel,
+    handleSelectionChange,
+    onSelectionCancel
+  } = useBatchDelete<FootprintPageItem>({
+    tableRef,
+    remove: deleteFootprint,
+    nameOf: row => row.city,
+    entity: "足迹",
+    unit: "条",
+    afterDeleted: () => search()
+  });
+
+  /** 列定义 */
+  const columns: TableColumnList = [
+    {
+      label: "勾选列", // 如果需要表格多选，此处label必须设置
+      type: "selection",
+      fixed: "left",
+      reserveSelection: true // 数据刷新后保留选项
+    },
+    {
+      label: "照片",
+      prop: "photoUrl",
+      cellRenderer: ({ row }) =>
+        row.photoUrl ? (
+          <el-image
+            fit="cover"
+            preview-teleported={true}
+            hide-on-click-modal={true}
+            src={row.photoUrl}
+            preview-src-list={Array.of(row.photoUrl)}
+            class="size-10 rounded align-middle"
+          />
+        ) : (
+          ""
+        ),
+      width: 90
+    },
+    {
+      label: "城市",
+      prop: "city",
+      minWidth: 140
+    },
+    {
+      label: "经纬度",
+      minWidth: 180,
+      cellRenderer: ({ row }) =>
+        row.longitude != null && row.latitude != null
+          ? `${row.longitude}, ${row.latitude}`
+          : ""
+    },
+    {
+      label: "到访日期",
+      prop: "arrivalDate",
+      minWidth: 110
+    },
+    {
+      label: "备注",
+      prop: "remark",
+      minWidth: 200
+    },
+    {
+      label: "创建时间",
+      prop: "createTime",
+      minWidth: 170
+    },
+    {
+      label: "操作",
+      fixed: "right",
+      width: 150,
+      slot: "operation"
+    }
+  ];
+
+  function openDialog(title = "新增", row?: FootprintPageItem) {
+    openFormDialog({
+      title: `${title}足迹`,
+      editForm,
+      formRef,
+      formInline: {
+        title,
+        id: row?.id,
+        city: row?.city ?? "",
+        longitude: row?.longitude ?? null,
+        latitude: row?.latitude ?? null,
+        arrivalDate: row?.arrivalDate ?? "",
+        photoUrl: row?.photoUrl ?? "",
+        remark: row?.remark ?? ""
+      },
+      submit: async curData => {
+        // 照片以 URL 直存:上传组件返回的站内地址或外链,保存记录时直接绑定
+        const payload: FootprintUpdatePayload = {
+          id: curData.id!,
+          city: curData.city,
+          longitude: curData.longitude,
+          latitude: curData.latitude,
+          arrivalDate: curData.arrivalDate || null,
+          photoUrl: curData.photoUrl || null,
+          remark: curData.remark
+        };
+        if (title === "新增") {
+          await insertFootprint(payload);
+        } else {
+          await updateFootprint(payload);
+        }
+        message(`成功${title}足迹`, { type: "success" });
+        search(); // 刷新表格数据
+      }
+    });
+  }
+
+  onMounted(() => {
+    search();
+  });
+
+  return {
+    form,
+    loading,
+    columns,
+    dataList,
+    selectedNum,
+    pagination,
+    onSearch: search,
+    resetForm,
+    onbatchDel,
+    openDialog,
+    handleDelete,
+    handleSizeChange,
+    onSelectionCancel,
+    handleCurrentChange,
+    handleSelectionChange
+  };
+}

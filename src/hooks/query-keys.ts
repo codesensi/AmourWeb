@@ -26,9 +26,15 @@ export const queryKeys = {
   /** 足迹分页(到访城市,按到访日期升序) */
   footprint: () =>
     ({ key: ["footprint"], staleTime: 5 * 60_000 }) as PortalResource,
+  /** 足迹地图全量点(首页卡片,单一大页一次拉取;数据形状与足迹分页不同,必须独立 key) */
+  footprintMap: () =>
+    ({ key: ["footprint", "map"], staleTime: 5 * 60_000 }) as PortalResource,
   /** 纪念日分页(按下一次发生日升序;倒计时由前端本地时钟驱动) */
   anniversaryList: () =>
     ({ key: ["anniversary"], staleTime: Infinity }) as PortalResource,
+  /** 最近纪念日(首页封面焦点,取首条;数据形状与纪念日分页不同,必须独立 key) */
+  anniversaryFocus: () =>
+    ({ key: ["anniversary", "focus"], staleTime: Infinity }) as PortalResource,
   /** 点滴文章分页 */
   moments: () => ({ key: ["moments"], staleTime: 30_000 }) as PortalResource,
   /** 点滴文章详情(按 id 参数化) */

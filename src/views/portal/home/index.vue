@@ -11,9 +11,8 @@ import { prefersReducedMotion } from "@/utils/motion";
 import { parseDateTime } from "@/utils/date";
 import { nextOccurrenceDays } from "@/utils/anniversary";
 import { usePortalSysConfig } from "@/layout/portal/usePortalSysConfig";
-import PortalWorldMap, {
-  type MapPoint
-} from "@/components/PortalWorldMap/index.vue";
+import PortalAmapTrack from "@/components/PortalAmapTrack/index.vue";
+import type { MapPoint } from "@/components/PortalWorldMap/index.vue";
 import PortalRollingNumber from "@/components/PortalRollingNumber/index.vue";
 import reveal from "@/directives/reveal";
 import { queryKeys } from "@/hooks/query-keys";
@@ -183,9 +182,12 @@ const coverHearts = [
 /* ---------------- 卷首语:足迹世界地图 ---------------- */
 
 /** 足迹原始数据(缓存 5 分钟,KeepAlive 激活时过期重拉);
- * 地图连线需全量点位,以单一大页一次拉取 */
-const { data: footprintPage } = usePortalQuery(queryKeys.footprint(), () =>
-  getFootprintList({ pageNumber: 1, pageSize: 500 })
+ * 地图连线需全量点位,以单一大页一次拉取
+ * (独立 key footprintMap:与足迹页分页 ["footprint"] 数据形状不同,共用会导致
+ *  useInfiniteQuery 读到单对象缓存时抛 TypeError 使整页空白) */
+const { data: footprintPage } = usePortalQuery(
+  queryKeys.footprintMap(),
+  () => getFootprintList({ pageNumber: 1, pageSize: 500 })
 );
 
 /** 地图点位:有坐标的足迹按到访时间升序,依此连线
@@ -229,9 +231,10 @@ function goFootprint() {
 /* ---------------- 纪念日预告:最近的一个 ---------------- */
 
 /** 最近纪念日(封面焦点):接口按下一次发生日升序,取首条即最近;
- * 数据到达时按当日计算剩余天数 */
+ * 数据到达时按当日计算剩余天数
+ * (独立 key anniversaryFocus:与纪念日页分页 ["anniversary"] 数据形状不同) */
 const { data: anniversaryPage } = usePortalQuery(
-  queryKeys.anniversaryList(),
+  queryKeys.anniversaryFocus(),
   () => getAnniversaryList({ pageNumber: 1, pageSize: 1 })
 );
 
@@ -379,7 +382,7 @@ const latestPhoto = computed(() => latestPhotoPage.value?.records[0] ?? null);
           :class="{ 'editorial-grid--solo': !nextAnniversary && !latestPhoto }"
         >
           <div v-reveal class="editorial-card footprint-card reveal">
-            <PortalWorldMap
+            <PortalAmapTrack
               class="footprint-map"
               :points="mapPoints"
               @select="onMapSelect"
@@ -883,6 +886,11 @@ const latestPhoto = computed(() => latestPhotoPage.value?.records[0] ?? null);
 
   /* 文字不拦截指针:整卡面均可拖拽地图 */
   pointer-events: none;
+}
+
+/* 足迹卡片标题调小:大幅地图底图上文字过重 */
+.footprint-card .editorial-title {
+  font-size: clamp(1.4rem, 3.2vw, var(--am-text-xl));
 }
 
 /* 跳转链接是明确的可点按钮,浮于地图之上 */

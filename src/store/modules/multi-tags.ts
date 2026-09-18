@@ -80,7 +80,8 @@ export const useMultiTagsStore = defineStore("pure-multiTags", {
             // showLink:false 不添加到标签页
             if (isBoolean(tagVal?.meta?.showLink) && !tagVal?.meta?.showLink)
               return;
-            const tagPath = tagVal.path;
+            // tagVal 可能为 undefined(如菜单未就绪时传入),取值统一可选链防崩
+            const tagPath = tagVal?.path;
             const tagHasExits = this.multiTags.some(tag => {
               return (
                 tag.path === tagPath &&

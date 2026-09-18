@@ -164,6 +164,17 @@ router.beforeEach((to: ToRouteType, _from) => {
         NProgress.done();
         return false;
       } else {
+        // 动态路由未装配的兜底:登录回调中 initRouter 失败(current-user 401 被登出)后,
+        // SPA 内跳转管理端页面会命中未注册路由(仅渲染注释节点),造成整页空白
+        // 且后续导航全部无响应;此处先补装配再重进目标页,装配失败则由登出逻辑接管跳登录
+        if (
+          !usePermissionStoreHook().dynamicRoutesLoaded &&
+          to.path !== "/login"
+        ) {
+          initRouter().then((router: Router) => {
+            if (isAllEmpty(to.name)) router.push(to.fullPath);
+          });
+        }
         return toCorrectRoute();
       }
     } else {

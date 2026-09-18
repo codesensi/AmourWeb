@@ -20,7 +20,7 @@ interface MenuItem {
   createTime?: string;
 }
 
-/** 与后端 sys_menu 种子同源(init_dml.sql;42 项 D/M/B,增删改仅落地内存) */
+/** 与后端 sys_menu 种子同源(init_dml.sql;47 项 D/M/B,增删改仅落地内存) */
 export const menus: MenuItem[] = [
   // 系统管理(目录)
   {
@@ -530,6 +530,64 @@ export const menus: MenuItem[] = [
     title: "删除",
     type: "B",
     perms: "portal:love-photo:delete",
+    sort: 4,
+    status: 0,
+    hidden: 0,
+    builtin: 1
+  },
+  // 足迹管理
+  {
+    id: "2100",
+    pid: "0",
+    title: "足迹管理",
+    type: "M",
+    path: "/admin/footprint",
+    component: "system/footprint/index",
+    sort: 3,
+    icon: "ep:location",
+    status: 0,
+    hidden: 0,
+    builtin: 1
+  },
+  {
+    id: "2101",
+    pid: "2100",
+    title: "分页查询",
+    type: "B",
+    perms: "system:footprint:page",
+    sort: 1,
+    status: 0,
+    hidden: 0,
+    builtin: 1
+  },
+  {
+    id: "2102",
+    pid: "2100",
+    title: "增加",
+    type: "B",
+    perms: "system:footprint:insert",
+    sort: 2,
+    status: 0,
+    hidden: 0,
+    builtin: 1
+  },
+  {
+    id: "2103",
+    pid: "2100",
+    title: "修改",
+    type: "B",
+    perms: "system:footprint:update",
+    sort: 3,
+    status: 0,
+    hidden: 0,
+    builtin: 1
+  },
+  {
+    id: "2104",
+    pid: "2100",
+    title: "删除",
+    type: "B",
+    perms: "system:footprint:delete",
     sort: 4,
     status: 0,
     hidden: 0,
