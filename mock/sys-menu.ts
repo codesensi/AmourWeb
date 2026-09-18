@@ -1,6 +1,6 @@
 // 菜单管理 mock(对齐后端 SysMenuController:/sys/menu/*)
 // 行数据契约对齐 MenuResponse:id/pid/title/type/path/component/sort/icon/perms/status/hidden/builtin/remark/createTime
-// 数据与 getCurrentUser.menus 同源(28 项 D/M/B),复制为独立工作副本,增删改仅落地内存,刷新页面即还原
+// 数据与 getCurrentUser.menus 同源(42 项 D/M/B),复制为独立工作副本,增删改仅落地内存,刷新页面即还原
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 import { menus as seedMenus } from "./current-user";
 

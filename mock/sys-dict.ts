@@ -3,7 +3,7 @@
 // 组数据契约对齐 DictGroupResponse:dictCode/items(dictValue/dictLabel/sort)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
-// 与后端 sys_dict 内置种子同源(12 组 41 条;组内顺序即 sort 升序)
+// 与后端 sys_dict 内置种子同源(13 组 42 条;组内顺序即 sort 升序)
 const dicts = [
   {
     id: "10001",
@@ -546,10 +546,35 @@ const dicts = [
     builtin: 1,
     remark: null,
     createTime: "2026-01-01 00:00:00"
+  },
+  // hidden(照片显隐,对应 HiddenEnum:0-显示,1-隐藏;11200 段)
+  {
+    id: "11201",
+    dictCode: "hidden",
+    dictName: "显隐状态",
+    dictValue: "0",
+    dictLabel: "显示",
+    sort: 1,
+    status: 0,
+    builtin: 1,
+    remark: "与 HiddenEnum(0/1) 对齐",
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11202",
+    dictCode: "hidden",
+    dictName: "显隐状态",
+    dictValue: "1",
+    dictLabel: "隐藏",
+    sort: 2,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
   }
 ];
 
-// 字典类型种子(对齐后端 sys_dict_type 99000 段种子:12 个内置类型)
+// 字典类型种子(对齐后端 sys_dict_type 99000 段种子:13 个内置类型)
 const dictTypes = [
   {
     id: "99001",
@@ -635,6 +660,13 @@ const dictTypes = [
     dictName: "日志类型",
     builtin: 1,
     remark: "与 LogTypeEnum 对齐"
+  },
+  {
+    id: "99013",
+    dictCode: "hidden",
+    dictName: "显隐状态",
+    builtin: 1,
+    remark: "与 HiddenEnum(0/1) 对齐"
   }
 ];
 

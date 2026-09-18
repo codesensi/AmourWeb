@@ -1,6 +1,7 @@
-// 足迹地图 mock(GET /portal/footprint 全量列表;photoUrl 为内联 SVG 占位图)
+// 足迹地图 mock(GET /portal/footprint 分页,按到访日期升序;photoUrl 为内联 SVG 占位图)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 import { mockPhoto } from "./mock-photo";
+import { fakePageResponse } from "../utils";
 
 const footprints = [
   {
@@ -150,16 +151,10 @@ const footprints = [
 ];
 
 export default defineFakeRoute([
-  // 足迹全量(GET /portal/footprint)
+  // 足迹分页(GET /portal/footprint;数据按到访日期升序,与列表契约一致)
   {
     url: "/portal/footprint",
     method: "get",
-    response: () => ({
-      success: true,
-      code: 200,
-      msg: "操作成功",
-      timestamp: Date.now(),
-      data: footprints
-    })
+    response: ({ query }) => fakePageResponse(footprints, query)
   }
 ]);

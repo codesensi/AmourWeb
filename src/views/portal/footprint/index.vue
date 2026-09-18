@@ -1,24 +1,25 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { getFootprintList, type FootprintItem } from "@/api/portal/footprint";
+import PortalLoadMore from "@/components/PortalLoadMore/index.vue";
 import reveal from "@/directives/reveal";
 import { useLightbox } from "@/hooks/useLightbox";
 import { queryKeys } from "@/hooks/query-keys";
-import { usePortalQuery } from "@/hooks/usePortalQuery";
+import { usePortalList } from "@/hooks/usePortalQuery";
 
 defineOptions({ name: "PortalFootprint" });
 
 const vReveal = reveal;
 
-/** 足迹全量列表(接口不可用/为空时展示空态);首拉与 KeepAlive 激活校验由查询层接管 */
-const { data: items, isLoading: loading } = usePortalQuery(
+/** 足迹分页(按到访日期升序,「加载更多」追加;首拉与 KeepAlive 激活校验由查询层接管) */
+const { items, loading, hasMore, loadMore } = usePortalList<FootprintItem>(
   queryKeys.footprint(),
   getFootprintList
 );
 
 /** 按到访日期升序排列(时间轴按旅程推进) */
 const journey = computed(() =>
-  [...(items.value ?? [])].sort((a, b) =>
+  [...items.value].sort((a, b) =>
     (a.arrivalDate ?? "").localeCompare(b.arrivalDate ?? "")
   )
 );
@@ -118,11 +119,14 @@ function coordText(it: FootprintItem): string {
     </ol>
 
     <!-- 首屏加载:杂志线框骨架屏;加载完为空则展示空态 -->
-    <el-skeleton v-if="loading" :rows="3" animated />
+    <el-skeleton v-else-if="loading" :rows="3" animated />
 
     <div v-else-if="!journey.length" class="am-empty">
       地图上还没有脚印,第一站正在计划中…
     </div>
+
+    <!-- 分页「加载更多」 -->
+    <PortalLoadMore :loading="loading" :has-more="hasMore" @load="loadMore" />
 
     <!-- 纪念照影院模式:EP 内置键盘/缩放/循环切换;default 插槽承载图注 -->
     <el-image-viewer

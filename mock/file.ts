@@ -1,4 +1,4 @@
-// 文件管理 mock(对齐后端 FileController:/file/*)
+// 文件管理 mock(对齐后端 SysFileController:/sys/file/*;预览 /file/view/{id} 为 FileController 免登录分发)
 // 行数据契约对齐 FileItem:id 为雪花 ID 字符串(避免前端精度丢失);
 // delFlag 仅用于 mock 内部区分文件列表/回收站,响应中剔除以对齐 FileItem 展示字段
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
@@ -135,9 +135,9 @@ const nextId = () =>
   String(Math.max(...files.map(item => Number(item.id))) + 1);
 
 export default defineFakeRoute([
-  // 文件分页(GET /file/page;delFlag 缺省为 0 即文件列表,1 为回收站)
+  // 文件分页(GET /sys/file/page;delFlag 缺省为 0 即文件列表,1 为回收站)
   {
-    url: "/file/page",
+    url: "/sys/file/page",
     method: "get",
     response: ({ query }) => {
       let records = files.filter(
@@ -174,9 +174,9 @@ export default defineFakeRoute([
       });
     }
   },
-  // 上传(POST /file/upload/:bizType,落地内存数据;multipart 请求体不解析,文件名以生成名兜底)
+  // 上传(POST /sys/file/upload/:bizType,落地内存数据;multipart 请求体不解析,文件名以生成名兜底)
   {
-    url: "/file/upload/:bizType",
+    url: "/sys/file/upload/:bizType",
     method: "post",
     response: ({ params, body }) => {
       const bizType = String(params.bizType ?? "avatar");
@@ -200,9 +200,9 @@ export default defineFakeRoute([
       return ok({ id, url: `/file/view/${id}`, originalName });
     }
   },
-  // 逻辑删除(DELETE /file/:id,移入回收站)
+  // 逻辑删除(DELETE /sys/file/:id,移入回收站)
   {
-    url: "/file/:id",
+    url: "/sys/file/:id",
     method: "delete",
     response: ({ params }) => {
       const target = files.find(item => item.id === String(params.id));
@@ -211,9 +211,9 @@ export default defineFakeRoute([
       return ok(null, "删除成功");
     }
   },
-  // 恢复回收站文件(PUT /file/:id/restore,移回文件列表)
+  // 恢复回收站文件(PUT /sys/file/:id/restore,移回文件列表)
   {
-    url: "/file/:id/restore",
+    url: "/sys/file/:id/restore",
     method: "put",
     response: ({ params }) => {
       const target = files.find(item => item.id === String(params.id));
@@ -222,9 +222,9 @@ export default defineFakeRoute([
       return ok(null, "恢复成功");
     }
   },
-  // 彻底删除回收站文件(DELETE /file/:id/physical,落地内存数据)
+  // 彻底删除回收站文件(DELETE /sys/file/:id/physical,落地内存数据)
   {
-    url: "/file/:id/physical",
+    url: "/sys/file/:id/physical",
     method: "delete",
     response: ({ params }) => {
       const index = files.findIndex(item => item.id === String(params.id));
@@ -249,9 +249,9 @@ export default defineFakeRoute([
       res.end(svg);
     }
   },
-  // 下载(GET /file/download/:id;mock 不产出二进制流,前端按响应 Content-Type 识别降级)
+  // 下载(GET /sys/file/download/:id;mock 不产出二进制流,前端按响应 Content-Type 识别降级)
   {
-    url: "/file/download/:id",
+    url: "/sys/file/download/:id",
     method: "get",
     response: () => ok(null, "mock 下不支持流式下载,请走真实后端")
   }

@@ -23,10 +23,10 @@ export const queryKeys = {
     key: ["heroes"],
     staleTime: 60_000
   }),
-  /** 足迹到访城市列表 */
+  /** 足迹分页(到访城市,按到访日期升序) */
   footprint: () =>
     ({ key: ["footprint"], staleTime: 5 * 60_000 }) as PortalResource,
-  /** 纪念日全量列表 */
+  /** 纪念日分页(按下一次发生日升序;倒计时由前端本地时钟驱动) */
   anniversaryList: () =>
     ({ key: ["anniversary"], staleTime: Infinity }) as PortalResource,
   /** 点滴文章分页 */

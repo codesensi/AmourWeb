@@ -20,7 +20,7 @@ interface MenuItem {
   createTime?: string;
 }
 
-/** 与后端 sys_menu 种子同源(init_dml.sql;37 项 D/M/B,增删改仅落地内存) */
+/** 与后端 sys_menu 种子同源(init_dml.sql;42 项 D/M/B,增删改仅落地内存) */
 export const menus: MenuItem[] = [
   // 系统管理(目录)
   {
@@ -473,6 +473,64 @@ export const menus: MenuItem[] = [
     type: "B",
     perms: "system:file:delete",
     sort: 2,
+    status: 0,
+    hidden: 0,
+    builtin: 1
+  },
+  // 恋爱画册
+  {
+    id: "2000",
+    pid: "0",
+    title: "恋爱画册",
+    type: "M",
+    path: "/admin/love-photo",
+    component: "system/love-photo/index",
+    sort: 2,
+    icon: "ep:camera",
+    status: 0,
+    hidden: 0,
+    builtin: 1
+  },
+  {
+    id: "2001",
+    pid: "2000",
+    title: "分页查询",
+    type: "B",
+    perms: "portal:love-photo:page",
+    sort: 1,
+    status: 0,
+    hidden: 0,
+    builtin: 1
+  },
+  {
+    id: "2002",
+    pid: "2000",
+    title: "增加",
+    type: "B",
+    perms: "portal:love-photo:insert",
+    sort: 2,
+    status: 0,
+    hidden: 0,
+    builtin: 1
+  },
+  {
+    id: "2003",
+    pid: "2000",
+    title: "修改",
+    type: "B",
+    perms: "portal:love-photo:update",
+    sort: 3,
+    status: 0,
+    hidden: 0,
+    builtin: 1
+  },
+  {
+    id: "2004",
+    pid: "2000",
+    title: "删除",
+    type: "B",
+    perms: "portal:love-photo:delete",
+    sort: 4,
     status: 0,
     hidden: 0,
     builtin: 1

@@ -1,7 +1,6 @@
-import type { ApiResult } from "@/api/types";
-import { http } from "@/utils/http";
+import { portalPage } from "./utils";
 
-/** 纪念日-纪念日项(GET /portal/anniversary,免登录全量列表) */
+/** 纪念日-纪念日项(GET /portal/anniversary 分页,免登录;按下一次发生日升序) */
 export type AnniversaryItem = {
   id: number;
   /** 纪念日名称 */
@@ -14,10 +13,7 @@ export type AnniversaryItem = {
   repeatYearly: boolean;
 };
 
-/** 纪念日全量列表(GET /portal/anniversary;倒计时需全量排序,不分页) */
-export const getAnniversaryList = () => {
-  return http.request<ApiResult<AnniversaryItem[]>>(
-    "get",
-    "/portal/anniversary"
-  );
-};
+/** 纪念日分页(GET /portal/anniversary,免登录;按下一次发生日升序,首条即最近纪念日) */
+export const getAnniversaryList = portalPage<AnniversaryItem>(
+  "/portal/anniversary"
+);

@@ -27,7 +27,7 @@ const roles = [
 ];
 
 // 角色已分配的菜单ID(角色ID为键;分配后落地,menu-ids 回显读取;
-// 对齐后端 sys_role_menu 种子:admin 全量菜单,hero 无管理端菜单)
+// admin 内置角色经 *:*:* 通配权限放行,mock 模拟为全量菜单预勾选;hero 无管理端菜单)
 const menusByRole: Record<number, string[]> = {
   1: [
     "1000",
@@ -69,6 +69,11 @@ const menusByRole: Record<number, string[]> = {
     "1800",
     "1801",
     "1802",
+    "2000",
+    "2001",
+    "2002",
+    "2003",
+    "2004",
     "3000"
   ],
   2: []

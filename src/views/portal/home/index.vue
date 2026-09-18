@@ -182,16 +182,16 @@ const coverHearts = [
 
 /* ---------------- 卷首语:足迹世界地图 ---------------- */
 
-/** 足迹原始数据(缓存 5 分钟,KeepAlive 激活时过期重拉) */
-const { data: footprintItems } = usePortalQuery(
-  queryKeys.footprint(),
-  getFootprintList
+/** 足迹原始数据(缓存 5 分钟,KeepAlive 激活时过期重拉);
+ * 地图连线需全量点位,以单一大页一次拉取 */
+const { data: footprintPage } = usePortalQuery(queryKeys.footprint(), () =>
+  getFootprintList({ pageNumber: 1, pageSize: 500 })
 );
 
 /** 地图点位:有坐标的足迹按到访时间升序,依此连线
  * (元素经 markRaw 剥离响应式,避免 echarts 每帧重绘遍历 Proxy) */
 const mapPoints = computed<MapPoint[]>(() =>
-  (footprintItems.value ?? [])
+  (footprintPage.value?.records ?? [])
     .filter(it => it.longitude != null && it.latitude != null)
     .sort((a, b) => (a.arrivalDate ?? "").localeCompare(b.arrivalDate ?? ""))
     .map(it =>
@@ -228,24 +228,20 @@ function goFootprint() {
 
 /* ---------------- 纪念日预告:最近的一个 ---------------- */
 
-/** 最近纪念日(封面焦点):数据到达时按当日计算最近一次 occurrence */
-const { data: anniversaryItems } = usePortalQuery(
+/** 最近纪念日(封面焦点):接口按下一次发生日升序,取首条即最近;
+ * 数据到达时按当日计算剩余天数 */
+const { data: anniversaryPage } = usePortalQuery(
   queryKeys.anniversaryList(),
-  getAnniversaryList
+  () => getAnniversaryList({ pageNumber: 1, pageSize: 1 })
 );
 
 const nextAnniversary = computed(() => {
-  const data = anniversaryItems.value;
-  if (!data?.length) return null;
-  let best: { name: string; date: string; days: number } | null = null;
-  for (const item of data) {
-    const days = nextOccurrenceDays(item, new Date());
-    if (days === null) continue;
-    if (!best || days < best.days) {
-      best = { name: item.name, date: item.anniversaryDate, days };
-    }
-  }
-  return best;
+  const item = anniversaryPage.value?.records[0];
+  if (!item) return null;
+  const days = nextOccurrenceDays(item, new Date());
+  return days === null
+    ? null
+    : { name: item.name, date: item.anniversaryDate, days };
 });
 
 /* ---------------- 恋爱画册:最新一张照片 ---------------- */

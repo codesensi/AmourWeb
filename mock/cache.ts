@@ -1,4 +1,4 @@
-// 缓存监控 mock(对齐后端 CacheController:GET /cache/list-all,时点快照)
+// 缓存监控 mock(对齐后端 SysCacheController:GET /sys/cache/list,时点快照)
 // 数据契约对齐 CacheResponse:cacheName/expireAfterWrite/expireAfterAccess/maximumSize/entries/stats
 // stats 对齐 CacheStatsResponse:hitCount/missCount/hitRate/evictionCount/loadSuccessCount/loadFailureCount/averageLoadPenaltyMillis
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
@@ -234,9 +234,9 @@ const caches = [
 ];
 
 export default defineFakeRoute([
-  // 缓存内容列表(GET /cache/list-all,时点快照)
+  // 缓存内容列表(GET /sys/cache/list,时点快照)
   {
-    url: "/cache/list-all",
+    url: "/sys/cache/list",
     method: "get",
     response: () => ({
       success: true,

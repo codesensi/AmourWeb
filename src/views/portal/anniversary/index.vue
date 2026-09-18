@@ -4,18 +4,19 @@ import {
   getAnniversaryList,
   type AnniversaryItem
 } from "@/api/portal/anniversary";
+import PortalLoadMore from "@/components/PortalLoadMore/index.vue";
 import { anniversaryMonthDay, nextOccurrenceDays } from "@/utils/anniversary";
 import reveal from "@/directives/reveal";
 import { queryKeys } from "@/hooks/query-keys";
-import { usePortalQuery } from "@/hooks/usePortalQuery";
+import { usePortalList } from "@/hooks/usePortalQuery";
 
 defineOptions({ name: "PortalAnniversary" });
 
 const vReveal = reveal;
 
-/** 纪念日全量列表(接口不可用/为空时展示空态);
+/** 纪念日分页(按下一次发生日升序,首条即最近纪念日,「加载更多」追加);
  * 数据极低频,缓存后不再重拉,倒计时由本地时钟每秒驱动 */
-const { data: items, isLoading: loading } = usePortalQuery(
+const { items, loading, hasMore, loadMore } = usePortalList<AnniversaryItem>(
   queryKeys.anniversaryList(),
   getAnniversaryList
 );
@@ -31,9 +32,9 @@ function typeMeta(type: number | undefined) {
   return TYPE_META[type ?? 0] ?? { label: "纪念", icon: "heart" };
 }
 
-/** 全量条目附倒计时(按剩余天数升序;一次性过去日期不展示) */
+/** 已加载条目附倒计时(按剩余天数升序;一次性过去日期不展示) */
 const countdownItems = computed(() => {
-  return (items.value ?? [])
+  return items.value
     .map(item => ({ item, days: nextOccurrenceDays(item) }))
     .filter(
       (it): it is { item: AnniversaryItem; days: number } => it.days !== null
@@ -154,11 +155,14 @@ const nearest = computed(() => countdownItems.value[0] ?? null);
     </ol>
 
     <!-- 首屏加载:杂志线框骨架屏;加载完为空则展示空态 -->
-    <el-skeleton v-if="loading" :rows="3" animated />
+    <el-skeleton v-else-if="loading" :rows="3" animated />
 
     <div v-else-if="!countdownItems.length" class="am-empty">
       日历还是空的,去后台添加第一个纪念日吧…
     </div>
+
+    <!-- 分页「加载更多」 -->
+    <PortalLoadMore :loading="loading" :has-more="hasMore" @load="loadMore" />
   </div>
 </template>
 
