@@ -331,6 +331,7 @@ const handleTabChange = useLazyTabs(
         :src="viewUrl(detail)"
         :preview-src-list="[viewUrl(detail)]"
         preview-teleported
+        hide-on-click-modal
         fit="contain"
         class="mb-3 max-h-64 w-full"
       />

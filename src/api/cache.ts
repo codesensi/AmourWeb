@@ -45,7 +45,7 @@ export type CacheInfo = {
   stats?: CacheStatsItem;
 };
 
-/** 缓存内容列表(GET /cache/list-all,时点快照) */
+/** 缓存内容列表(GET /sys/cache/list,时点快照) */
 export const getCacheList = () => {
-  return http.request<ApiResult<Array<CacheInfo>>>("get", "/cache/list-all");
+  return http.request<ApiResult<Array<CacheInfo>>>("get", "/sys/cache/list");
 };

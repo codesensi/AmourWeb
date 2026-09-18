@@ -146,6 +146,7 @@ export function useUser(tableRef: Ref) {
           <el-image
             fit="cover"
             preview-teleported={true}
+            hide-on-click-modal={true}
             src={row.avatar}
             preview-src-list={Array.of(row.avatar)}
             class="size-6 rounded-full align-middle"

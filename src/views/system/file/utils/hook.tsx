@@ -80,6 +80,7 @@ export function useFilePage(mode: FilePageMode = "active") {
           <el-image
             fit="cover"
             preview-teleported={true}
+            hide-on-click-modal={true}
             src={`/file/view/${row.id}`}
             preview-src-list={Array.of(`/file/view/${row.id}`)}
             class="size-6 rounded-full align-middle"

@@ -43,7 +43,9 @@ export const DICT_CODES = {
   /** 文件业务类型(与 FileBizTypeEnum 对齐) */
   bizType: "biz-type",
   /** 日志类型(与 LogTypeEnum 对齐) */
-  logType: "log-type"
+  logType: "log-type",
+  /** 照片显隐(与 HiddenEnum 对齐) */
+  hidden: "hidden"
 } as const;
 
 /** 字典批量查询(GET /portal/dict/list-by-codes,免登录;codes 逗号分隔) */

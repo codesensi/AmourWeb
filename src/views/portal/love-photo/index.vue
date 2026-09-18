@@ -28,24 +28,26 @@ function onImgError(event: Event) {
 
 /* ---------------- tag 分册 ---------------- */
 
-/** 分册标签:从已加载数据聚合(契约扩展位:后端返回 tag 前兼容无 tag 的 mock);「全部」固定首位 */
+/** 分册标签:从已加载数据聚合(后端 tags 为数组,一张照片可归入多个分册);「全部」固定首位 */
 const ALL_TAG = "全部";
 const activeTag = ref(ALL_TAG);
 
 const tagOptions = computed(() => {
   const tags = new Set<string>();
   for (const it of items.value) {
-    const tag = (it as LovePhotoItem & { tag?: string }).tag?.trim();
-    if (tag) tags.add(tag);
+    for (const raw of it.tags ?? []) {
+      const tag = raw.trim();
+      if (tag) tags.add(tag);
+    }
   }
   return [ALL_TAG, ...tags];
 });
 
-/** 当前分册的照片(无 tag 数据时等价于全部) */
+/** 当前分册的照片(无标签的照片始终归入「全部」) */
 const visibleItems = computed(() => {
   if (activeTag.value === ALL_TAG) return items.value;
-  return items.value.filter(
-    it => (it as LovePhotoItem & { tag?: string }).tag === activeTag.value
+  return items.value.filter(it =>
+    (it.tags ?? []).some(t => t.trim() === activeTag.value)
   );
 });
 

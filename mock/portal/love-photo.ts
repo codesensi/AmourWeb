@@ -28,6 +28,9 @@ const PHOTO_LABELS = [
   "车站的告别"
 ];
 
+/** 标签池:与后端 portal_love_photo.tags 逗号分隔多值语义对齐(响应为数组) */
+const PHOTO_TAGS = ["旅行", "日常", "节日"];
+
 /** 批量生成示例照片(凑足多页数据,便于查看「加载更多」的分页效果) */
 const photos = Array.from({ length: 48 }, (_, i) => {
   const label =
@@ -38,16 +41,22 @@ const photos = Array.from({ length: 48 }, (_, i) => {
   const month = String((i % 12) + 1).padStart(2, "0");
   const day = String((i % 27) + 1).padStart(2, "0");
   return {
+    id: String(1000 + i),
     img: mockPhoto(label, gradient[0], gradient[1]),
     text: label,
-    date: `2025-${month}-${day}`
+    date: `2025-${month}-${day}`,
+    // 每 6 张追加一个「节日」标签,演示一张照片归入多个分册的效果
+    tags:
+      i % 6 === 5
+        ? [PHOTO_TAGS[i % PHOTO_TAGS.length], "节日"]
+        : [PHOTO_TAGS[i % PHOTO_TAGS.length]]
   };
 });
 
 export default defineFakeRoute([
-  // 相册分页(GET /portal/love-photo)
+  // 相册分页(GET /portal/love-photo/page;对齐后端 PortalLovePhotoController 路由)
   {
-    url: "/portal/love-photo",
+    url: "/portal/love-photo/page",
     method: "get",
     response: ({ query }) => fakePageResponse(photos, query)
   }

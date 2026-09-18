@@ -63,6 +63,7 @@ function onReadied() {
           v-if="cropperImg"
           :src="cropperImg"
           :preview-src-list="Array.of(cropperImg)"
+          hide-on-click-modal
           fit="cover"
           class="h-[18vw] w-full"
         />

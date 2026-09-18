@@ -17,12 +17,13 @@ import { Code, type ApiResult } from "@/api/types";
 
 /**
  * 401 登出去重标志:业务码 401 与 HTTP 401 两条通道、以及并发请求同时失效时,
- * 只触发一次 logOut,避免重复跳转与提示风暴(短窗口后自动复位,兼容重新登录)。
+ * 只触发一次「登录已过期」提示与登出跳转,避免提示风暴(短窗口后自动复位,兼容重新登录)。
  */
 let handling401 = false;
 function handleUnauthorized() {
   if (handling401) return;
   handling401 = true;
+  message("登录已过期，请重新登录", { type: "warning" });
   useUserStoreHook().logOut();
   setTimeout(() => (handling401 = false), 1000);
 }
@@ -114,8 +115,7 @@ class PureHttp {
         // 业务失败：统一提示并拒绝
         if (!res.success) {
           if (res.code === Code.UNAUTHORIZED) {
-            // 登录态失效:仅触发一次登出跳转(内部 1 秒窗口去重),不再逐条弹错误提示——
-            // 首屏并发请求同时失效时,跳转登录页已是足够反馈,逐条弹窗会造成提示风暴
+            // 登录态失效:统一经 handleUnauthorized 弹一次「登录已过期」并登出跳转(1 秒窗口去重)
             handleUnauthorized();
             return Promise.reject(res);
           }
@@ -133,7 +133,7 @@ class PureHttp {
         if (res && typeof res.success === "boolean") {
           // 业务失败(4xx/5xx + Result 体):与业务码通道行为一致,统一提示并按需登出
           if (res.code === Code.UNAUTHORIZED) {
-            // 登录态失效:同业务码通道,不再逐条弹窗,避免 401 并发失效时提示刷屏
+            // 登录态失效:同业务码通道,统一弹一次「登录已过期」并登出跳转
             handleUnauthorized();
             return Promise.reject(res);
           }

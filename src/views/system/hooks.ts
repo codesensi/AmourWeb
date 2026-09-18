@@ -153,35 +153,42 @@ export function collapseNames(names: string[], unit: string): string {
 }
 
 /**
- * 状态开关列 cellRenderer —— 收敛用户/角色/菜单/字典四页同构的开关列渲染。
- * 开关文案由 sys_dict(enable) 驱动;内置行禁用启停,无权限时与操作列门控对齐同步禁用。
+ * 状态开关列 cellRenderer —— 收敛用户/角色/菜单/字典/画册五页同构的开关列渲染。
+ * 开关文案缺省由 sys_dict(enable) 驱动(画册显隐列传 hidden 字典);
+ * 内置行禁用启停,无权限时与操作列门控对齐同步禁用。
  *
  * @param options.perms 状态修改权限码(无权限时开关禁用)
  * @param options.switchLoadMap 各行开关提交加载态(来自 useStatusSwitch)
  * @param options.onChange 开关切换回调(来自 useStatusSwitch 的 onChange)
+ * @param options.field 状态字段名,缺省 status(画册显隐列传 hidden)
+ * @param options.labelOf 开关文案取值,缺省 sys_dict(enable) 驱动
  */
 export function useStatusColumn<
-  /** 行数据类型:各页列表行,公共骨架仅依赖 id/status/builtin 字段 */
-  T extends { id: string; status: number; builtin: number }
+  /** 行数据类型:各页列表行,公共骨架仅依赖 id/状态字段/builtin 字段(无内置概念的页可缺省) */
+  T extends { id: string }
 >(options: {
   perms: string;
   switchLoadMap: Ref<Record<string, { loading: boolean }>>;
   onChange: (row: T) => void;
+  field?: "status" | "hidden";
+  labelOf?: (value: number) => string;
 }) {
   const { switchStyle } = usePublicHooks();
   const { labelOf: enableLabelOf } = useDict(DICT_CODES.enable);
+  const labelOf = options.labelOf ?? enableLabelOf;
+  const field = options.field ?? "status";
   return (data: TableColumnRenderer) =>
     h(ElSwitch, {
       size: data.props.size === "small" ? "small" : "default",
       loading: options.switchLoadMap.value[data.row.id]?.loading,
-      modelValue: data.row.status,
+      modelValue: data.row[field],
       "onUpdate:modelValue": (value: number) => {
-        data.row.status = value;
+        data.row[field] = value;
       },
       activeValue: 0,
       inactiveValue: 1,
-      activeText: enableLabelOf(0),
-      inactiveText: enableLabelOf(1),
+      activeText: labelOf(0),
+      inactiveText: labelOf(1),
       disabled: data.row.builtin === 1 || !hasPerms(options.perms),
       inlinePrompt: true,
       style: switchStyle.value,
@@ -357,11 +364,12 @@ export function openFormDialog<T>(options: {
 }
 
 /**
- * 状态开关列(启用/禁用)公共骨架 —— 收敛用户/角色/菜单/字典四页同构的开关交互。
+ * 状态开关列(启用/禁用)公共骨架 —— 收敛用户/角色/菜单/字典/画册五页同构的开关交互。
  * <p>
  * 职责:确认弹窗(文案由调用方组装)、提交加载态(switchLoadMap,以行 id 为键)、
  * 成功提示与取消/失败回滚(开关显示状态复位)。
  *
+ * @param options.field 状态字段名,缺省 status(画册显隐列传 hidden)
  * @param options.submit 状态提交接口
  * @param options.confirmText 确认弹窗内容(VNode 或纯文本,按模块组装;含业务数据的富文本一律走 VNode,由 Vue 转义防注入)
  * @param options.successText 成功提示内容(VNode 或纯文本,按模块组装)
@@ -369,8 +377,10 @@ export function openFormDialog<T>(options: {
  */
 export function useStatusSwitch<
   /** 行数据类型:各页列表行,公共骨架仅依赖 id/status 字段 */
-  T extends { id: string; status: number }
+  T extends { id: string }
 >(options: {
+  /** 状态字段名,缺省 status(画册显隐列传 hidden) */
+  field?: "status" | "hidden";
   /** 状态提交接口 */
   submit: (row: T) => Promise<unknown>;
   /** 确认弹窗内容(VNode 或纯文本,按模块组装) */
@@ -380,8 +390,15 @@ export function useStatusSwitch<
   /** 提交成功后的附加联动(如字典页刷新消费端缓存;同步/异步均可),缺省无 */
   afterSubmit?: (row: T) => unknown;
 }) {
+  const field = options.field ?? "status";
   /** 各行开关的提交加载态(以行 id 为键:树表行无稳定下标,统一用 id) */
   const switchLoadMap = ref<Record<string, { loading: boolean }>>({});
+
+  /** 取消/失败时回滚开关显示状态(0/1 二值翻转:status=启用/禁用、hidden=显示/隐藏 同构) */
+  function rollback(row: T) {
+    const target = row as unknown as Record<"status" | "hidden", number>;
+    target[field] = target[field] === 0 ? 1 : 0;
+  }
 
   /** 开关切换处理:确认 → 提交 → 提示;取消或失败时回滚开关显示状态 */
   function onChange(row: T) {
@@ -391,7 +408,7 @@ export function useStatusSwitch<
       if (!confirmed) {
         // 取消:释放加载态并回滚开关显示状态
         switchLoadMap.value[row.id] = { loading: false };
-        row.status = row.status === 0 ? 1 : 0;
+        rollback(row);
         return;
       }
       try {
@@ -400,7 +417,7 @@ export function useStatusSwitch<
         message(options.successText(row), { type: "success" });
       } catch {
         // 接口失败回滚开关,与取消回滚共用同一处理
-        row.status = row.status === 0 ? 1 : 0;
+        rollback(row);
       } finally {
         switchLoadMap.value[row.id] = { loading: false };
       }
