@@ -79,7 +79,7 @@ const {
     <PureTableBar title="足迹地图" :columns="columns" @refresh="onSearch">
       <template #buttons>
         <el-button
-          v-if="hasPerms('system:footprint:insert')"
+          v-if="hasPerms('admin:footprint:insert')"
           type="primary"
           :icon="useRenderIcon(AddFill)"
           @click="openDialog()"
@@ -105,7 +105,7 @@ const {
             </el-button>
           </div>
           <el-button
-            v-if="hasPerms('system:footprint:delete')"
+            v-if="hasPerms('admin:footprint:delete')"
             type="danger"
             text
             class="mr-1!"
@@ -136,7 +136,7 @@ const {
         >
           <template #operation="{ row }">
             <el-button
-              v-if="hasPerms('system:footprint:update')"
+              v-if="hasPerms('admin:footprint:update')"
               class="reset-margin"
               link
               type="primary"
@@ -147,7 +147,7 @@ const {
               修改
             </el-button>
             <el-button
-              v-if="hasPerms('system:footprint:delete')"
+              v-if="hasPerms('admin:footprint:delete')"
               class="reset-margin"
               link
               type="primary"

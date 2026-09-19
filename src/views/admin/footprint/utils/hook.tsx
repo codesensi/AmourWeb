@@ -5,14 +5,14 @@ import {
   openFormDialog,
   useBatchDelete,
   usePageQuery
-} from "../../hooks";
+} from "@/views/system/hooks";
 import {
   deleteFootprint,
   getFootprintPage,
   insertFootprint,
   updateFootprint
-} from "@/api/sys-footprint";
-import type { FootprintPageItem } from "@/api/sys-footprint";
+} from "@/api/admin-footprint";
+import type { FootprintPageItem } from "@/api/admin-footprint";
 import { queryClient } from "@/plugins/vue-query";
 import { queryKeys } from "@/hooks/query-keys";
 import { type Ref, reactive, ref, onMounted } from "vue";

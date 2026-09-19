@@ -6,7 +6,7 @@ import {
   usePageQuery,
   useStatusColumn,
   useStatusSwitch
-} from "../../hooks";
+} from "@/views/system/hooks";
 import { DICT_CODES } from "@/api/sys-dict";
 import {
   changeLovePhotoHidden,
@@ -14,8 +14,8 @@ import {
   getLovePhotoPage,
   insertLovePhoto,
   updateLovePhoto
-} from "@/api/sys-love-photo";
-import type { LovePhotoPageItem } from "@/api/sys-love-photo";
+} from "@/api/admin-love-photo";
+import type { LovePhotoPageItem } from "@/api/admin-love-photo";
 import { useDict } from "@/hooks/useDict";
 import { queryClient } from "@/plugins/vue-query";
 import { queryKeys } from "@/hooks/query-keys";
@@ -110,7 +110,7 @@ export function useLovePhoto(tableRef: Ref) {
 
   // 显隐开关列统一渲染(主题色/inline 文案/权限门控与用户列表状态开关对齐)
   const hiddenColumn = useStatusColumn<LovePhotoPageItem>({
-    perms: "portal:love-photo:update",
+    perms: "admin:love-photo:update",
     switchLoadMap,
     onChange,
     field: "hidden",

@@ -87,7 +87,7 @@ const {
     <PureTableBar title="恋爱画册" :columns="columns" @refresh="onSearch">
       <template #buttons>
         <el-button
-          v-if="hasPerms('portal:love-photo:insert')"
+          v-if="hasPerms('admin:love-photo:insert')"
           type="primary"
           :icon="useRenderIcon(AddFill)"
           @click="openDialog()"
@@ -113,7 +113,7 @@ const {
             </el-button>
           </div>
           <el-button
-            v-if="hasPerms('portal:love-photo:delete')"
+            v-if="hasPerms('admin:love-photo:delete')"
             type="danger"
             text
             class="mr-1!"
@@ -144,7 +144,7 @@ const {
         >
           <template #operation="{ row }">
             <el-button
-              v-if="hasPerms('portal:love-photo:update')"
+              v-if="hasPerms('admin:love-photo:update')"
               class="reset-margin"
               link
               type="primary"
@@ -155,7 +155,7 @@ const {
               修改
             </el-button>
             <el-button
-              v-if="hasPerms('portal:love-photo:delete')"
+              v-if="hasPerms('admin:love-photo:delete')"
               class="reset-margin"
               link
               type="primary"

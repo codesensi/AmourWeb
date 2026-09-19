@@ -34,11 +34,11 @@ export type FootprintQuery = PageQuery & {
   arrivalDateEnd?: string;
 };
 
-/** 足迹分页查询(GET /sys/footprint/page;登录态) */
+/** 足迹分页查询(GET /admin/footprint/page;登录态) */
 export const getFootprintPage = (params?: FootprintQuery) => {
   return http.request<ApiResult<PageResult<FootprintPageItem>>>(
     "get",
-    "/sys/footprint/page",
+    "/admin/footprint/page",
     { params: omitEmpty(params) }
   );
 };
@@ -58,24 +58,24 @@ export type FootprintSave = {
   remark?: string;
 };
 
-/** 新增足迹(POST /sys/footprint/insert) */
+/** 新增足迹(POST /admin/footprint/insert) */
 export const insertFootprint = (data: FootprintSave) => {
-  return http.request<ApiResult<null>>("post", "/sys/footprint/insert", {
+  return http.request<ApiResult<null>>("post", "/admin/footprint/insert", {
     data
   });
 };
 
-/** 修改足迹(PUT /sys/footprint/update;按 id 覆盖全部可编辑字段) */
+/** 修改足迹(PUT /admin/footprint/update;按 id 覆盖全部可编辑字段) */
 export const updateFootprint = (data: FootprintSave) => {
-  return http.request<ApiResult<null>>("put", "/sys/footprint/update", {
+  return http.request<ApiResult<null>>("put", "/admin/footprint/update", {
     data
   });
 };
 
-/** 批量逻辑删除足迹(DELETE /sys/footprint/delete/{ids};单条传 id,批量逗号拼接) */
+/** 批量逻辑删除足迹(DELETE /admin/footprint/delete/{ids};单条传 id,批量逗号拼接) */
 export const deleteFootprint = (ids: string) => {
   return http.request<ApiResult<null>>(
     "delete",
-    `/sys/footprint/delete/${ids}`
+    `/admin/footprint/delete/${ids}`
   );
 };

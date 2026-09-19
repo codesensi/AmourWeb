@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, markRaw, onBeforeUnmount, ref, watch } from "vue";
 import { RouterLink, useRouter } from "vue-router";
+import MapPinLine from "~icons/ri/map-pin-line";
 import { getAnniversaryList } from "@/api/portal/anniversary";
 import { getFootprintList } from "@/api/portal/footprint";
 import { getHeroes } from "@/api/portal/hero";
@@ -185,9 +186,8 @@ const coverHearts = [
  * 地图连线需全量点位,以单一大页一次拉取
  * (独立 key footprintMap:与足迹页分页 ["footprint"] 数据形状不同,共用会导致
  *  useInfiniteQuery 读到单对象缓存时抛 TypeError 使整页空白) */
-const { data: footprintPage } = usePortalQuery(
-  queryKeys.footprintMap(),
-  () => getFootprintList({ pageNumber: 1, pageSize: 500 })
+const { data: footprintPage } = usePortalQuery(queryKeys.footprintMap(), () =>
+  getFootprintList({ pageNumber: 1, pageSize: 500 })
 );
 
 /** 地图点位:有坐标的足迹按到访时间升序,依此连线
@@ -200,6 +200,7 @@ const mapPoints = computed<MapPoint[]>(() =>
       markRaw({
         id: it.id,
         city: it.city,
+        placeName: it.placeName,
         longitude: it.longitude as number,
         latitude: it.latitude as number,
         arrivalDate: it.arrivalDate,
@@ -208,6 +209,12 @@ const mapPoints = computed<MapPoint[]>(() =>
       })
     )
 );
+
+/** 精确地点展示文案(与城市同名视为未录入,避免「成都 / 成都」式重复) */
+function placeText(point: MapPoint): string {
+  if (!point.placeName || point.placeName === point.city) return "";
+  return point.placeName;
+}
 
 /** 选中的足迹详情(null=关闭) */
 const selectedPoint = ref<MapPoint | null>(null);
@@ -411,8 +418,21 @@ const latestPhoto = computed(() => latestPhotoPage.value?.records[0] ?? null);
               @click.stop
             >
               <span class="gd-city">{{ selectedPoint.city }}</span>
-              <span v-if="selectedPoint.arrivalDate" class="gd-date">
-                {{ selectedPoint.arrivalDate }}
+              <span
+                v-if="selectedPoint.arrivalDate || placeText(selectedPoint)"
+                class="gd-meta"
+              >
+                <span v-if="selectedPoint.arrivalDate" class="gd-date">
+                  {{ selectedPoint.arrivalDate }}
+                </span>
+                <span
+                  v-if="placeText(selectedPoint)"
+                  class="gd-place"
+                  :title="selectedPoint.placeName ?? ''"
+                >
+                  <MapPinLine aria-hidden="true" />
+                  <span>{{ placeText(selectedPoint) }}</span>
+                </span>
               </span>
               <span v-if="selectedPoint.remark" class="gd-remark">
                 {{ selectedPoint.remark }}
@@ -945,8 +965,46 @@ const latestPhoto = computed(() => latestPhotoPage.value?.records[0] ?? null);
 .gd-date {
   font-family: var(--am-font-mono);
   font-size: var(--am-text-base);
+
+  /* 与 .gd-place 统一行框高度,保证同一水平轴对齐 */
+  line-height: 1.2;
   color: var(--am-ink-secondary);
   letter-spacing: 0.08em;
+}
+
+/* 日期与精确地点同行:一行内并列展示 */
+.gd-meta {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* 定位图标与足迹页同款:1em 玫瑰色,随中文字面微调居中 */
+.gd-place {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  min-width: 0;
+  font-size: var(--am-text-base);
+  line-height: 1.2;
+  color: var(--am-ink-secondary);
+}
+
+.gd-place svg {
+  flex-shrink: 0;
+  width: 1em;
+  height: 1em;
+  color: var(--am-rose);
+  transform: translateY(-0.09em);
+}
+
+.gd-place span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  /* 行框紧贴字面:文字与 1em 图标同一几何中心,消除中文下沉造成的图标偏低 */
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .gd-remark {
@@ -1001,6 +1059,7 @@ const latestPhoto = computed(() => latestPhotoPage.value?.records[0] ?? null);
 }
 
 .footprint-detail--photo .gd-date,
+.footprint-detail--photo .gd-place,
 .footprint-detail--photo .gd-remark {
   color: rgb(255 255 255 / 72%);
 }

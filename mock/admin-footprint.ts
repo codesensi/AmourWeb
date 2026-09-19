@@ -1,7 +1,7 @@
-// 足迹地图管理 mock(对齐后端 /sys/footprint 接口)
+// 足迹地图管理 mock(对齐后端 /admin/footprint 接口)
 // page 契约对齐 FootprintPageResponse:id(字符串化)/city/placeName/longitude/latitude/arrivalDate/photoUrl/remark/createTime
 // insert/update 契约对齐 FootprintInsertRequest/UpdateRequest:照片以 URL 直存(上传后保存记录时绑定)
-// delete 契约对齐 DELETE /sys/footprint/delete/{ids}:批量逻辑删除(ids 逗号拼接)
+// delete 契约对齐 DELETE /admin/footprint/delete/{ids}:批量逻辑删除(ids 逗号拼接)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 import { mockPhoto } from "./portal/mock-photo";
 import { fakePageResponse } from "./utils";
@@ -90,9 +90,9 @@ const toItem = (item: (typeof footprints)[number]) => {
 };
 
 export default defineFakeRoute([
-  // 分页查询(GET /sys/footprint/page;全量,城市模糊 + 到访日期闭区间过滤,按到访日期升序 → id 升序)
+  // 分页查询(GET /admin/footprint/page;全量,城市模糊 + 到访日期闭区间过滤,按到访日期升序 → id 升序)
   {
-    url: "/sys/footprint/page",
+    url: "/admin/footprint/page",
     method: "get",
     response: ({ query }) => {
       const city = String(query.city ?? "");
@@ -113,9 +113,9 @@ export default defineFakeRoute([
       return fakePageResponse(records, query);
     }
   },
-  // 新增(POST /sys/footprint/insert,落地内存数据)
+  // 新增(POST /admin/footprint/insert,落地内存数据)
   {
-    url: "/sys/footprint/insert",
+    url: "/admin/footprint/insert",
     method: "post",
     response: ({ body }) => {
       const city = String(body?.city ?? "").trim();
@@ -138,9 +138,9 @@ export default defineFakeRoute([
       return ok(null, "新增成功");
     }
   },
-  // 修改(PUT /sys/footprint/update;按 id 覆盖全部可编辑字段,显式写入支持清空照片)
+  // 修改(PUT /admin/footprint/update;按 id 覆盖全部可编辑字段,显式写入支持清空照片)
   {
-    url: "/sys/footprint/update",
+    url: "/admin/footprint/update",
     method: "put",
     response: ({ body }) => {
       const target = footprints.find(
@@ -157,9 +157,9 @@ export default defineFakeRoute([
       return ok(null, "修改成功");
     }
   },
-  // 批量逻辑删除(DELETE /sys/footprint/delete/{ids};任一不存在时整批失败)
+  // 批量逻辑删除(DELETE /admin/footprint/delete/{ids};任一不存在时整批失败)
   {
-    url: "/sys/footprint/delete/:ids",
+    url: "/admin/footprint/delete/:ids",
     method: "delete",
     response: ({ params }) => {
       const ids = String(params.ids)

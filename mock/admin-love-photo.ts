@@ -1,7 +1,7 @@
-// 恋爱画册管理 mock(对齐后端 /sys/love-photo 接口)
+// 恋爱画册管理 mock(对齐后端 /admin/love-photo 接口)
 // page 契约对齐 LovePhotoPageResponse:id/url/caption/dateText/tags(逗号分隔串)/sort/hidden/createTime
 // insert/update 契约对齐 LovePhotoSaveRequest:tags 前端传数组,提交时按后端同规则规范化为逗号分隔串
-// delete 契约对齐 DELETE /sys/love-photo/delete/{ids}:批量逻辑删除(ids 逗号拼接)
+// delete 契约对齐 DELETE /admin/love-photo/delete/{ids}:批量逻辑删除(ids 逗号拼接)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 import { mockPhoto } from "./portal/mock-photo";
 import { fakePageResponse } from "./utils";
@@ -71,9 +71,9 @@ function joinTags(tags: Array<string> | undefined): string {
 }
 
 export default defineFakeRoute([
-  // 分页查询(GET /sys/love-photo/page;全量含隐藏)
+  // 分页查询(GET /admin/love-photo/page;全量含隐藏)
   {
-    url: "/sys/love-photo/page",
+    url: "/admin/love-photo/page",
     method: "get",
     response: ({ query }) => {
       const { caption, tag, hidden, pageNumber = 1, pageSize = 20 } = query;
@@ -91,9 +91,9 @@ export default defineFakeRoute([
       return fakePageResponse(filtered, { pageNumber, pageSize });
     }
   },
-  // 新增(POST /sys/love-photo/insert)
+  // 新增(POST /admin/love-photo/insert)
   {
-    url: "/sys/love-photo/insert",
+    url: "/admin/love-photo/insert",
     method: "post",
     response: ({ body }) => {
       const now = new Date();
@@ -110,9 +110,9 @@ export default defineFakeRoute([
       return ok(null, "新增照片成功");
     }
   },
-  // 修改(PUT /sys/love-photo/update;按 id 覆盖全部可编辑字段)
+  // 修改(PUT /admin/love-photo/update;按 id 覆盖全部可编辑字段)
   {
-    url: "/sys/love-photo/update",
+    url: "/admin/love-photo/update",
     method: "put",
     response: ({ body }) => {
       const row = photos.find(item => item.id === String(body.id));
@@ -128,9 +128,9 @@ export default defineFakeRoute([
       return ok(null, "修改照片成功");
     }
   },
-  // 修改照片显隐(PUT /sys/love-photo/change-hidden;独立显隐端点)
+  // 修改照片显隐(PUT /admin/love-photo/change-hidden;独立显隐端点)
   {
-    url: "/sys/love-photo/change-hidden",
+    url: "/admin/love-photo/change-hidden",
     method: "put",
     response: ({ body }) => {
       const row = photos.find(item => item.id === String(body.id));
@@ -141,9 +141,9 @@ export default defineFakeRoute([
       return ok(null, "修改照片显隐成功");
     }
   },
-  // 批量逻辑删除(DELETE /sys/love-photo/delete/:ids;任一 id 不存在时整批失败,对齐后端校验)
+  // 批量逻辑删除(DELETE /admin/love-photo/delete/:ids;任一 id 不存在时整批失败,对齐后端校验)
   {
-    url: "/sys/love-photo/delete/:ids",
+    url: "/admin/love-photo/delete/:ids",
     method: "delete",
     response: ({ params }) => {
       const ids = String(params.ids)

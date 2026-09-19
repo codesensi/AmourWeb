@@ -3,6 +3,8 @@
 export interface MapPoint {
   id: number;
   city: string;
+  /** 精确地点名称(详情浮层展示,与城市同名视为未录入;可为 null) */
+  placeName?: string | null;
   longitude: number;
   latitude: number;
   arrivalDate: string | null;
