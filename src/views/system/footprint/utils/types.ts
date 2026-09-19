@@ -7,6 +7,8 @@ interface FormItemProps {
   city: string;
   /** 精确地点名称(地图选点搜索选中的地点,或手动录入) */
   placeName: string;
+  /** 高德服务降级标记(驱动标题行胶囊与输入提示,不参与提交) */
+  degraded: boolean;
   /** 经度(可空;地图选点或手动录入) */
   longitude: number | null;
   /** 纬度(可空) */

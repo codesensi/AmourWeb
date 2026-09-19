@@ -29,6 +29,8 @@ const emit = defineEmits<{
   "update:latitude": [value: number | null];
   "update:city": [value: string];
   "update:placeName": [value: string | null];
+  /** 服务降级状态外泄(调用方据此切换相关提示文案) */
+  "update:degraded": [value: boolean];
 }>();
 
 /** 配置/加载过程中的错误提示(无 key 等降级场景) */
@@ -87,6 +89,23 @@ const suggestList = ref<
 const suppressPick = ref(false);
 /** 搜索请求序号(防竞态:仅采纳最后一次响应) */
 let searchSeq = 0;
+
+/** 搜索框提示:高德检索降级后切换为内置城市表的说明,避免承诺无法兑现的 POI 搜索 */
+const searchPlaceholder = computed(() =>
+  serviceDegraded.value
+    ? "内置地图支持区县级匹配，请输入正确的地点名进行搜索"
+    : "请输入地点名搜索或在地图上点选，也可手动输入地点名"
+);
+
+// 降级状态联动:外泄给表单切换提示文案;同时禁用地图用户交互(点选/拖拽/缩放),程序化定位不受影响
+watch(serviceDegraded, v => {
+  emit("update:degraded", v);
+  mapInstance.value?.setStatus?.({
+    dragEnable: !v,
+    zoomEnable: !v,
+    doubleClickZoom: !v
+  });
+});
 
 /** 按坐标落点并居中(选点/回显共用) */
 function placeMarker(lng: number, lat: number) {
@@ -168,6 +187,8 @@ onMounted(async () => {
     if (!res.success) return;
     const key = res.data.find(item => item.configKey === "security.amap-key")?.configValue ?? "";
     if (!key) {
+      // 未配 key 与服务降级同一语义:统一胶囊提示、降级文案与状态外泄(地图不展示)
+      serviceDegraded.value = true;
       tip.value =
         "未配置高德地图 Key(系统配置 security.amap-key),可输入城市名自动匹配坐标";
       // 后台预取区县数据包,输入联想更流畅
@@ -183,7 +204,8 @@ onMounted(async () => {
     const map = new AMap.Map(mapEl.value);
     mapInstance.value = map;
     map.on("click", (event: any) => {
-      if (suppressPick.value) return;
+      // 降级时禁用点选:无逆地理服务,点选只有孤立坐标而无城市语义
+      if (serviceDegraded.value || suppressPick.value) return;
       // 点选是明确的位置意图,城市总是更新为所点位置(与搜索候选选中行为一致)
       pickPoint(event.lnglat.getLng(), event.lnglat.getLat(), true);
     });
@@ -196,6 +218,8 @@ onMounted(async () => {
       }
     });
   } catch {
+    // SDK 加载失败与服务降级同一语义:统一胶囊提示、降级文案与状态外泄(地图不展示)
+    serviceDegraded.value = true;
     tip.value = "地图加载失败,可输入城市名自动匹配坐标";
     ensureDistricts();
   }
@@ -446,16 +470,12 @@ function onLocalSelect(item: LocalCity) {
 
 <template>
   <div ref="rootRef" class="w-full">
-    <!-- 行高对齐 EP 控件高度(32px),使提示文字与左侧表单 label 水平居中 -->
-    <div v-if="tip" class="mb-2 text-xs leading-8 text-(--el-text-color-secondary)">
-      {{ tip }}
-    </div>
-    <!-- 无 key/加载失败时的本地模式:输入城市名由内置城市表匹配经纬度 -->
+    <!-- 无 key/加载失败时的本地模式:输入城市名由内置城市表匹配经纬度(胶囊提示由表单标题行统一承载) -->
     <template v-if="tip">
       <div class="relative mb-2">
         <el-input
           v-model="searchText"
-          placeholder="输入城市名(如:成都),自动匹配经纬度"
+          :placeholder="searchPlaceholder"
           clearable
           @keyup.enter="confirmLocal"
           @keydown.down.prevent="moveActive(1, localCandidates.length)"
@@ -486,17 +506,11 @@ function onLocalSelect(item: LocalCity) {
       </div>
     </template>
     <template v-else>
-      <!-- 服务降级横幅:底图可用但服务接口受限时明示能力边界 -->
-      <div
-        v-if="serviceDegraded"
-        class="mb-2 text-center text-xs leading-8 text-(--el-color-warning)"
-      >
-        高德服务暂不可用(未配置安全密钥或网络受限),已切换内置城市表搜索,点选仍可拾取坐标
-      </div>
-      <div class="relative mb-2">
+      <!-- 搜索行:降级胶囊悬浮于行尾,行高恒定,两种服务状态下布局零扰动 -->
+      <div class="relative mb-2 flex items-center gap-2">
         <el-input
           v-model="searchText"
-          placeholder="输入地点关键词搜索(回车直接定位),或点击地图拾取"
+          :placeholder="searchPlaceholder"
           clearable
           :loading="searching"
           @keyup.enter="onSearchConfirm"

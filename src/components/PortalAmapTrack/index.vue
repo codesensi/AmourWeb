@@ -8,7 +8,7 @@ import { loadAMap, type AMapGlobal } from "@/utils/amap";
 
 /**
  * 门户足迹地图(策略组件):
- * - 系统配置了 security.amap-key → 渲染高德真实底图(按到访顺序 Polyline 连线 + 点标记 + 自动贴合视角);
+ * - 系统配置了 security.amap-key → 渲染高德真实底图(逐城圆点标记 + hover 城市名气泡 + 自动贴合视角);
  * - 未配置 key 或 SDK 加载失败 → 自动回退 echarts 自绘世界地图(PortalWorldMap),门户零感知。
  * 点位交互与既有契约一致:点击点位 emit select,详情浮层由调用方渲染。
  */
@@ -27,7 +27,7 @@ const containerEl = ref<HTMLElement>();
 const mapInstance = ref<AMapGlobal | null>(null);
 /** 点标记集合(重建/销毁时统一清理) */
 const markers = ref<Array<AMapGlobal>>([]);
-/** 路径线/点强调色(与站点 rose 主题一致) */
+/** 地点圆点强调色(与站点 rose 主题一致) */
 const trackColor = "#e11d48";
 
 /** 主题切换前的视角(重建地图后恢复,避免跳回默认) */
@@ -45,28 +45,27 @@ function onSelect(point: MapPoint) {
   emit("select", point);
 }
 
-/** 创建覆盖物:逐城标记 + 按到访顺序的路径折线 */
+/** HTML 转义(城市名进入覆盖物 content 的属性,防注入) */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/** 创建覆盖物:逐城圆点标记(hover 气泡显示城市名) */
 function buildOverlays(AMap: AMapGlobal, map: AMapGlobal) {
   props.points.forEach(point => {
     const marker = new AMap.Marker({
       position: [point.longitude, point.latitude],
-      title: point.city,
+      anchor: "center",
+      content: `<span class="amap-track-dot" data-city="${escapeHtml(point.city)}"></span>`,
       map
     });
     marker.on("click", () => onSelect(point));
     markers.value.push(marker);
   });
-  if (props.points.length > 1) {
-    new AMap.Polyline({
-      path: props.points.map(point => [point.longitude, point.latitude]),
-      strokeColor: trackColor,
-      strokeWeight: 3,
-      strokeOpacity: 0.85,
-      // 实线方向箭头:体现行程推进方向
-      showDir: true,
-      map
-    });
-  }
 }
 
 /** 销毁地图实例(覆盖物随实例一并释放) */
@@ -160,3 +159,40 @@ onBeforeUnmount(() => {
     />
   </div>
 </template>
+
+<style>
+/* 高德覆盖物 content 由地图动态创建,无法走 scoped:类名加 amap-track- 前缀避免全局污染 */
+.amap-track-dot {
+  position: relative;
+  display: block;
+  width: 12px;
+  height: 12px;
+  cursor: pointer;
+  background: #e11d48;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 30%);
+}
+
+/* hover 城市名气泡:attr 读取标记 data-city,单实例无 JS 状态 */
+.amap-track-dot::after {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  padding: 3px 10px;
+  font-size: 12px;
+  color: #fff;
+  white-space: nowrap;
+  pointer-events: none;
+  content: attr(data-city);
+  background: rgb(15 18 25 / 85%);
+  border-radius: 6px;
+  opacity: 0;
+  transform: translateX(-50%);
+  transition: opacity 0.15s;
+}
+
+.amap-track-dot:hover::after {
+  opacity: 1;
+}
+</style>

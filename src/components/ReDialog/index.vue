@@ -125,7 +125,13 @@ function handleClose(
       #header="{ close, titleId, titleClass }"
     >
       <div v-if="options?.fullscreenIcon" class="flex-bc">
-        <span :id="titleId" :class="titleClass">{{ options?.title }}</span>
+        <component
+          v-if="options?.headerRenderer"
+          :is="options?.headerRenderer({ close, titleId, titleClass })"
+        />
+        <span v-else :id="titleId" :class="titleClass">{{
+          options?.title
+        }}</span>
         <i
           v-if="!options?.fullscreen"
           :class="fullscreenClass"

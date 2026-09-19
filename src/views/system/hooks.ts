@@ -17,7 +17,7 @@ import type { ApiResult, PageQuery, PageResult } from "@/api/types";
 import { DICT_CODES } from "@/api/sys-dict";
 import { useDict } from "@/hooks/useDict";
 import { hasPerms } from "@/utils/auth";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog, type DialogOptions } from "@/components/ReDialog";
 import { deviceDetection } from "@pureadmin/utils";
 import { confirmAction, emphasize, message } from "@/utils/message";
 
@@ -317,6 +317,8 @@ export function useBatchDelete<
  */
 export function openFormDialog<T>(options: {
   title: string;
+  /** 自定义标题行渲染(可选):标题旁附加状态徽标等;传入后替代默认标题文本 */
+  headerRenderer?: DialogOptions["headerRenderer"];
   editForm: Component;
   formRef: Ref<any>;
   formInline: T;
@@ -325,6 +327,7 @@ export function openFormDialog<T>(options: {
 }) {
   addDialog({
     title: options.title,
+    headerRenderer: options.headerRenderer,
     props: {
       formInline: options.formInline
     },

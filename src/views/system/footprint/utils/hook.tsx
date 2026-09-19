@@ -1,4 +1,5 @@
 import editForm from "../form.vue";
+import { h } from "vue";
 import { message } from "@/utils/message";
 import {
   openFormDialog,
@@ -136,21 +137,46 @@ export function useFootprint(tableRef: Ref) {
   ];
 
   function openDialog(title = "新增", row?: FootprintPageItem) {
+    // 响应式表单数据:headerRenderer 与表单控件共享同一代理,降级状态联动标题胶囊
+    const formInline = reactive({
+      title,
+      id: row?.id,
+      city: row?.city ?? "",
+      placeName: row?.placeName ?? "",
+      longitude: row?.longitude ?? null,
+      latitude: row?.latitude ?? null,
+      arrivalDate: row?.arrivalDate ?? "",
+      photoUrl: row?.photoUrl ?? "",
+      remark: row?.remark ?? "",
+      /** 高德服务降级标记(仅驱动标题行胶囊显隐,不参与提交) */
+      degraded: false
+    });
     openFormDialog({
       title: `${title}足迹`,
+      headerRenderer: ({ titleId, titleClass }) =>
+        h(
+          "span",
+          {
+            id: titleId,
+            class: [titleClass, "relative flex flex-1 items-center"]
+          },
+          [
+            h("span", `${title}足迹`),
+            formInline.degraded
+              ? h(
+                  "span",
+                  {
+                    class:
+                      "bg-(--el-color-warning) text-white absolute left-1/2 whitespace-nowrap rounded-full px-3 py-1 text-xs font-normal -translate-x-1/2"
+                  },
+                  "高德地图暂不可用，已启用系统内置地图"
+                )
+              : null
+          ]
+        ),
       editForm,
       formRef,
-      formInline: {
-        title,
-        id: row?.id,
-        city: row?.city ?? "",
-        placeName: row?.placeName ?? "",
-        longitude: row?.longitude ?? null,
-        latitude: row?.latitude ?? null,
-        arrivalDate: row?.arrivalDate ?? "",
-        photoUrl: row?.photoUrl ?? "",
-        remark: row?.remark ?? ""
-      },
+      formInline,
       submit: async curData => {
         // 照片以 URL 直存:上传组件返回的站内地址或外链,保存记录时直接绑定
         const payload: FootprintUpdatePayload = {
