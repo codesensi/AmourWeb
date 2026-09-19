@@ -5,6 +5,8 @@ export type FootprintItem = {
   id: number;
   /** 城市/地点名称 */
   city: string;
+  /** 精确地点名称(地图选点搜索选中的地点,或手动录入;可空) */
+  placeName: string | null;
   /** 经纬度(地图组件接入后启用;当前时间轴视图仅作展示) */
   longitude: number | null;
   latitude: number | null;

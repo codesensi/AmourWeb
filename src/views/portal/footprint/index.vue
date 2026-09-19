@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import MapPinLine from "~icons/ri/map-pin-line";
 import { getFootprintList, type FootprintItem } from "@/api/portal/footprint";
 import PortalLoadMore from "@/components/PortalLoadMore/index.vue";
 import reveal from "@/directives/reveal";
@@ -40,7 +41,13 @@ const photoItems = computed<LightboxItem[]>(() =>
     .filter(it => it.photoUrl)
     .map(it => ({
       url: it.photoUrl as string,
-      caption: `${it.city}${it.arrivalDate ? ` · ${it.arrivalDate}` : ""}`
+      caption: [
+        it.city,
+        placeText(it),
+        it.arrivalDate
+      ]
+        .filter(Boolean)
+        .join(" · ")
     }))
 );
 
@@ -53,6 +60,12 @@ const currentCaption = computed(
 function openPhoto(item: FootprintItem) {
   const idx = photoItems.value.findIndex(p => p.url === item.photoUrl);
   if (idx >= 0) openLightbox(idx);
+}
+
+/** 精确地点展示文案(与城市同名视为未录入,避免"南昌 / 南昌"式重复) */
+function placeText(it: FootprintItem): string {
+  if (!it.placeName || it.placeName === it.city) return "";
+  return it.placeName;
 }
 
 /** 坐标展示文案(30.66°N, 104.06°E) */
@@ -104,6 +117,10 @@ function coordText(it: FootprintItem): string {
           </button>
           <div class="foot-info">
             <h3 class="foot-city">{{ it.city }}</h3>
+            <p v-if="placeText(it)" class="foot-place">
+              <MapPinLine aria-hidden="true" />
+              <span :title="it.placeName ?? ''">{{ placeText(it) }}</span>
+            </p>
             <p class="foot-meta">
               <time v-if="it.arrivalDate" class="foot-date">
                 {{ it.arrivalDate }}
@@ -234,6 +251,38 @@ function coordText(it: FootprintItem): string {
   font-size: var(--am-text-lg);
   font-weight: 700;
   color: var(--am-ink);
+}
+
+.foot-place {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  min-width: 0;
+  margin: 0 0 6px;
+  font-size: var(--am-text-sm);
+
+  /* 单行紧凑行距:消除半行距导致的图标与文字视觉错位 */
+  line-height: 1.2;
+  color: var(--am-ink-secondary);
+}
+
+.foot-place svg {
+  flex-shrink: 0;
+  width: 1em;
+  height: 1em;
+  color: var(--am-rose);
+
+  /* 中文字形下沉的像素级补偿:图标上移与汉字字面视觉居中 */
+  transform: translateY(-0.09em);
+}
+
+.foot-place span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  /* 行框紧贴字面:文字与 1em 图标同一几何中心,消除中文下沉造成的图标偏低 */
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .foot-meta {

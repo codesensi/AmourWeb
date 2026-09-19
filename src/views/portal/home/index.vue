@@ -937,19 +937,15 @@ const latestPhoto = computed(() => latestPhotoPage.value?.records[0] ?? null);
 }
 
 .gd-more {
-  padding: 10px 26px;
-  font-size: var(--am-text-lg);
+  font-size: var(--am-text-sm);
   color: var(--am-rose);
   cursor: pointer;
-  border: 1px solid currentcolor;
-  border-radius: 999px;
 }
 
 .gd-more:hover,
 .gd-more:focus-visible {
-  color: #fff;
-  text-decoration: none;
-  background: var(--am-rose);
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 .gd-close {
@@ -996,6 +992,8 @@ const latestPhoto = computed(() => latestPhotoPage.value?.records[0] ?? null);
 .footprint-detail--photo .gd-more:hover,
 .footprint-detail--photo .gd-more:focus-visible {
   color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 .footprint-detail--photo .gd-close {

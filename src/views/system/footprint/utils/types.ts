@@ -5,6 +5,8 @@ interface FormItemProps {
   title: string;
   /** 城市/地点名称 */
   city: string;
+  /** 精确地点名称(地图选点搜索选中的地点,或手动录入) */
+  placeName: string;
   /** 经度(可空;地图选点或手动录入) */
   longitude: number | null;
   /** 纬度(可空) */

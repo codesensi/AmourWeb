@@ -8,6 +8,8 @@ export interface FootprintPageItem {
   id: string;
   /** 城市/地点名称 */
   city: string;
+  /** 精确地点名称(可空) */
+  placeName?: string | null;
   /** 经度(GCJ-02;可空) */
   longitude?: number | null;
   /** 纬度(可空) */
@@ -45,6 +47,8 @@ export const getFootprintPage = (params?: FootprintQuery) => {
 export type FootprintSave = {
   id?: string;
   city: string;
+  /** 精确地点名称(地图选点搜索选中的地点,或手动录入;可空) */
+  placeName?: string | null;
   longitude?: number | null;
   latitude?: number | null;
   /** 到访日期(yyyy-MM-dd;可空) */

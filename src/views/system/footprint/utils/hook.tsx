@@ -12,12 +12,15 @@ import {
   updateFootprint
 } from "@/api/sys-footprint";
 import type { FootprintPageItem } from "@/api/sys-footprint";
+import { queryClient } from "@/plugins/vue-query";
+import { queryKeys } from "@/hooks/query-keys";
 import { type Ref, reactive, ref, onMounted } from "vue";
 
 /** 行数据剔除服务端注入字段后的可编辑形态(与后端 FootprintUpdateRequest 对齐) */
 type FootprintUpdatePayload = {
   id: string;
   city: string;
+  placeName: string | null;
   longitude: number | null;
   latitude: number | null;
   arrivalDate: string | null;
@@ -51,6 +54,10 @@ export function useFootprint(tableRef: Ref) {
   );
 
   // 删除/批量删除/多选三件套(确认弹窗、成功提示与刷新联动由骨架统一)
+  /** 管理端写操作后失效门户足迹缓存(key 前缀同时覆盖分页与地图点两个子资源) */
+  const invalidatePortalFootprint = () =>
+    queryClient.invalidateQueries({ queryKey: queryKeys.footprint().key });
+
   const {
     selectedNum,
     handleDelete,
@@ -63,7 +70,10 @@ export function useFootprint(tableRef: Ref) {
     nameOf: row => row.city,
     entity: "足迹",
     unit: "条",
-    afterDeleted: () => search()
+    afterDeleted: () => {
+      search();
+      void invalidatePortalFootprint();
+    }
   });
 
   /** 列定义 */
@@ -98,12 +108,9 @@ export function useFootprint(tableRef: Ref) {
       minWidth: 140
     },
     {
-      label: "经纬度",
-      minWidth: 180,
-      cellRenderer: ({ row }) =>
-        row.longitude != null && row.latitude != null
-          ? `${row.longitude}, ${row.latitude}`
-          : ""
+      label: "精确地点",
+      prop: "placeName",
+      minWidth: 140
     },
     {
       label: "到访日期",
@@ -137,6 +144,7 @@ export function useFootprint(tableRef: Ref) {
         title,
         id: row?.id,
         city: row?.city ?? "",
+        placeName: row?.placeName ?? "",
         longitude: row?.longitude ?? null,
         latitude: row?.latitude ?? null,
         arrivalDate: row?.arrivalDate ?? "",
@@ -148,6 +156,7 @@ export function useFootprint(tableRef: Ref) {
         const payload: FootprintUpdatePayload = {
           id: curData.id!,
           city: curData.city,
+          placeName: curData.placeName || null,
           longitude: curData.longitude,
           latitude: curData.latitude,
           arrivalDate: curData.arrivalDate || null,
@@ -159,6 +168,7 @@ export function useFootprint(tableRef: Ref) {
         } else {
           await updateFootprint(payload);
         }
+        await invalidatePortalFootprint();
         message(`成功${title}足迹`, { type: "success" });
         search(); // 刷新表格数据
       }

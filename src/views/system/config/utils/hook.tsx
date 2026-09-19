@@ -7,6 +7,8 @@ import { getConfigPage, updateConfig } from "@/api/sys-config";
 import type { SysConfigPageItem } from "@/api/sys-config";
 import { DICT_CODES } from "@/api/sys-dict";
 import { useDict } from "@/hooks/useDict";
+import { queryClient } from "@/plugins/vue-query";
+import { queryKeys } from "@/hooks/query-keys";
 import { ref, toRaw, reactive, watch } from "vue";
 
 export function useConfigPage() {
@@ -123,6 +125,10 @@ export function useConfigPage() {
           // 编辑弹窗由既有行打开,id 必然存在
           id: curData.id!,
           configValue: curData.configValue
+        });
+        // 站点公共配置走前端长缓存(staleTime=Infinity):修改后失效,登录页/门户等消费方下次重拉新值
+        await queryClient.invalidateQueries({
+          queryKey: queryKeys.sysConfig().key
         });
         message(`已修改配置${curData.configKey}，新值即时生效`, {
           type: "success"

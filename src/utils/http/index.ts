@@ -10,9 +10,11 @@ import type {
   PureHttpRequestConfig
 } from "./types.d";
 import { stringify } from "qs";
+import { ElMessageBox } from "element-plus";
 import { message } from "@/utils/message";
 import { getToken, formatToken } from "@/utils/auth";
 import { useUserStoreHook } from "@/store/modules/user";
+import { closeAllDialog } from "@/components/ReDialog";
 import { Code, type ApiResult } from "@/api/types";
 
 /**
@@ -24,6 +26,9 @@ function handleUnauthorized() {
   if (handling401) return;
   handling401 = true;
   message("登录已过期，请重新登录", { type: "warning" });
+  // 根级悬浮层不随路由销毁:跳登录前统一清场,避免登录页残留表单弹窗与确认框
+  closeAllDialog();
+  ElMessageBox.close(); // 全局单例确认框(删除/状态切换等 confirmAction 场景)
   useUserStoreHook().logOut();
   setTimeout(() => (handling401 = false), 1000);
 }

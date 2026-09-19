@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { getSysConfig } from "@/api/sys-config";
 import { loadAMap, type AMapGlobal } from "@/utils/amap";
 import { cityLevels } from "@/utils/city-levels";
@@ -18,6 +18,8 @@ interface Props {
   latitude: number | null;
   /** 选中城市(选点后反查回填;v-model:city) */
   city: string;
+  /** 精确地点名称(搜索选中的 POI 名;v-model:placeName;可空) */
+  placeName?: string | null;
 }
 
 const props = defineProps<Props>();
@@ -26,12 +28,26 @@ const emit = defineEmits<{
   "update:longitude": [value: number | null];
   "update:latitude": [value: number | null];
   "update:city": [value: string];
+  "update:placeName": [value: string | null];
 }>();
 
 /** 配置/加载过程中的错误提示(无 key 等降级场景) */
 const tip = ref("");
 
 const searchText = ref("");
+
+// 搜索框文本 ⇄ 精确地点双向同步:搜索框即精确地点的编辑载体(选中/点选/手动输入统一由此回写)
+watch(searchText, v => {
+  emit("update:placeName", v || null);
+});
+// 编辑回显:存量精确地点回填搜索框(immediate 覆盖弹窗打开时的首次同步)
+watch(
+  () => props.placeName,
+  v => {
+    searchText.value = v ?? "";
+  },
+  { immediate: true }
+);
 const mapEl = ref<HTMLElement>();
 const searching = ref(false);
 /** 高德服务降级标记(服务探测失败或检索失败后置位,成功后复位) */
@@ -108,29 +124,41 @@ function pickPoint(lng: number, lat: number, overwriteCity = false) {
     if (pickedCity && (overwriteCity || !props.city)) {
       emit("update:city", pickedCity.replace(/市$/, ""));
     }
+    // 精确地点:逆地理完整地址回填(placeName 经 searchText 的 watch 统一回写)
+    const address = result.regeocode.formattedAddress;
+    if (address) {
+      // 程序化赋值不触发 @input,不会引发二次搜索
+      searchText.value = address;
+    }
   });
 }
 
-/** 搜索框选中候选:候选结果必带坐标,直接落点居中并回填表单 */
+/** 搜索框选中候选:落点居中并回填坐标/城市/精确地点 */
 function onSuggestSelect(item: {
   name: string;
   district: string;
   lng: number;
   lat: number;
   city?: string;
+  local?: boolean;
 }) {
-  searchText.value = item.name;
+  // 本地城市表兜底只精确到城市/区县:搜索框与精确地点都保留用户输入的原文
+  const rawQuery = searchText.value;
+  if (!item.local) {
+    searchText.value = item.name;
+  }
   suggestList.value = [];
   activeIndex.value = -1;
+  placeMarker(item.lng, item.lat);
+  emit("update:longitude", Number(Number(item.lng).toFixed(6)));
+  emit("update:latitude", Number(Number(item.lat).toFixed(6)));
   if (item.city) {
-    // 本地城市表回退候选:城市已知,直接回填,无需逆地理(服务不可用时逆地理必然失败)
-    placeMarker(item.lng, item.lat);
-    emit("update:longitude", Number(Number(item.lng).toFixed(6)));
-    emit("update:latitude", Number(Number(item.lat).toFixed(6)));
+    // 候选自带城市(高德 POI 的 cityname / 本地城市表):直接回填城市,无需逆地理
     emit("update:city", item.city);
-    return;
+  } else {
+    // 候选无城市信息:退回点选逻辑,由逆地理补齐
+    pickPoint(item.lng, item.lat, true);
   }
-  pickPoint(item.lng, item.lat, true);
 }
 
 onMounted(async () => {
@@ -221,13 +249,14 @@ function searchPlace(): Promise<void> {
       // 高德检索失败(代理异常/网络失败):回退内置城市表匹配,保证弱网/未配 key 时可用
       serviceDegraded.value = true;
       void searchLocal().then(() => {
-        // city 随候选保留:本地候选无需逆地理即可回填城市
+        // city 随候选保留:本地候选无需逆地理即可回填城市;local 标记用于保留用户输入原文为精确地点
         suggestList.value = localCandidates.value.map(c => ({
           name: c.name,
           district: c.city,
           lng: c.lng,
           lat: c.lat,
-          city: c.city
+          city: c.city,
+          local: true
         }));
         localCandidates.value = [];
         resolve();
@@ -236,7 +265,7 @@ function searchPlace(): Promise<void> {
   });
 }
 
-/** 高德 POI 结果 → 候选列表项 */
+/** 高德 POI 结果 → 候选列表项(city 由 cityname 归一化,选中时直接回填,无需逆地理) */
 function extractPois(result: any) {
   return (result?.poiList?.pois ?? [])
     .filter((poi: any) => poi.location)
@@ -246,7 +275,8 @@ function extractPois(result: any) {
         ? `${poi.pname}${poi.cityname ?? ""}${poi.adname ?? ""}`
         : (poi.cityname ?? ""),
       lng: poi.location.getLng(),
-      lat: poi.location.getLat()
+      lat: poi.location.getLat(),
+      city: normalizeCityName(poi.cityname ?? "")
     }));
 }
 
@@ -403,7 +433,7 @@ function confirmLocal() {
   }
 }
 
-/** 本地候选选中:回填城市与坐标(坐标为 GCJ-02,与高德底图一致) */
+/** 本地候选选中:回填城市与坐标(候选名经 searchText 的 watch 同步为精确地点,坐标为 GCJ-02) */
 function onLocalSelect(item: LocalCity) {
   searchText.value = item.name;
   localCandidates.value = [];

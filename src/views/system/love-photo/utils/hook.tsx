@@ -17,6 +17,8 @@ import {
 } from "@/api/sys-love-photo";
 import type { LovePhotoPageItem } from "@/api/sys-love-photo";
 import { useDict } from "@/hooks/useDict";
+import { queryClient } from "@/plugins/vue-query";
+import { queryKeys } from "@/hooks/query-keys";
 import { type Ref, h, ref, reactive, onMounted } from "vue";
 
 /** 行数据剔除服务端注入字段后的可编辑形态(与后端 LovePhotoUpdateRequest 对齐) */
@@ -58,6 +60,10 @@ export function useLovePhoto(tableRef: Ref) {
     })
   );
 
+  /** 管理端写操作后失效门户画册缓存(key 前缀同时覆盖画册分页与首页最新一张两个子资源) */
+  const invalidatePortalLovePhoto = () =>
+    queryClient.invalidateQueries({ queryKey: queryKeys.lovePhoto().key });
+
   // 删除/批量删除/多选三件套(确认弹窗、成功提示与刷新联动由骨架统一)
   const {
     selectedNum,
@@ -71,7 +77,10 @@ export function useLovePhoto(tableRef: Ref) {
     nameOf: row => row.caption || "未命名照片",
     entity: "照片",
     unit: "张",
-    afterDeleted: () => search()
+    afterDeleted: () => {
+      search();
+      void invalidatePortalLovePhoto();
+    }
   });
 
   /* ---------------- 显隐开关(独立 change-hidden 端点,文案取 hidden 字典) ---------------- */
@@ -82,7 +91,10 @@ export function useLovePhoto(tableRef: Ref) {
   // 显隐开关公共骨架:确认 + 提交加载态 + 成功提示 + 取消/失败回滚(对齐用户列表状态开关)
   const { switchLoadMap, onChange } = useStatusSwitch<LovePhotoPageItem>({
     field: "hidden",
-    submit: row => changeLovePhotoHidden(row.id, row.hidden),
+    submit: async row => {
+      await changeLovePhotoHidden(row.id, row.hidden);
+      await invalidatePortalLovePhoto();
+    },
     confirmText: row =>
       h("span", [
         "确认要将",
@@ -214,6 +226,7 @@ export function useLovePhoto(tableRef: Ref) {
         } else {
           await updateLovePhoto(payload);
         }
+        await invalidatePortalLovePhoto();
         message(`成功${title}照片`, { type: "success" });
         search(); // 刷新表格数据
       }

@@ -1,5 +1,5 @@
 // 足迹地图管理 mock(对齐后端 /sys/footprint 接口)
-// page 契约对齐 FootprintPageResponse:id(字符串化)/city/longitude/latitude/arrivalDate/photoUrl/remark/createTime
+// page 契约对齐 FootprintPageResponse:id(字符串化)/city/placeName/longitude/latitude/arrivalDate/photoUrl/remark/createTime
 // insert/update 契约对齐 FootprintInsertRequest/UpdateRequest:照片以 URL 直存(上传后保存记录时绑定)
 // delete 契约对齐 DELETE /sys/footprint/delete/{ids}:批量逻辑删除(ids 逗号拼接)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
@@ -29,6 +29,7 @@ const footprints = [
   {
     id: "1",
     city: "成都",
+    placeName: "成都大熊猫繁育研究基地",
     longitude: 104.065735,
     latitude: 30.659462,
     arrivalDate: "2023-02-15",
@@ -40,6 +41,7 @@ const footprints = [
   {
     id: "2",
     city: "大理",
+    placeName: "大理古城",
     longitude: 100.22504,
     latitude: 25.6065,
     arrivalDate: "2023-07-02",
@@ -51,6 +53,7 @@ const footprints = [
   {
     id: "3",
     city: "北京",
+    placeName: "故宫博物院",
     longitude: 116.407387,
     latitude: 39.904179,
     arrivalDate: "2025-05-21",
@@ -62,6 +65,7 @@ const footprints = [
   {
     id: "4",
     city: "青岛",
+    placeName: "八大关风景区",
     longitude: 120.382639,
     latitude: 36.067082,
     arrivalDate: "2025-08-20",
@@ -122,6 +126,7 @@ export default defineFakeRoute([
       footprints.push({
         id,
         city,
+        placeName: body?.placeName || null,
         longitude: body?.longitude ?? null,
         latitude: body?.latitude ?? null,
         arrivalDate: body?.arrivalDate || null,
@@ -143,6 +148,7 @@ export default defineFakeRoute([
       );
       if (!target) return fail("足迹不存在");
       target.city = String(body?.city ?? target.city);
+      target.placeName = body?.placeName || null;
       target.longitude = body?.longitude ?? null;
       target.latitude = body?.latitude ?? null;
       target.arrivalDate = body?.arrivalDate || null;

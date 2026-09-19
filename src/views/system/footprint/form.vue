@@ -11,6 +11,7 @@ const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
     title: "新增",
     city: "",
+    placeName: "",
     longitude: null,
     latitude: null,
     arrivalDate: "",
@@ -53,33 +54,8 @@ defineExpose({ getRef });
             v-model:longitude="newFormInline.longitude"
             v-model:latitude="newFormInline.latitude"
             v-model:city="newFormInline.city"
+            v-model:placeName="newFormInline.placeName"
             class="w-full"
-          />
-        </el-form-item>
-      </re-col>
-      <re-col :value="12" :xs="24" :sm="24">
-        <el-form-item label="经度" prop="longitude">
-          <el-input-number
-            v-model="newFormInline.longitude"
-            :precision="6"
-            :min="-180"
-            :max="180"
-            :controls="false"
-            placeholder="可由地图选点填充"
-            class="w-full!"
-          />
-        </el-form-item>
-      </re-col>
-      <re-col :value="12" :xs="24" :sm="24">
-        <el-form-item label="纬度" prop="latitude">
-          <el-input-number
-            v-model="newFormInline.latitude"
-            :precision="6"
-            :min="-90"
-            :max="90"
-            :controls="false"
-            placeholder="可由地图选点填充"
-            class="w-full!"
           />
         </el-form-item>
       </re-col>
