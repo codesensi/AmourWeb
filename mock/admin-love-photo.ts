@@ -110,7 +110,7 @@ export default defineFakeRoute([
       return ok(null, "新增照片成功");
     }
   },
-  // 修改(PUT /admin/love-photo/update;按 id 覆盖全部可编辑字段)
+  // 修改(PUT /admin/love-photo/update;按 id 覆盖可编辑字段,hidden 显隐仅走 change-hidden 端点)
   {
     url: "/admin/love-photo/update",
     method: "put",
@@ -124,7 +124,6 @@ export default defineFakeRoute([
       row.dateText = String(body.dateText ?? "");
       row.tags = joinTags(body.tags);
       row.sort = Number(body.sort ?? row.sort);
-      row.hidden = Number(body.hidden ?? row.hidden);
       return ok(null, "修改照片成功");
     }
   },

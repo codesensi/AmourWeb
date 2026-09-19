@@ -5,8 +5,9 @@ import { fakePageResponse } from "../utils";
 
 const footprints = [
   {
-    id: 1,
+    id: "1",
     city: "成都",
+    placeName: "锦里古街",
     longitude: 104.065735,
     latitude: 30.659462,
     arrivalDate: "2023-02-15",
@@ -14,8 +15,9 @@ const footprints = [
     remark: "第一次一起旅行,锦里的灯笼亮起来的时候,像置身电影里。"
   },
   {
-    id: 2,
+    id: "2",
     city: "大理",
+    placeName: null,
     longitude: 100.22504,
     latitude: 25.6065,
     arrivalDate: "2023-07-02",
@@ -23,8 +25,9 @@ const footprints = [
     remark: "在洱海边看了日出,风很轻,时间也很慢。"
   },
   {
-    id: 3,
+    id: "3",
     city: "重庆",
+    placeName: "洪崖洞",
     longitude: 106.504962,
     latitude: 29.533155,
     arrivalDate: "2024-04-05",
@@ -32,8 +35,9 @@ const footprints = [
     remark: "8D 魔幻城市,我们迷路了三次,笑了一路。"
   },
   {
-    id: 4,
+    id: "4",
     city: "厦门",
+    placeName: "环岛路",
     longitude: 118.089425,
     latitude: 24.479833,
     arrivalDate: "2024-10-01",
@@ -41,8 +45,9 @@ const footprints = [
     remark: "环岛路骑了整个下午,海风把头发吹得很乱,心里很静。"
   },
   {
-    id: 5,
+    id: "5",
     city: "北京",
+    placeName: "故宫",
     longitude: 116.407387,
     latitude: 39.904179,
     arrivalDate: "2025-05-21",
@@ -50,8 +55,9 @@ const footprints = [
     remark: "在一起纪念日,我们在故宫的城墙下许了愿。"
   },
   {
-    id: 6,
+    id: "6",
     city: "青岛",
+    placeName: "八大关",
     longitude: 120.382639,
     latitude: 36.067082,
     arrivalDate: "2025-08-20",
@@ -59,8 +65,9 @@ const footprints = [
     remark: "喝了袋装啤酒,走了八大关,把夏天留在了海边。"
   },
   {
-    id: 7,
+    id: "7",
     city: "西安",
+    placeName: "西安城墙",
     longitude: 108.9402,
     latitude: 34.3416,
     arrivalDate: "2025-10-03",
@@ -68,8 +75,9 @@ const footprints = [
     remark: "城墙上一整圈,灯把半个长安都点亮了。"
   },
   {
-    id: 8,
+    id: "8",
     city: "三亚",
+    placeName: null,
     longitude: 109.5119,
     latitude: 18.2528,
     arrivalDate: "2025-12-30",
@@ -77,8 +85,9 @@ const footprints = [
     remark: "在海边跨年,烟花落在海上,我们说好了每年都出来走一走。"
   },
   {
-    id: 9,
+    id: "9",
     city: "哈尔滨",
+    placeName: "哈尔滨冰雪大世界",
     longitude: 126.642464,
     latitude: 45.756967,
     arrivalDate: "2026-01-15",
@@ -86,8 +95,9 @@ const footprints = [
     remark: "零下二十度,手里的糖葫芦比冰雕还甜。"
   },
   {
-    id: 10,
+    id: "10",
     city: "杭州",
+    placeName: "苏堤",
     longitude: 120.15507,
     latitude: 30.274085,
     arrivalDate: "2026-03-22",
@@ -95,8 +105,9 @@ const footprints = [
     remark: "断桥没断,雨也没停,苏堤走了一半就撑伞笑了一路。"
   },
   {
-    id: 11,
+    id: "11",
     city: "丽江",
+    placeName: "丽江古城",
     longitude: 100.227752,
     latitude: 26.855174,
     arrivalDate: "2026-04-12",
@@ -104,8 +115,9 @@ const footprints = [
     remark: "在雪山脚下晒太阳,古城的石板路被我们走得慢慢的。"
   },
   {
-    id: 12,
+    id: "12",
     city: "东京",
+    placeName: "目黑川",
     longitude: 139.6917,
     latitude: 35.6895,
     arrivalDate: "2026-05-17",
@@ -113,8 +125,9 @@ const footprints = [
     remark: "追着樱花尾巴跑了三条街,在居酒屋干杯到深夜。"
   },
   {
-    id: 13,
+    id: "13",
     city: "巴黎",
+    placeName: "埃菲尔铁塔",
     longitude: 2.3522,
     latitude: 48.8566,
     arrivalDate: "2026-06-14",
@@ -122,8 +135,9 @@ const footprints = [
     remark: "塞纳河的风和铁塔的灯,都替我们保管了这个傍晚。"
   },
   {
-    id: 14,
+    id: "14",
     city: "圣托里尼",
+    placeName: "伊亚小镇",
     longitude: 25.4322,
     latitude: 36.3932,
     arrivalDate: "2026-07-08",
@@ -131,8 +145,9 @@ const footprints = [
     remark: "蓝顶教堂和白墙之间,藏着我们看过最美的日落。"
   },
   {
-    id: 15,
+    id: "15",
     city: "雷克雅未克",
+    placeName: null,
     longitude: -21.9266,
     latitude: 64.1466,
     arrivalDate: "2026-09-20",
@@ -140,8 +155,9 @@ const footprints = [
     remark: "等了三个小时,极光出现的那一刻,连呼吸都想定格。"
   },
   {
-    id: 16,
+    id: "16",
     city: "纽约",
+    placeName: "时代广场",
     longitude: -74.006,
     latitude: 40.7128,
     arrivalDate: "2026-11-26",

@@ -1,6 +1,6 @@
 // QQ 信息 mock(GET /qq-info,免登录;契约对齐后端 QqInfoResponse)
 // 返回「后端降级后」的形态:后端 qq-api 失败时已按 qq-avatar 以 QQ 号拼接(qlogo 官方头像),头像恒非空,昵称可空;
-// 本地默认返回降级地址 + 空昵称,验证「手动填写昵称」路径;如需验证昵称回填路径,可为 nickname 填入示例值
+// 本地默认返回示例昵称,验证「昵称回填」路径;如需验证「手动填写昵称」路径,可将 nickname 改为 null
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
 export default defineFakeRoute([

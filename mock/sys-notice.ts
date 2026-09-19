@@ -1,6 +1,6 @@
 // 通知中心 mock(对齐后端 /sys/notice 接口)
 // list 契约对齐 NoticeResponse:id(字符串化雪花ID,避免前端精度丢失)/title/content/createTime/read
-// read 契约:请求体为通知ID字符串数组(单条/批量),缺省请求体=全部未读;按唯一键幂等,重复提交不报错
+// read 契约:请求体为 {noticeIds:[通知ID字符串数组]} 对象(对齐后端 NoticeReadRequest),缺省请求体=全部未读;按唯一键幂等,重复提交不报错
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
 // 通知样例(id 沿用后端 12000 分段惯例;read 为 mock 内存态,dev server 重启即重置)
@@ -63,13 +63,14 @@ export default defineFakeRoute([
       return ok(sorted.slice(0, Math.max(limit, 0)));
     }
   },
-  // 标记已读(POST /sys/notice/read;请求体为通知ID数组,缺省=全部未读;幂等)
+  // 标记已读(POST /sys/notice/read;请求体为 {noticeIds:[...]},缺省=全部未读;幂等)
   {
     url: "/sys/notice/read",
     method: "post",
     response: ({ body }) => {
-      // 请求体直传数组(单条/批量);无请求体=全部未读
-      const ids = Array.isArray(body) ? body.map(String) : null;
+      // 对齐后端 NoticeReadRequest:{noticeIds:[...]} 对象包装(单条/批量);无请求体=全部未读
+      const rawIds = Array.isArray(body?.noticeIds) ? body.noticeIds : null;
+      const ids = rawIds ? rawIds.map(String) : null;
       notices.forEach(item => {
         if (ids === null || ids.includes(item.id)) {
           item.read = true;

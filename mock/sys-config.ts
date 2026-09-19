@@ -50,7 +50,7 @@ const configs = [
   {
     id: "1006",
     configKey: "logo",
-    configValue: "",
+    configValue: null,
     valueType: "STRING",
     configGroup: "base",
     sensitive: 0,
@@ -60,7 +60,7 @@ const configs = [
   {
     id: "1007",
     configKey: "favicon",
-    configValue: "",
+    configValue: null,
     valueType: "STRING",
     configGroup: "base",
     sensitive: 0,
@@ -168,9 +168,29 @@ const configs = [
     updateTime: "2026-01-01 00:00:00"
   },
   {
+    id: "5007",
+    configKey: "rate-limit.amap-proxy.limit",
+    configValue: "30",
+    valueType: "INTEGER",
+    configGroup: "rate-limit",
+    sensitive: 0,
+    remark: "高德服务代理接口-窗口内最大请求数(0 表示拒绝全部请求)",
+    updateTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "5008",
+    configKey: "rate-limit.amap-proxy.window",
+    configValue: "60",
+    valueType: "INTEGER",
+    configGroup: "rate-limit",
+    sensitive: 0,
+    remark: "高德服务代理接口-时间窗口(秒)",
+    updateTime: "2026-01-01 00:00:00"
+  },
+  {
     id: "6001",
     configKey: "security.uapi-key",
-    configValue: "",
+    configValue: null,
     valueType: "STRING",
     configGroup: "security",
     sensitive: 1,
@@ -180,7 +200,7 @@ const configs = [
   {
     id: "6002",
     configKey: "security.amap-key",
-    configValue: "",
+    configValue: null,
     valueType: "STRING",
     configGroup: "security",
     sensitive: 0,
@@ -190,7 +210,7 @@ const configs = [
   {
     id: "6003",
     configKey: "security.amap-code",
-    configValue: "",
+    configValue: null,
     valueType: "STRING",
     configGroup: "security",
     sensitive: 1,

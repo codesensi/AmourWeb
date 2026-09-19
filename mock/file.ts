@@ -161,7 +161,12 @@ export default defineFakeRoute([
       if (query.beginTime)
         records = records.filter(item => item.createTime >= query.beginTime);
       if (query.endTime)
-        records = records.filter(item => item.createTime <= query.endTime);
+        records = records.filter(
+          // 后端 endTime「含当日」:止边界补齐到当天末尾再比较
+          item => item.createTime <= `${query.endTime} 23:59:59`
+        );
+      // 对齐后端排序:按 ID 倒序(最新在前)
+      records = records.sort((a, b) => Number(b.id) - Number(a.id));
       const pageNumber = Number(query.pageNumber ?? 1);
       const pageSize = Number(query.pageSize ?? 20);
       const start = (pageNumber - 1) * pageSize;

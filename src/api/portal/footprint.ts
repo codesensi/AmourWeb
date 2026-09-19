@@ -2,7 +2,7 @@ import { portalPage } from "./utils";
 
 /** 足迹-足迹项(GET /portal/footprint/page 分页,免登录;按到访日期升序) */
 export type FootprintItem = {
-  id: number;
+  id: string;
   /** 城市/地点名称 */
   city: string;
   /** 精确地点名称(地图选点搜索选中的地点,或手动录入;可空) */

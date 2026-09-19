@@ -95,6 +95,7 @@ export default defineFakeRoute([
     url: "/admin/footprint/page",
     method: "get",
     response: ({ query }) => {
+      const { pageNumber = 1, pageSize = 20 } = query;
       const city = String(query.city ?? "");
       const begin = String(query.arrivalDateBegin ?? "");
       const end = String(query.arrivalDateEnd ?? "");
@@ -110,7 +111,7 @@ export default defineFakeRoute([
           Number(a.id) - Number(b.id)
         )
         .map(toItem);
-      return fakePageResponse(records, query);
+      return fakePageResponse(records, { pageNumber, pageSize });
     }
   },
   // 新增(POST /admin/footprint/insert,落地内存数据)

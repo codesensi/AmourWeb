@@ -623,7 +623,6 @@ export default defineFakeRoute([
           id: "1",
           username: "admin",
           nickname: "超级管理员",
-          avatar: null,
           idCard: "",
           email: "admin@amour.com",
           phone: "",

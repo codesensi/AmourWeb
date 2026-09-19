@@ -1,7 +1,7 @@
 <script lang="ts">
 /** 地图点位(经纬度为度;坐标缺失的地点由调用方过滤) */
 export interface MapPoint {
-  id: number;
+  id: string;
   city: string;
   /** 精确地点名称(详情浮层展示,与城市同名视为未录入;可为 null) */
   placeName?: string | null;

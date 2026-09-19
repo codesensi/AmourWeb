@@ -3,7 +3,7 @@
 // 组数据契约对齐 DictGroupResponse:dictCode/items(dictValue/dictLabel/sort)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
-// 与后端 sys_dict 内置种子同源(13 组 42 条;组内顺序即 sort 升序)
+// 与后端 sys_dict 内置种子同源(13 组 48 条;组内顺序即 sort 升序)
 const dicts = [
   {
     id: "10001",
