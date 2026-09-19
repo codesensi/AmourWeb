@@ -22,9 +22,9 @@ export const getNoticeList = (limit = 20) => {
   });
 };
 
-/** 标记通知已读(POST /sys/notice/read;请求体为通知ID数组,缺省=全部未读,幂等) */
+/** 标记通知已读(POST /sys/notice/read;请求体为 { noticeIds },noticeIds 缺省=全部未读,幂等) */
 export const markNoticesRead = (noticeIds?: Array<string>) => {
   return http.request<ApiResult<null>>("post", "/sys/notice/read", {
-    data: noticeIds
+    data: { noticeIds }
   });
 };
