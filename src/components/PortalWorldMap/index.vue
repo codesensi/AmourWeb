@@ -37,6 +37,31 @@ const mapRef = ref<HTMLDivElement | null>(null);
 
 let chart: echarts.ECharts | null = null;
 
+/** hover 气泡:当前悬停的城市名与点位像素位置(相对地图容器) */
+const hoverCity = ref("");
+const hoverPos = ref({ x: 0, y: 0 });
+
+/** 点位 hover:定位到足迹点上方(与高德侧气泡同款形态) */
+function onPointHover(params: ECElementEvent) {
+  const data = params.data as { point?: MapPoint } | undefined;
+  const point = data?.point;
+  if (!point || !chart || params.seriesIndex == null) {
+    hoverCity.value = "";
+    return;
+  }
+  hoverCity.value = point.city;
+  const pixel = chart.convertToPixel({ seriesIndex: params.seriesIndex }, [
+    point.longitude,
+    point.latitude
+  ]);
+  hoverPos.value = { x: pixel[0], y: pixel[1] };
+}
+
+/** 移开点位即隐藏,无任何残留范围 */
+function onPointLeave() {
+  hoverCity.value = "";
+}
+
 /* ---- 主题色:echarts 不解析 css 变量,初始化/主题切换时读取一次 ---- */
 const palette = {
   rose: "#e11d48",
@@ -57,7 +82,14 @@ function refreshPalette() {
   ).trim();
 }
 
-const themeObserver = new MutationObserver(refreshPalette);
+const themeObserver = new MutationObserver(onThemeChange);
+
+/** 主题切换:重读调色板并按新配色刷新(echarts 不解析 CSS 变量,必须重新 setOption) */
+function onThemeChange() {
+  refreshPalette();
+  /* 不带 center/zoom 的增量刷新:保留用户拖动后的视角 */
+  refreshOption();
+}
 
 /** 初始视角:自动贴合所有足迹点的包围盒 */
 function fitBounds(): { center: [number, number]; zoom: number } {
@@ -83,23 +115,11 @@ function fitBounds(): { center: [number, number]; zoom: number } {
 function buildOption(initial = false): echarts.EChartsCoreOption {
   const pts = props.points;
 
-  /* 相邻到访地点两两连线 */
-  const linesData: { coords: number[][] }[] = [];
-  for (let i = 0; i < pts.length - 1; i++) {
-    linesData.push({
-      coords: [
-        [pts[i].longitude, pts[i].latitude],
-        [pts[i + 1].longitude, pts[i + 1].latitude]
-      ]
-    });
-  }
-
-  /* 最新到访点用大一号白边点强调 */
-  const last = pts.length ? pts[pts.length - 1] : null;
-
   return {
     /* 纯静态渲染:无常驻动画循环,漫游重绘成本最低 */
     animation: false,
+    /* hover 城市名气泡不用 echarts tooltip(geo 系下隐藏时机不可控),
+     * 改由 mouseover/mouseout 事件驱动的自绘 DOM 气泡承担,显示/隐藏完全确定 */
     geo: {
       map: "world",
       roam: true,
@@ -131,66 +151,20 @@ function buildOption(initial = false): echarts.EChartsCoreOption {
             : []
       },
       {
-        type: "lines",
-        coordinateSystem: "geo",
-        lineStyle: {
-          color: palette.rose,
-          width: 1.5,
-          opacity: 0.75,
-          curveness: 0.2
-        },
-        data: linesData
-      },
-      {
+        /* 全部足迹点同款圆点(rose + 白边),与高德侧形态一致 */
         type: "scatter",
         coordinateSystem: "geo",
-        symbolSize: 9,
-        itemStyle: { color: palette.rose },
-        label: {
-          show: true,
-          position: "right",
-          distance: 6,
-          formatter: (p: { name: string }) => p.name,
-          color: palette.ink,
-          fontSize: 11
-        },
-        labelLayout: { hideOverlap: true },
-        data: pts
-          .filter(p => p.id !== last?.id)
-          .map(p => ({
-            value: [p.longitude, p.latitude],
-            name: p.city,
-            point: p
-          }))
-      },
-      {
-        type: "scatter",
-        coordinateSystem: "geo",
-        symbolSize: 13,
+        symbolSize: 12,
         itemStyle: {
           color: palette.rose,
           borderColor: "rgb(255 251 245 / 90%)",
           borderWidth: 2
         },
-        label: {
-          show: true,
-          position: "right",
-          distance: 6,
-          formatter: (p: { name: string }) => p.name,
-          color: palette.ink,
-          fontSize: 12,
-          fontWeight: 700
-        },
-        labelLayout: { hideOverlap: true },
-        data: last
-          ? [
-              {
-                value: [last.longitude, last.latitude],
-                name: last.city,
-                point: last
-              }
-            ]
-          : []
+        data: pts.map(p => ({
+          value: [p.longitude, p.latitude],
+          name: p.city,
+          point: p
+        }))
       }
     ]
   };
@@ -290,9 +264,14 @@ onMounted(async () => {
     chart = echarts.init(mapRef.value, null, { devicePixelRatio: 1 });
     chart.setOption(buildOption(true));
     chart.on("click", onChartClick);
+    /* 自绘 hover 气泡:mouseover/mouseout 事件驱动,隐藏时机确定 */
+    chart.on("mouseover", onPointHover);
+    chart.on("mouseout", onPointLeave);
     chart.on("georoam", () => {
       userInteracted = true;
       syncCnBorders();
+      /* 漫游后点位像素位置变化,气泡先隐藏避免错位 */
+      onPointLeave();
     });
   } catch {
     // 静默降级:地图数据不可用时保持空容器
@@ -334,6 +313,14 @@ watch(
       :aria-label="`足迹世界地图:已到访 ${points.length} 座城市`"
       @pointerleave="onCanvasLeave"
     />
+    <!-- 自绘 hover 城市名气泡:点上方居中,pointer-events 关闭避免遮挡交互 -->
+    <div
+      v-show="hoverCity"
+      class="map-tip"
+      :style="{ left: `${hoverPos.x}px`, top: `${hoverPos.y}px` }"
+    >
+      {{ hoverCity }}
+    </div>
     <button type="button" class="map-reset" @click.stop="resetView">
       重置视角
     </button>
@@ -375,6 +362,20 @@ watch(
 
 .map-reset:hover {
   color: var(--am-ink);
+}
+
+/* 自绘 hover 城市名气泡:与高德侧圆点气泡同款(深色半透明底白字,点上方居中) */
+.map-tip {
+  position: absolute;
+  z-index: 2;
+  padding: 3px 10px;
+  font-size: 12px;
+  color: #fff;
+  white-space: nowrap;
+  pointer-events: none;
+  background: rgb(15 18 25 / 85%);
+  border-radius: 6px;
+  transform: translate(-50%, calc(-100% - 8px));
 }
 
 .map-reset:focus-visible {

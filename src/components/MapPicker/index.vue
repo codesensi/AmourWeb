@@ -506,8 +506,7 @@ function onLocalSelect(item: LocalCity) {
       </div>
     </template>
     <template v-else>
-      <!-- 搜索行:降级胶囊悬浮于行尾,行高恒定,两种服务状态下布局零扰动 -->
-      <div class="relative mb-2 flex items-center gap-2">
+      <div class="relative mb-2">
         <el-input
           v-model="searchText"
           :placeholder="searchPlaceholder"
@@ -518,10 +517,10 @@ function onLocalSelect(item: LocalCity) {
           @keydown.up.prevent="moveActive(-1, suggestList.length)"
           @input="searchPlace"
         />
-        <!-- 候选浮层:绝对定位悬浮于地图之上;内容区触底分页加载下一页 -->
+        <!-- 候选浮层:绝对定位悬浮于地图之上(z 高于高德 logo/版权层);内容区触底分页加载下一页 -->
         <div
           v-if="suggestList.length"
-          class="border-(--el-border-color-lighter) bg-(--el-bg-color) shadow-(--el-box-shadow-light) absolute z-10 mt-1 w-full rounded border overflow-hidden"
+          class="border-(--el-border-color-lighter) bg-(--el-bg-color) shadow-(--el-box-shadow-light) absolute z-[200] mt-1 w-full rounded border overflow-hidden"
         >
           <div
             ref="listScrollRef"

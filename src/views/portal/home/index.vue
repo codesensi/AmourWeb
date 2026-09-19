@@ -899,6 +899,26 @@ const latestPhoto = computed(() => latestPhotoPage.value?.records[0] ?? null);
   z-index: 1;
 }
 
+/* 卡片文字默认隐藏,鼠标进入卡片才渐显(触屏无 hover,媒体查询保证常显) */
+@media (hover: hover) {
+  .footprint-card .am-section-kicker,
+  .footprint-card .editorial-title,
+  .footprint-card .editorial-meta,
+  .footprint-card .editorial-more {
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  .footprint-card:hover .am-section-kicker,
+  .footprint-card:hover .editorial-title,
+  .footprint-card:hover .editorial-meta,
+  .footprint-card:hover .editorial-more,
+  /* 键盘 Tab 聚焦到链接时同样显示,保证键盘可达 */
+  .footprint-card:focus-within .editorial-more {
+    opacity: 1;
+  }
+}
+
 /* 详情浮层:点击地点后的详细说明(层级高于重置视角按钮,打开时自然覆盖它) */
 .footprint-detail {
   position: absolute;
