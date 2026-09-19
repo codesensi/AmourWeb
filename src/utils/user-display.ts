@@ -1,7 +1,7 @@
 import { fallbackAvatar } from "@/utils/avatar";
 import { fetchQqInfo } from "@/utils/qq-info";
 
-/** 用户展示信息入参(nickname/username/avatar/qq,均可选;后端 PortalHeroUserResponse 允许 null,一并兼容) */
+/** 用户展示信息入参(nickname/username/avatar/qq,均可选;后端 HeroUserResponse 允许 null,一并兼容) */
 export interface UserDisplayInput {
   /** 用户昵称(null 视同未维护) */
   nickname?: string | null;

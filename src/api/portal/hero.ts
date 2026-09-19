@@ -1,7 +1,7 @@
 import type { ApiResult } from "@/api/types";
 import { http } from "@/utils/http";
 
-/** 门户主角-单个主角信息(对齐后端 PortalHeroUserResponse) */
+/** 门户主角-单个主角信息(对齐后端 HeroUserResponse) */
 export type HeroInfoData = {
   /** 用户昵称(用户未维护时为 null,由前端兜底为空串) */
   nickname: string | null;
@@ -13,7 +13,7 @@ export type HeroInfoData = {
   qq: string | null;
 };
 
-/** 门户主角(GET /portal/hero 免登录;对齐后端 PortalHeroResponse) */
+/** 门户主角(GET /portal/hero 免登录;对齐后端 HeroResponse) */
 export type HeroData = {
   /** 男主信息(暂无启用的男性主角用户时为 null) */
   male: HeroInfoData | null;
