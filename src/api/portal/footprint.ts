@@ -1,6 +1,6 @@
 import { portalPage } from "./utils";
 
-/** 足迹-足迹项(GET /portal/footprint 分页,免登录;按到访日期升序) */
+/** 足迹-足迹项(GET /portal/footprint/page 分页,免登录;按到访日期升序) */
 export type FootprintItem = {
   id: number;
   /** 城市/地点名称 */
@@ -18,5 +18,5 @@ export type FootprintItem = {
   remark: string | null;
 };
 
-/** 足迹分页(GET /portal/footprint,免登录;按到访日期升序,时间轴依旅程推进) */
-export const getFootprintList = portalPage<FootprintItem>("/portal/footprint");
+/** 足迹分页(GET /portal/footprint/page,免登录;按到访日期升序,时间轴依旅程推进) */
+export const getFootprintList = portalPage<FootprintItem>("/portal/footprint/page");
