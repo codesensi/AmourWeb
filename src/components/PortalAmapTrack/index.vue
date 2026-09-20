@@ -5,7 +5,7 @@ import PortalWorldMap, {
   type MapPoint
 } from "@/components/PortalWorldMap/index.vue";
 import { getSysConfig } from "@/api/sys-config";
-import { loadAMap, type AMapGlobal } from "@/utils/amap";
+import { loadAMap, getAMapGlobal, type AMapGlobal, type AMapMap, type AMapMarker } from "@/utils/amap";
 
 /**
  * 门户足迹地图(策略组件):
@@ -25,9 +25,9 @@ defineOptions({ name: "PortalAmapTrack" });
 const mode = ref<"loading" | "amap" | "echarts">("loading");
 
 const containerEl = ref<HTMLElement>();
-const mapInstance = ref<AMapGlobal | null>(null);
+const mapInstance = ref<AMapMap | null>(null);
 /** 点标记集合(重建/销毁时统一清理) */
-const markers = ref<Array<AMapGlobal>>([]);
+const markers = ref<Array<AMapMarker>>([]);
 /** 地点圆点强调色(与站点 rose 主题一致) */
 const trackColor = "#e11d48";
 
@@ -56,7 +56,7 @@ function escapeHtml(value: string): string {
 }
 
 /** 创建覆盖物:逐足迹圆点标记(hover 气泡优先显示精确地点名,回落城市名) */
-function buildOverlays(AMap: AMapGlobal, map: AMapGlobal) {
+function buildOverlays(AMap: AMapGlobal, map: AMapMap) {
   props.points.forEach(point => {
     const marker = new AMap.Marker({
       position: [point.longitude, point.latitude],
@@ -82,7 +82,7 @@ function destroyMap() {
  * 重建实例可复用瓦片缓存,更快更稳。
  */
 function initMap() {
-  const AMap = (window as any).AMap as AMapGlobal;
+  const AMap = getAMapGlobal();
   if (!containerEl.value || !AMap) return;
   destroyMap();
   const map = new AMap.Map(containerEl.value, {

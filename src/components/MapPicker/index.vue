@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { getSysConfig } from "@/api/sys-config";
-import { loadAMap, type AMapGlobal } from "@/utils/amap";
+import { loadAMap, getAMapGlobal, type AMapGlobal, type AMapMap, type AMapMarker, type AMapGeocoder, type AMapPlaceSearch } from "@/utils/amap";
 import { cityLevels } from "@/utils/city-levels";
 
 /**
@@ -76,11 +76,11 @@ const cityModel = computed({
 
 /* ---------------- 地图初始化与选点 ---------------- */
 
-const mapInstance = ref<AMapGlobal | null>(null);
-const markerInstance = ref<AMapGlobal | null>(null);
+const mapInstance = ref<AMapMap | null>(null);
+const markerInstance = ref<AMapMarker | null>(null);
 /** 地图 API 就绪后的插件句柄 */
-const geocoder = ref<AMapGlobal | null>(null);
-const placeSearch = ref<AMapGlobal | null>(null);
+const geocoder = ref<AMapGeocoder | null>(null);
+const placeSearch = ref<AMapPlaceSearch | null>(null);
 /** 搜索候选(PlaceSearch 结果必带 location 坐标) */
 const suggestList = ref<
   Array<{ name: string; district: string; lng: number; lat: number }>
@@ -110,7 +110,7 @@ watch(serviceDegraded, v => {
 /** 按坐标落点并居中(选点/回显共用) */
 function placeMarker(lng: number, lat: number) {
   if (!mapInstance.value) return;
-  const AMap = (window as any).AMap as AMapGlobal;
+  const AMap = getAMapGlobal()!;
   if (markerInstance.value) {
     markerInstance.value.setPosition([lng, lat]);
   } else {
@@ -201,6 +201,7 @@ onMounted(async () => {
     // 异步探测服务可用性:失败仅提示,不阻塞地图初始化
     void probeService();
     // 对齐高德官方默认视角(不传 center/zoom:北京为心的全国概览);编辑回显由下方 placeMarker 接管
+    if (!mapEl.value) return;
     const map = new AMap.Map(mapEl.value);
     mapInstance.value = map;
     map.on("click", (event: any) => {
@@ -257,9 +258,10 @@ function searchPlace(): Promise<void> {
   searching.value = true;
   pageIndex = 0;
   totalCount = 0;
-  placeSearch.value.setPageIndex(1);
+  const ps = placeSearch.value;
+  ps.setPageIndex(1);
   return new Promise(resolve => {
-    placeSearch.value.search(searchText.value, (status: string, result: any) => {
+    ps.search(searchText.value, (status: string, result: any) => {
       // 竞态守卫:仅采纳最后一次请求的响应
       if (seq !== searchSeq) return resolve();
       searching.value = false;
