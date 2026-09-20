@@ -10,7 +10,7 @@ import EditPen from "~icons/ep/edit-pen";
 import AddFill from "~icons/ri/add-circle-line";
 
 defineOptions({
-  name: "SystemFootprint"
+  name: "AdminFootprint"
 });
 
 const formRef = ref();

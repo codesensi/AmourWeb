@@ -12,7 +12,7 @@ import userIcon from "~icons/ep/user";
 import lockIcon from "~icons/ep/lock";
 
 defineOptions({
-  name: "UserProfile"
+  name: "AdminProfile"
 });
 
 const userStore = useUserStoreHook();

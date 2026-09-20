@@ -15,7 +15,7 @@ import Odometer from "~icons/ep/odometer";
 import { ReCodeBlock } from "@/components/ReCodeBlock";
 
 defineOptions({
-  name: "SystemCache"
+  name: "AdminSystemCache"
 });
 
 const {

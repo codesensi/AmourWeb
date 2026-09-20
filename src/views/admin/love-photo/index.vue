@@ -11,7 +11,7 @@ import EditPen from "~icons/ep/edit-pen";
 import AddFill from "~icons/ri/add-circle-line";
 
 defineOptions({
-  name: "SystemLovePhoto"
+  name: "AdminLovePhoto"
 });
 
 const formRef = ref();

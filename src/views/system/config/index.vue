@@ -9,7 +9,7 @@ import EditPen from "~icons/ep/edit-pen";
 import Refresh from "~icons/ep/refresh";
 
 defineOptions({
-  name: "SystemConfig"
+  name: "AdminSystemConfig"
 });
 
 const formRef = ref();

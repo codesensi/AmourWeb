@@ -13,7 +13,7 @@ import Refresh from "~icons/ep/refresh";
 import AddFill from "~icons/ri/add-circle-line";
 
 defineOptions({
-  name: "SystemDict"
+  name: "AdminSystemDict"
 });
 
 const formRef = ref();

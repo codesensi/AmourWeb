@@ -13,7 +13,7 @@ import type { FileItem } from "@/api/file";
 import Refresh from "~icons/ep/refresh";
 
 defineOptions({
-  name: "SystemFile"
+  name: "AdminSystemFile"
 });
 
 // 字典驱动:业务来源与存储类型的下拉选项及标签文案

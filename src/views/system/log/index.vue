@@ -12,7 +12,7 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Refresh from "~icons/ep/refresh";
 
 defineOptions({
-  name: "SystemLog"
+  name: "AdminSystemLog"
 });
 
 /** 登录/操作两个 Tab 的定义(按权限过滤显隐,粒度与后端接口权限码一一对应) */

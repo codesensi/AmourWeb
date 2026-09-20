@@ -15,7 +15,7 @@ import Fold from "~icons/ep/fold";
 import AddFill from "~icons/ri/add-circle-line";
 
 defineOptions({
-  name: "SystemMenu"
+  name: "AdminSystemMenu"
 });
 
 // el-option 的 value 仅接受字符串/数字,ReSegmented 的 OptionsType.value 含函数分支,此处收敛为字符串
