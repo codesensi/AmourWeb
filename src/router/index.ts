@@ -71,8 +71,8 @@ export const router: Router = createRouter({
     }
     // 浏览器前进/后退:恢复原滚动位置
     if (savedPosition) return savedPosition;
-    // 页面声明 saveSrollTop 时保持当前滚动(管理端既有机制不变)
-    if (from.meta.saveSrollTop) {
+    // 页面声明 saveScrollTop 时保持当前滚动(管理端既有机制不变)
+    if (from.meta.saveScrollTop) {
       const top: number =
         document.documentElement.scrollTop || document.body.scrollTop;
       return { left: 0, top };

@@ -58,6 +58,8 @@ declare global {
     activePath?: string;
     /** 当前页面是否已经加载过 */
     loaded?: boolean;
+    /** 切页时保持当前滚动位置(scrollBehavior 消费,页面声明后生效) `可选` */
+    saveScrollTop?: boolean;
     /** 门户公开路由：守卫顶部免登录直接放行 `可选` */
     public?: boolean;
   }

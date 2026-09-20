@@ -7,7 +7,7 @@ import type {
 
 export type RequestMethods = Extract<
   Method,
-  "get" | "post" | "put" | "delete" | "patch" | "option" | "head"
+  "get" | "post" | "put" | "delete" | "patch" | "options" | "head"
 >;
 
 export interface PureHttpError extends AxiosError {
