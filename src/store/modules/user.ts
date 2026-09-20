@@ -78,8 +78,13 @@ export const useUserStore = defineStore("pure-user", {
           });
       });
     },
-    /** 前端登出（不调用接口） */
-    logOut() {
+    /**
+     * 前端登出（不调用接口）
+     *
+     * @param redirect 登出前所在页面的站内路径（含查询参数）；401 登出场景传入，
+     * 登录页凭此在重新登录后回跳原页。主动登出（侧边栏退出/主题面板）不传，走默认登录页
+     */
+    logOut(redirect?: string) {
       this.username = "";
       this.roles = [];
       this.permissions = [];
@@ -90,7 +95,7 @@ export const useUserStore = defineStore("pure-user", {
       queryClient.clear();
       useMultiTagsStoreHook().handleTags("equal", [...routerArrays]);
       resetRouter();
-      router.push("/login");
+      router.push(redirect ? { path: "/login", query: { redirect } } : "/login");
     },
     /** 退出系统:先通知后端作废 token(尽力而为,失败不阻塞本地清理),再做前端登出 */
     async logOutWithServer() {

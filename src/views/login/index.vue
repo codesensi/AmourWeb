@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Motion from "./utils/motion";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { message } from "@/utils/message";
 import { loginRules } from "./utils/rule";
 import TypeIt from "@/components/ReTypeit";
@@ -40,6 +40,7 @@ const captchaImg = ref("");
 /** 验证码显隐开关:由 /portal/config/list-by-keys 下发决定,缺省关闭 */
 const captchaEnabled = ref(false);
 const router = useRouter();
+const route = useRoute();
 const loading = ref(false);
 const checked = ref(false);
 const disabled = ref(false);
@@ -110,7 +111,14 @@ const onLogin = async (formEl: FormInstance | undefined) => {
           // 获取后端路由
           await initRouter();
           disabled.value = true;
-          router.push(getTopMenu(true).path ?? "/").then(() => {
+          // redirect 回跳:仅接受站内路径(以 / 开头且非 //,防开放重定向),
+          // 登录后回到被 401 登出前的页面;缺省落首菜单
+          const { redirect } = route.query;
+          const target =
+            typeof redirect === "string" && /^\/(?!\/)/.test(redirect)
+              ? redirect
+              : getTopMenu(true).path ?? "/";
+          router.push(target).then(() => {
             message("登录成功", { type: "success" });
           });
         })

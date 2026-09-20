@@ -16,12 +16,17 @@ import { getToken, formatToken } from "@/utils/auth";
 import { useUserStoreHook } from "@/store/modules/user";
 import { closeAllDialog } from "@/components/ReDialog";
 import { Code, type ApiResult } from "@/api/types";
+import { router } from "@/router";
 
 /**
  * 401 登出去重标志:业务码 401 与 HTTP 401 两条通道、以及并发请求同时失效时,
  * 只触发一次「登录已过期」提示与登出跳转,避免提示风暴(短窗口后自动复位,兼容重新登录)。
  */
 let handling401 = false;
+
+/** 401 去重窗口(毫秒):覆盖并发请求集中失效的提示风暴,窗口结束后复位,兼容重新登录 */
+const UNAUTHORIZED_DEDUP_WINDOW_MS = 1000;
+
 function handleUnauthorized() {
   if (handling401) return;
   handling401 = true;
@@ -29,8 +34,10 @@ function handleUnauthorized() {
   // 根级悬浮层不随路由销毁:跳登录前统一清场,避免登录页残留表单弹窗与确认框
   closeAllDialog();
   ElMessageBox.close(); // 全局单例确认框(删除/状态切换等 confirmAction 场景)
-  useUserStoreHook().logOut();
-  setTimeout(() => (handling401 = false), 1000);
+  // 记录 401 时所在页面(含查询参数),登录成功后回跳原页;已在登录页则无需回跳
+  const redirect = router.currentRoute.value.fullPath;
+  useUserStoreHook().logOut(redirect === "/login" ? undefined : redirect);
+  setTimeout(() => (handling401 = false), UNAUTHORIZED_DEDUP_WINDOW_MS);
 }
 
 /** 系统级错误(5xx)提示:业务消息后附 8 位短错误码(完整 traceId 仍保留在响应体与响应头中),用户报障后凭前缀即可定位服务端全链路日志 */

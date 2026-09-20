@@ -232,7 +232,8 @@ router.beforeEach((to: ToRouteType, _from) => {
         return true;
       } else {
         removeToken();
-        return { path: "/login" };
+        // 回跳原页:未登录直接访问/刷新受限页的场景与 401 登出同口径,登录后回到目标路由
+        return { path: "/login", query: { redirect: to.fullPath } };
       }
     } else {
       return true;
