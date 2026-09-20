@@ -66,19 +66,26 @@ async function fetchSysConfigAll(): Promise<Partial<SysConfig>> {
  * 内部统一经查询层取数:全部调用点(站点标题/门户布局/登录页/侧边栏 Logo)
  * 共享同一份 ["sys-config"] 缓存与在途请求,同一次会话仅首次发起网络请求;
  * staleTime=Infinity 常驻缓存,管理侧改动后经 invalidateQueries 失效重拉。
- * 拉取失败时向上抛出(消费侧均有兜底),可放心在多处调用。
+ * 拉取失败时内部降级为空对象(查询层不写入失败结果,下次调用自动重试),可放心在多处调用。
  *
  * @param fields 需要下发的配置字段名
- * @returns 仅含请求字段的归一化数据(键停用/缺失/拉取失败时字段不出现)
+ * @returns 仅含请求字段的归一化数据(键停用/缺失时字段不出现,失败时为空对象)
  */
 export async function fetchSysConfig<F extends SysConfigField>(
   ...fields: F[]
 ): Promise<Pick<SysConfig, F>> {
-  const config = await queryClient.fetchQuery({
-    queryKey: queryKeys.sysConfig().key,
-    queryFn: fetchSysConfigAll,
-    staleTime: Infinity
-  });
+  let config: Partial<SysConfig>;
+  try {
+    config = await queryClient.fetchQuery({
+      queryKey: queryKeys.sysConfig().key,
+      queryFn: fetchSysConfigAll,
+      staleTime: Infinity
+    });
+  } catch {
+    // 后端不可用/网络异常:降级为空对象由消费侧兜底;
+    // 查询层失败不写入缓存,下次调用自动重试,不会把空对象固化为成功结果
+    return {} as Pick<SysConfig, F>;
+  }
   const data = {} as Pick<SysConfig, F>;
   for (const field of fields) {
     (data as Record<string, unknown>)[field] = config[field];

@@ -181,7 +181,14 @@ export function useFilePage(mode: FilePageMode = "active") {
       );
       if (!bizConfirmed) return;
     }
-    const { success } = await deleteFile(row.id);
+    let success = false;
+    try {
+      const res = await deleteFile(row.id);
+      success = res.success;
+    } catch {
+      // 删除失败(失败提示由拦截器统一弹出):静默返回
+      return;
+    }
     if (success) {
       message("删除成功", { type: "success" });
       search();
@@ -195,7 +202,14 @@ export function useFilePage(mode: FilePageMode = "active") {
       `确认恢复文件「${row.originalName}」吗?恢复后将重新出现在文件列表。`
     );
     if (!confirmed) return;
-    const { success } = await restoreFile(row.id);
+    let success = false;
+    try {
+      const res = await restoreFile(row.id);
+      success = res.success;
+    } catch {
+      // 恢复失败(失败提示由拦截器统一弹出):静默返回
+      return;
+    }
     if (success) {
       message("已恢复至文件列表", { type: "success" });
       if (row.bizId != null && row.bizId !== "") {
@@ -225,7 +239,14 @@ export function useFilePage(mode: FilePageMode = "active") {
       );
       if (!bizConfirmed) return;
     }
-    const { success } = await physicalDeleteFile(row.id);
+    let success = false;
+    try {
+      const res = await physicalDeleteFile(row.id);
+      success = res.success;
+    } catch {
+      // 彻底删除失败(失败提示由拦截器统一弹出):静默返回
+      return;
+    }
     if (success) {
       message("已彻底删除", { type: "success" });
       // 本页仅剩该条且非首页时回退一页,避免停留在空页

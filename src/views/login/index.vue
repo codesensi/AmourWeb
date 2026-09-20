@@ -76,15 +76,20 @@ const getCaptcha = async () => {
  *  状态,favicon 经 applySiteFavicon 注入 <head>,避免与 useNav 内 initSiteLogo 各拉一次);
  *  验证码开关开启时才拉取验证码 */
 const loadSiteConfig = async () => {
-  const {
-    logo,
-    favicon,
-    captchaEnabled: enabled
-  } = await fetchSysConfig("logo", "favicon", "captchaEnabled");
-  applySiteLogo(logo);
-  applySiteFavicon(favicon);
-  captchaEnabled.value = enabled ?? false;
-  if (captchaEnabled.value) await getCaptcha();
+  try {
+    const {
+      logo,
+      favicon,
+      captchaEnabled: enabled
+    } = await fetchSysConfig("logo", "favicon", "captchaEnabled");
+    applySiteLogo(logo);
+    applySiteFavicon(favicon);
+    captchaEnabled.value = enabled ?? false;
+    // 验证码开关开启时才拉取验证码;拉取失败静默,登录提交时由后端校验兜底
+    if (captchaEnabled.value) await getCaptcha();
+  } catch {
+    /* 后端不可用:logo/favicon 走兜底图,验证码开关保持关闭 */
+  }
 };
 
 onMounted(loadSiteConfig);

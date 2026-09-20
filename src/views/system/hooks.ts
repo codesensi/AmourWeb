@@ -105,6 +105,8 @@ export function usePageQuery<T>(
         pagination.currentPage = result.data.pageNumber;
         dataList.value = result.data.records;
       }
+    } catch {
+      // 失败提示已由 http 拦截器统一弹出,静默吞掉避免 unhandled rejection
     } finally {
       // 过期请求的收尾不得复位 loading,避免干扰新查询的在途状态
       if (seq === searchSeq) loading.value = false;
