@@ -215,9 +215,9 @@ export const updateDict = (data: DictDataUpdateRequest) => {
   });
 };
 
-/** 字典管理-修改状态(PUT /sys/dict/change-status) */
+/** 字典管理-修改状态(PUT /sys/dict/data/change-status) */
 export const changeDictStatus = (data: DictChangeStatusRequest) => {
-  return http.request<ApiResult<null>>("put", "/sys/dict/change-status", {
+  return http.request<ApiResult<null>>("put", "/sys/dict/data/change-status", {
     data
   });
 };

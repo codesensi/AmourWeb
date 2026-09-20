@@ -890,9 +890,9 @@ export default defineFakeRoute([
       return ok();
     }
   },
-  // 修改状态(PUT /sys/dict/change-status,落地内存数据;内置条目不允许更改状态)
+  // 修改状态(PUT /sys/dict/data/change-status,落地内存数据;内置条目不允许更改状态)
   {
-    url: "/sys/dict/change-status",
+    url: "/sys/dict/data/change-status",
     method: "put",
     response: ({ body }) => {
       const target = dicts.find(item => item.id === String(body?.id));
