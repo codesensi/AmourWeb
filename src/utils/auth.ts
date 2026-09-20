@@ -62,7 +62,8 @@ export function getToken(): DataInfo<number> | null {
 /**
  * @description 设置`token`以及一些必要信息
  * 登录成功后将`accessToken`与`expires`（过期时间，毫秒时间戳）写入 key 值为 authorized-token 的 cookie
- * （`expires`大于 0 时按剩余有效期设置 cookie 过期自动销毁，小于等于 0 时为会话 cookie），
+ * （勾选「记住」且`expires`大于 0 时按剩余有效期设置 cookie 过期自动销毁，否则为会话 cookie），
+ * cookie 统一携带 SameSite=Lax（阻断跨站携带）与 Secure（仅 HTTPS 下启用），
  * 并将`avatar`、`username`、`nickname`、`roles`、`permissions`、`expires`写入 key 值为`user-info`的 localStorage
  * （利用`multipleTabsKey`当浏览器完全关闭后自动销毁）。
  * 项目无`refreshToken`无感刷新机制：token 失效由后端 401 判定，前端收到 401 后统一登出
@@ -75,11 +76,19 @@ export function setToken(data: DataInfo<number>) {
   expires = Number(data.expires);
   const cookieString = JSON.stringify({ accessToken, expires });
 
-  expires > 0
+  // cookie 安全属性：SameSite=Lax 阻断跨站携带，Secure 仅在 HTTPS 下启用
+  const cookieOptions = {
+    sameSite: "lax" as const,
+    secure: location.protocol === "https:"
+  };
+  // 勾选「记住」且 token 有效时按剩余有效期持久化；否则走会话 cookie（浏览器关闭即销毁），
+  // 与 multipleTabsKey 的「未勾选记住 → 浏览器关闭即销毁」语义对齐
+  expires > 0 && isRemembered
     ? Cookies.set(TokenKey, cookieString, {
-        expires: (expires - Date.now()) / 86400000
+        expires: (expires - Date.now()) / 86400000,
+        ...cookieOptions
       })
-    : Cookies.set(TokenKey, cookieString);
+    : Cookies.set(TokenKey, cookieString, cookieOptions);
 
   // 「记住密码」语义分离:勾选 → 不写 cookie,登录标记随 user-info 持久化
   // (localStorage,前端永不过期,失效由后端 401 判定);
@@ -87,7 +96,7 @@ export function setToken(data: DataInfo<number>) {
   if (isRemembered) {
     Cookies.remove(multipleTabsKey);
   } else {
-    Cookies.set(multipleTabsKey, "true");
+    Cookies.set(multipleTabsKey, "true", cookieOptions);
   }
 
   function setUserKey(data: {
