@@ -1,20 +1,19 @@
-// @ts-nocheck
 import { defineStore } from "pinia";
 import { type setType, store, getConfig } from "../utils";
 
 export const useSettingStore = defineStore("pure-setting", {
   state: (): setType => ({
-    title: getConfig().Title,
-    fixedHeader: getConfig().FixedHeader,
-    hiddenSideBar: getConfig().HiddenSideBar
+    title: getConfig().Title ?? "",
+    fixedHeader: getConfig().FixedHeader ?? true,
+    hiddenSideBar: getConfig().HiddenSideBar ?? false
   }),
   actions: {
-    CHANGE_SETTING({ key, value }) {
+    CHANGE_SETTING({ key, value }: { key: string; value: unknown }) {
       if (Reflect.has(this, key)) {
-        this[key] = value;
+        (this as unknown as Record<string, unknown>)[key] = value;
       }
     },
-    changeSetting(data) {
+    changeSetting(data: { key: string; value: unknown }) {
       this.CHANGE_SETTING(data);
     }
   }

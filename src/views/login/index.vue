@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// @ts-nocheck
 import Motion from "./utils/motion";
 import { useRouter } from "vue-router";
 import { message } from "@/utils/message";
@@ -106,7 +105,7 @@ const onLogin = async (formEl: FormInstance | undefined) => {
           // 获取后端路由
           await initRouter();
           disabled.value = true;
-          router.push(getTopMenu(true).path).then(() => {
+          router.push(getTopMenu(true).path ?? "/").then(() => {
             message("登录成功", { type: "success" });
           });
         })
@@ -155,7 +154,7 @@ watch(checked, bool => {
         inline-prompt
         :active-icon="dayIcon"
         :inactive-icon="darkIcon"
-        @change="dataThemeChange"
+        @change="val => dataThemeChange(val as string)"
       />
     </div>
     <div class="login-container">

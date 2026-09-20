@@ -1,4 +1,3 @@
-// @ts-nocheck
 import Cookies from "js-cookie";
 import { siteTitle } from "@/config";
 import NProgress from "@/utils/progress";
@@ -38,7 +37,7 @@ const modules: Record<string, any> = import.meta.glob(
 );
 
 /** 原始静态路由（未做任何处理） */
-const routes = [];
+const routes: Array<RouteRecordRaw> = [];
 
 Object.keys(modules).forEach(key => {
   routes.push(modules[key].default);
@@ -58,9 +57,7 @@ export const constantMenus: Array<RouteComponent> = ascending(
 ).concat(...remainingRouter);
 
 /** 不参与菜单的路由 */
-export const remainingPaths = Object.keys(remainingRouter).map(v => {
-  return remainingRouter[v].path;
-});
+export const remainingPaths = remainingRouter.map(v => v.path);
 
 /** 创建路由实例 */
 export const router: Router = createRouter({
@@ -150,7 +147,7 @@ router.beforeEach((to: ToRouteType, _from) => {
   }
   if ((Cookies.get(multipleTabsKey) || userInfo?.remembered) && userInfo) {
     // 无权限跳转403页面
-    if (to.meta?.roles && !isOneOfArray(to.meta?.roles, userInfo?.roles)) {
+    if (to.meta?.roles && !isOneOfArray(to.meta?.roles, userInfo?.roles ?? [])) {
       return { path: "/error/403" };
     }
     // 开启隐藏首页后在浏览器地址栏手动输入首页welcome路由则跳转到404页面
@@ -188,7 +185,7 @@ router.beforeEach((to: ToRouteType, _from) => {
             const { path } = to;
             let route = findRouteByPath(
               path,
-              router.options.routes[0].children
+              router.options.routes[0].children ?? []
             );
             // 无 name 的目录级父路由(如"个人中心"父子同路径)时下钻取带 name 的子级,
             // 保证恢复的页签 name 与当前路由一致,选中态才能正确高亮

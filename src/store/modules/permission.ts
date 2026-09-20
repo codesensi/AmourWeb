@@ -1,5 +1,6 @@
-// @ts-nocheck
 import { defineStore } from "pinia";
+import { type RouteRecordName, type RouteRecordRaw } from "vue-router";
+import { type menuType } from "@/layout/types";
 import {
   type cacheType,
   store,
@@ -17,11 +18,11 @@ export const usePermissionStore = defineStore("pure-permission", {
     // 静态路由生成的菜单
     constantMenus,
     // 整体路由生成的菜单（静态、动态）
-    wholeMenus: [],
+    wholeMenus: [] as menuType[],
     // 整体路由（一维数组格式）
-    flatteningRoutes: [],
+    flatteningRoutes: [] as RouteRecordRaw[],
     // 缓存页面keepAlive
-    cachePageList: [],
+    cachePageList: [] as RouteRecordName[],
     // 动态路由装配标记:initRouter 完成（成功或失败）后置位；
     // 守卫据此区分"尚未装配"与"装配完成但无菜单",防止空菜单用户在导航中反复装配
     dynamicRoutesLoaded: false
@@ -62,7 +63,7 @@ export const usePermissionStore = defineStore("pure-permission", {
           this.clearCache();
           break;
         case "add":
-          this.cachePageList.push(name);
+          this.cachePageList.push(name!);
           break;
         case "delete":
           delIndex !== -1 && this.cachePageList.splice(delIndex, 1);

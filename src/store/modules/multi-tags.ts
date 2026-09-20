@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { defineStore } from "pinia";
 import {
   type multiType,
@@ -18,7 +17,7 @@ import { usePermissionStoreHook } from "./permission";
 export const useMultiTagsStore = defineStore("pure-multiTags", {
   state: () => ({
     // 存储标签页信息（路由信息）
-    multiTags: storageLocal().getItem<StorageConfigs>(
+    multiTags: (storageLocal().getItem<StorageConfigs>(
       `${responsiveStorageNameSpace()}configure`
     )?.multiTagsCache
       ? storageLocal().getItem<StorageConfigs>(
@@ -29,7 +28,7 @@ export const useMultiTagsStore = defineStore("pure-multiTags", {
           ...usePermissionStoreHook().flatteningRoutes.filter(
             v => v?.meta?.fixedTag
           )
-        ] as any),
+        ] as any)) as multiType[],
     multiTagsCache: storageLocal().getItem<StorageConfigs>(
       `${responsiveStorageNameSpace()}configure`
     )?.multiTagsCache
@@ -51,18 +50,18 @@ export const useMultiTagsStore = defineStore("pure-multiTags", {
         storageLocal().removeItem(`${responsiveStorageNameSpace()}tags`);
       }
     },
-    tagsCache(multiTags) {
+    tagsCache(multiTags: unknown) {
       this.getMultiTagsCache &&
         storageLocal().setItem(
           `${responsiveStorageNameSpace()}tags`,
           multiTags
         );
     },
-    handleTags<T>(
+    handleTags(
       mode: string,
-      value?: T | multiType,
+      value?: any,
       position?: positionType
-    ): T {
+    ) {
       switch (mode) {
         case "equal":
           this.multiTags = value;
@@ -108,11 +107,9 @@ export const useMultiTagsStore = defineStore("pure-multiTags", {
             }
             this.multiTags.push(value);
             this.tagsCache(this.multiTags);
-            if (
-              getConfig()?.MaxTagsLevel &&
-              isNumber(getConfig().MaxTagsLevel)
-            ) {
-              if (this.multiTags.length > getConfig().MaxTagsLevel) {
+            const maxTagsLevel = getConfig()?.MaxTagsLevel;
+            if (maxTagsLevel && isNumber(maxTagsLevel)) {
+              if (this.multiTags.length > maxTagsLevel) {
                 this.multiTags.splice(1, 1);
               }
             }
@@ -124,7 +121,7 @@ export const useMultiTagsStore = defineStore("pure-multiTags", {
             if (index === -1) return;
             this.multiTags.splice(index, 1);
           } else {
-            this.multiTags.splice(position?.startIndex, position?.length);
+            this.multiTags.splice(position.startIndex!, position.length);
           }
           this.tagsCache(this.multiTags);
           return this.multiTags;
