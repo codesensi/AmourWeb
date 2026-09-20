@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from "vue";
 import PortalWorldMap, {
+  pointLabel,
   type MapPoint
 } from "@/components/PortalWorldMap/index.vue";
 import { getSysConfig } from "@/api/sys-config";
@@ -8,7 +9,7 @@ import { loadAMap, type AMapGlobal } from "@/utils/amap";
 
 /**
  * 门户足迹地图(策略组件):
- * - 系统配置了 security.amap-key → 渲染高德真实底图(逐城圆点标记 + hover 城市名气泡 + 自动贴合视角);
+ * - 系统配置了 security.amap-key → 渲染高德真实底图(逐足迹圆点标记 + hover 点位名气泡 + 自动贴合视角);
  * - 未配置 key 或 SDK 加载失败 → 自动回退 echarts 自绘世界地图(PortalWorldMap),门户零感知。
  * 点位交互与既有契约一致:点击点位 emit select,详情浮层由调用方渲染。
  */
@@ -54,13 +55,13 @@ function escapeHtml(value: string): string {
     .replace(/"/g, "&quot;");
 }
 
-/** 创建覆盖物:逐城圆点标记(hover 气泡显示城市名) */
+/** 创建覆盖物:逐足迹圆点标记(hover 气泡优先显示精确地点名,回落城市名) */
 function buildOverlays(AMap: AMapGlobal, map: AMapGlobal) {
   props.points.forEach(point => {
     const marker = new AMap.Marker({
       position: [point.longitude, point.latitude],
       anchor: "center",
-      content: `<span class="amap-track-dot" data-city="${escapeHtml(point.city)}"></span>`,
+      content: `<span class="amap-track-dot" data-label="${escapeHtml(pointLabel(point))}"></span>`,
       map
     });
     marker.on("click", () => onSelect(point));
@@ -174,7 +175,7 @@ onBeforeUnmount(() => {
   box-shadow: 0 1px 4px rgb(0 0 0 / 30%);
 }
 
-/* hover 城市名气泡:attr 读取标记 data-city,单实例无 JS 状态 */
+/* hover 点位名气泡:attr 读取标记 data-label(精确地点名,回落城市名),单实例无 JS 状态 */
 .amap-track-dot::after {
   position: absolute;
   bottom: calc(100% + 6px);
@@ -184,7 +185,7 @@ onBeforeUnmount(() => {
   color: #fff;
   white-space: nowrap;
   pointer-events: none;
-  content: attr(data-city);
+  content: attr(data-label);
   background: rgb(15 18 25 / 85%);
   border-radius: 6px;
   opacity: 0;

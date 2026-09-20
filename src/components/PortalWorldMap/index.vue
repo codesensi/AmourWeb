@@ -13,6 +13,20 @@ export interface MapPoint {
   /** 足迹照片(详情浮层背景,可为 null) */
   photoUrl: string | null;
 }
+
+/**
+ * 点位的 hover 气泡展示文案 —— 与首页详情浮层 placeText 同口径:
+ * 有精确地点名且不与城市同名时显示地点名,否则回落城市名。
+ * 同一城市存在多个精确地点时,以此区分各足迹点。
+ *
+ * @param point 地图点位
+ * @return 气泡展示文案(精确地点名或城市名)
+ */
+export function pointLabel(point: MapPoint): string {
+  return point.placeName && point.placeName !== point.city
+    ? point.placeName
+    : point.city;
+}
 </script>
 
 <script setup lang="ts">
@@ -39,8 +53,8 @@ const mapRef = ref<HTMLDivElement | null>(null);
 
 let chart: echarts.ECharts | null = null;
 
-/** hover 气泡:当前悬停的城市名与点位像素位置(相对地图容器) */
-const hoverCity = ref("");
+/** hover 气泡:当前悬停点位的展示名称(精确地点名,回落城市名)与像素位置(相对地图容器) */
+const hoverText = ref("");
 const hoverPos = ref({ x: 0, y: 0 });
 
 /** 点位 hover:定位到足迹点上方(与高德侧气泡同款形态) */
@@ -48,10 +62,10 @@ function onPointHover(params: ECElementEvent) {
   const data = params.data as { point?: MapPoint } | undefined;
   const point = data?.point;
   if (!point || !chart || params.seriesIndex == null) {
-    hoverCity.value = "";
+    hoverText.value = "";
     return;
   }
-  hoverCity.value = point.city;
+  hoverText.value = pointLabel(point);
   const pixel = chart.convertToPixel({ seriesIndex: params.seriesIndex }, [
     point.longitude,
     point.latitude
@@ -61,7 +75,7 @@ function onPointHover(params: ECElementEvent) {
 
 /** 移开点位即隐藏,无任何残留范围 */
 function onPointLeave() {
-  hoverCity.value = "";
+  hoverText.value = "";
 }
 
 /* ---- 主题色:echarts 不解析 css 变量,初始化/主题切换时读取一次 ---- */
@@ -125,7 +139,7 @@ function buildOption(initial = false): echarts.EChartsCoreOption {
     geo: {
       map: "world",
       roam: true,
-      scaleLimit: { min: 1, max: 20 },
+      scaleLimit: { min: 1, max: 40 },
 
       /* 初始视角只在首次设置:后续刷新不带 center/zoom,避免覆盖用户拖动后的视角 */
       ...(initial ? fitBounds() : {}),
@@ -164,7 +178,7 @@ function buildOption(initial = false): echarts.EChartsCoreOption {
         },
         data: pts.map(p => ({
           value: [p.longitude, p.latitude],
-          name: p.city,
+          name: pointLabel(p),
           point: p
         }))
       }
@@ -315,13 +329,13 @@ watch(
       :aria-label="`足迹世界地图:已到访 ${points.length} 座城市`"
       @pointerleave="onCanvasLeave"
     />
-    <!-- 自绘 hover 城市名气泡:点上方居中,pointer-events 关闭避免遮挡交互 -->
+    <!-- 自绘 hover 点位名气泡:点上方居中,pointer-events 关闭避免遮挡交互 -->
     <div
-      v-show="hoverCity"
+      v-show="hoverText"
       class="map-tip"
       :style="{ left: `${hoverPos.x}px`, top: `${hoverPos.y}px` }"
     >
-      {{ hoverCity }}
+      {{ hoverText }}
     </div>
     <button type="button" class="map-reset" @click.stop="resetView">
       重置视角
