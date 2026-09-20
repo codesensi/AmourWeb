@@ -134,7 +134,10 @@ defineExpose({ getRef });
     </el-form-item>
 
     <el-form-item label="值类型" prop="valueType">
-      <DictTag dict-code="config-value-type" :value="newFormInline.valueType" />
+      <DictTag
+        :dict-code="DICT_CODES.configValueType"
+        :value="newFormInline.valueType"
+      />
       <span
         class="ml-2 text-xs text-[rgba(42,46,54,0.45)] dark:text-[rgba(220,220,242,0.45)]"
       >

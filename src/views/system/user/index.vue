@@ -3,6 +3,7 @@ import { ref } from "vue";
 import { useUser } from "./utils/hook";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { DictSelect } from "@/components/DictSelect";
+import { DICT_CODES } from "@/api/sys-dict";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { hasPerms } from "@/utils/auth";
 
@@ -88,7 +89,7 @@ const {
       <el-form-item label="性别：" prop="gender">
         <DictSelect
           v-model="form.gender"
-          dict-code="gender"
+          :dict-code="DICT_CODES.gender"
           placeholder="请选择"
           clearable
           class="w-45!"
@@ -97,7 +98,7 @@ const {
       <el-form-item label="状态：" prop="status">
         <DictSelect
           v-model="form.status"
-          dict-code="enable"
+          :dict-code="DICT_CODES.enable"
           placeholder="请选择"
           clearable
           class="w-45!"

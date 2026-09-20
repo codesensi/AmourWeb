@@ -92,7 +92,7 @@ defineExpose({ getRef });
         <el-form-item label="用户性别">
           <DictSelect
             v-model="newFormInline.gender"
-            dict-code="gender"
+            :dict-code="DICT_CODES.gender"
             placeholder="请选择用户性别"
             class="w-full"
             clearable

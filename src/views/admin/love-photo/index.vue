@@ -3,6 +3,7 @@ import { ref } from "vue";
 import { useLovePhoto } from "./utils/hook";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { DictSelect } from "@/components/DictSelect";
+import { DICT_CODES } from "@/api/sys-dict";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { hasPerms } from "@/utils/auth";
 
@@ -64,7 +65,7 @@ const {
       <el-form-item label="显隐：" prop="hidden">
         <DictSelect
           v-model="form.hidden"
-          dict-code="hidden"
+          :dict-code="DICT_CODES.hidden"
           value-type="number"
           placeholder="请选择"
           clearable

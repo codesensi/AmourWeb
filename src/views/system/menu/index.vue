@@ -3,6 +3,7 @@ import { ref } from "vue";
 import { useMenu } from "./utils/hook";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { DictSelect } from "@/components/DictSelect";
+import { DICT_CODES } from "@/api/sys-dict";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { hasPerms } from "@/utils/auth";
 import { typeOptions } from "./utils/enums";
@@ -77,7 +78,7 @@ function onFullscreen() {
       <el-form-item label="状态：" prop="status">
         <DictSelect
           v-model="form.status"
-          dict-code="enable"
+          :dict-code="DICT_CODES.enable"
           placeholder="请选择"
           clearable
           class="w-45!"
@@ -86,7 +87,7 @@ function onFullscreen() {
       <el-form-item label="隐藏：" prop="hidden">
         <DictSelect
           v-model="form.hidden"
-          dict-code="yes"
+          :dict-code="DICT_CODES.yes"
           placeholder="请选择"
           clearable
           class="w-45!"

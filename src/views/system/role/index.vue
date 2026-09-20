@@ -4,6 +4,7 @@ import { ref, computed, nextTick, onMounted } from "vue";
 import { hasPerms } from "@/utils/auth";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { DictSelect } from "@/components/DictSelect";
+import { DICT_CODES } from "@/api/sys-dict";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import {
   delay,
@@ -116,7 +117,7 @@ onMounted(() => {
       <el-form-item label="状态：" prop="status">
         <DictSelect
           v-model="form.status"
-          dict-code="enable"
+          :dict-code="DICT_CODES.enable"
           placeholder="请选择状态"
           clearable
           class="w-45!"

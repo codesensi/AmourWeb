@@ -4,6 +4,7 @@
 import { computed, reactive, ref } from "vue";
 import ReAvatarUpload from "@/components/ReAvatarUpload";
 import { DictSelect } from "@/components/DictSelect";
+import { DICT_CODES } from "@/api/sys-dict";
 import { message } from "@/utils/message";
 import { useUserStoreHook } from "@/store/modules/user";
 import type { FormInstance, FormRules } from "element-plus";
@@ -130,7 +131,7 @@ function queryEmail(
     <el-form-item label="性别">
       <DictSelect
         v-model="form.gender"
-        dict-code="gender"
+        :dict-code="DICT_CODES.gender"
         placeholder="请选择性别"
         class="w-full"
         clearable
