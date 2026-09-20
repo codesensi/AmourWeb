@@ -384,10 +384,21 @@ function addAsyncRoutes(arrRoutes: Array<RouteRecordRaw>) {
       v.component = Layout;
     } else {
       // 对后端传component组件路径和不传做兼容（如果后端传component组件路径，那么path可以随便写，如果不传，component组件路径会跟path保持一致）
-      const index = v?.component
-        ? modulesRoutesKeys.findIndex(ev => ev.includes(v.component as any))
-        : modulesRoutesKeys.findIndex(ev => ev.includes(v.path));
-      v.component = modulesRoutes[modulesRoutesKeys[index]];
+      // 匹配优先级：精确拼接 → 同名结尾（兼容省略 src/views 前缀）→ 旧版子串包含（兜底）；
+      // 全部未命中时告警并保持 component 为空，避免静默渲染空白页且无日志可查
+      const keyword = (v.component as string) || v.path;
+      const hit = modulesRoutesKeys.find(
+          ev => ev === `/src/views/${keyword}.vue` || ev === `/src/views/${keyword}.tsx`
+        )
+        ?? modulesRoutesKeys.find(ev => ev.endsWith(`/${keyword}.vue`) || ev.endsWith(`/${keyword}.tsx`))
+        ?? modulesRoutesKeys.find(ev => ev.includes(keyword));
+      if (!hit) {
+        console.warn(
+          `动态路由装配未命中组件：component=${v.component ?? "-"}，path=${v.path}，请检查菜单配置；候选组件=`,
+          modulesRoutesKeys
+        );
+      }
+      v.component = hit ? modulesRoutes[hit] : undefined;
     }
     if (v?.children && v.children.length) {
       addAsyncRoutes(v.children);
