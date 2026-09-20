@@ -157,9 +157,9 @@ export function useLovePhoto(tableRef: Ref) {
       label: "标签",
       prop: "tags",
       minWidth: 140,
-      cellRenderer: ({ row }) => (
+      cellRenderer: ({ row }: { row?: LovePhotoPageItem }) => (
         <>
-          {(row.tags as string)
+          {(row?.tags ?? "")
             .split(",")
             .filter(tag => tag !== "")
             .map(tag => (
