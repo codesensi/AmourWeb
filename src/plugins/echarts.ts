@@ -1,4 +1,3 @@
-import type { App } from "vue";
 import * as echarts from "echarts/core";
 import { PieChart, BarChart, LineChart, GaugeChart } from "echarts/charts";
 import { CanvasRenderer, SVGRenderer } from "echarts/renderers";
@@ -36,10 +35,7 @@ use([
 
 /**
  * @description 按需引入echarts，具体看 https://echarts.apache.org/handbook/zh/basics/import/#%E5%9C%A8-typescript-%E4%B8%AD%E6%8C%89%E9%9C%80%E5%BC%95%E5%85%A5
- * @see 温馨提示：必须将 `$echarts` 添加到全局 `globalProperties` ，具体看 https://pure-admin-utils.netlify.app/hooks/useECharts/useECharts#%E4%BD%BF%E7%94%A8%E5%89%8D%E6%8F%90
+ * @description 本模块仅负责按需注册与单例导出，由 welcome/缓存监控页局部引入（echarts 随页面 chunk 按需加载）；
+ * 原先注入 globalProperties 的 `$echarts` 全局注册已移除，图表消费统一经 `@/hooks/useECharts` 局部封装
  */
-export function useEcharts(app: App) {
-  app.config.globalProperties.$echarts = echarts;
-}
-
 export default echarts;

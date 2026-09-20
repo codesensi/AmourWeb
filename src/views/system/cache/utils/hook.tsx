@@ -1,5 +1,6 @@
 import { ref, reactive, computed, watch, onMounted } from "vue";
-import { useDark, useECharts } from "@pureadmin/utils";
+import { useDark } from "@pureadmin/utils";
+import { useECharts } from "@/hooks/useECharts";
 import type { PaginationProps } from "@pureadmin/table";
 import type { EChartsOption } from "echarts";
 import { getCacheList, type CacheInfo } from "@/api/cache";

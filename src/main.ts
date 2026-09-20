@@ -83,16 +83,12 @@ getPlatformConfig(app)
     app.use(router);
     await router.isReady();
     injectResponsiveStorage(app, config);
-    // echarts 体积大且仅 welcome/cache 监控页使用,动态加载为独立 chunk,
-    // 缩小首屏依赖图(不再进入入口 chunk 的静态依赖链)
-    const { useEcharts } = await import("@/plugins/echarts");
     app
       .use(MotionPlugin)
       .use(VueQueryPlugin, { queryClient })
       .use(useElementPlus)
       .use(Table)
-      .use(PureDescriptions)
-      .use(useEcharts);
+      .use(PureDescriptions);
     app.mount("#app");
 
     // 站点名异步刷新:挂载完成后再拉取 sys_config,失败保持出厂标题。
