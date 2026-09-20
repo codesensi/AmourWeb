@@ -123,6 +123,9 @@ onMounted(() => {
 onUnmounted(() => {
   cancelAnimationFrame(measureRaf);
   window.removeEventListener("resize", scheduleMeasure);
+  // 动画收尾定时器一并清理:卸载后不再触碰僵尸 DOM 与已失效的响应式状态
+  timers.forEach(clearTimeout);
+  timers.clear();
 });
 
 /** 记录人列表(按 user_id 聚合,维持首次出现顺序) */
@@ -233,6 +236,7 @@ function moodIcon(mood: string | null): string | null {
             </svg>
           </header>
           <p
+            :id="`diary-content-${it.id}`"
             :ref="el => setContentRef(it.id, el)"
             class="diary-content"
             :class="{ expanded: expanded.has(it.id) }"
@@ -243,6 +247,8 @@ function moodIcon(mood: string | null): string | null {
             v-if="expandable.has(it.id)"
             class="diary-expand"
             type="button"
+            :aria-expanded="expanded.has(it.id)"
+            :aria-controls="`diary-content-${it.id}`"
             @click="toggle(it.id)"
           >
             {{ expanded.has(it.id) ? "收起" : "展开全文" }}
