@@ -1,21 +1,25 @@
 import editForm from "../form.vue";
-import { h } from "vue";
-import { message } from "@/utils/message";
+import { emphasize, message } from "@/utils/message";
 import {
   openFormDialog,
   useBatchDelete,
-  usePageQuery
+  usePageQuery,
+  useStatusColumn,
+  useStatusSwitch
 } from "@/views/system/hooks";
+import { DICT_CODES } from "@/api/sys-dict";
 import {
+  changeFootprintHidden,
   deleteFootprint,
   getFootprintPage,
   insertFootprint,
   updateFootprint
 } from "@/api/admin-footprint";
 import type { FootprintPageItem } from "@/api/admin-footprint";
+import { useDict } from "@/hooks/useDict";
 import { queryClient } from "@/plugins/vue-query";
 import { queryKeys } from "@/hooks/query-keys";
-import { type Ref, reactive, ref, onMounted } from "vue";
+import { type Ref, reactive, ref, h, onMounted } from "vue";
 
 /** 行数据剔除服务端注入字段后的可编辑形态(与后端 FootprintUpdateRequest 对齐) */
 type FootprintUpdatePayload = {
@@ -32,7 +36,8 @@ type FootprintUpdatePayload = {
 export function useFootprint(tableRef: Ref) {
   const form = reactive({
     city: "",
-    arrivalDateRange: [] as Array<string>
+    arrivalDateRange: [] as Array<string>,
+    hidden: ""
   });
   const formRef = ref();
 
@@ -50,7 +55,9 @@ export function useFootprint(tableRef: Ref) {
       ...query,
       city: form.city,
       arrivalDateBegin: form.arrivalDateRange?.[0],
-      arrivalDateEnd: form.arrivalDateRange?.[1]
+      arrivalDateEnd: form.arrivalDateRange?.[1],
+      hidden:
+        form.hidden === "" || form.hidden == null ? undefined : Number(form.hidden)
     })
   );
 
@@ -77,7 +84,38 @@ export function useFootprint(tableRef: Ref) {
     }
   });
 
-  /** 列定义 */
+  /* ---------------- 显隐开关(独立 change-hidden 端点,文案取 hidden 字典) ---------------- */
+
+  /** 显隐字典:开关文案/确认提示统一取字典 label */
+  const { labelOf: hiddenLabelOf } = useDict(DICT_CODES.hidden);
+
+  // 显隐开关公共骨架:确认 + 提交加载态 + 成功提示 + 取消/失败回滚(对齐画册列表状态开关)
+  const { switchLoadMap, onChange } = useStatusSwitch<FootprintPageItem>({
+    field: "hidden",
+    submit: async row => {
+      await changeFootprintHidden(row.id, row.hidden);
+      await invalidatePortalFootprint();
+    },
+    confirmText: row =>
+      h("span", [
+        "确认要将",
+        emphasize(row.city),
+        `设为${hiddenLabelOf(row.hidden)}吗?`
+      ]),
+    successText: row =>
+      h("span", [`已${hiddenLabelOf(row.hidden)}`, emphasize(row.city)])
+  });
+
+  // 显隐开关列统一渲染(主题色/inline 文案/权限门控与画册列表状态开关对齐)
+  const hiddenColumn = useStatusColumn<FootprintPageItem>({
+    perms: "admin:footprint:update",
+    switchLoadMap,
+    onChange,
+    field: "hidden",
+    labelOf: hiddenLabelOf
+  });
+
+  /** 列定义(显隐列见 hiddenColumn) */
   const columns: TableColumnList = [
     {
       label: "勾选列", // 如果需要表格多选，此处label必须设置
@@ -124,6 +162,12 @@ export function useFootprint(tableRef: Ref) {
       minWidth: 200
     },
     {
+      label: "显隐",
+      prop: "hidden",
+      minWidth: 90,
+      cellRenderer: hiddenColumn
+    },
+    {
       label: "创建时间",
       prop: "createTime",
       minWidth: 170
@@ -146,6 +190,7 @@ export function useFootprint(tableRef: Ref) {
       longitude: row?.longitude ?? null,
       latitude: row?.latitude ?? null,
       arrivalDate: row?.arrivalDate ?? "",
+      hidden: row?.hidden ?? 0,
       photoUrl: row?.photoUrl ?? "",
       remark: row?.remark ?? "",
       /** 高德服务降级标记(仅驱动标题行胶囊显隐,不参与提交) */
@@ -190,7 +235,7 @@ export function useFootprint(tableRef: Ref) {
           remark: curData.remark
         };
         if (title === "新增") {
-          await insertFootprint(payload);
+          await insertFootprint({ ...payload, hidden: curData.hidden });
         } else {
           await updateFootprint(payload);
         }

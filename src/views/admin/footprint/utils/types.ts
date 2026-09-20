@@ -15,6 +15,8 @@ interface FormItemProps {
   latitude: number | null;
   /** 到访日期(yyyy-MM-dd) */
   arrivalDate: string;
+  /** 显隐标识: 0-显示, 1-隐藏(仅新增表单使用,修改经 change-hidden 端点) */
+  hidden: number;
   /** 照片地址(站内 /file/view/{id} 或外链;保存记录时直接绑定) */
   photoUrl: string;
   /** 备注 */

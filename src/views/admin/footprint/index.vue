@@ -2,6 +2,7 @@
 import { ref } from "vue";
 import { useFootprint } from "./utils/hook";
 import { PureTableBar } from "@/components/RePureTableBar";
+import { DictSelect } from "@/components/DictSelect";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { hasPerms } from "@/utils/auth";
 
@@ -61,6 +62,16 @@ const {
           end-placeholder="结束日期"
           value-format="YYYY-MM-DD"
           class="w-60!"
+        />
+      </el-form-item>
+      <el-form-item label="显隐：" prop="hidden">
+        <DictSelect
+          v-model="form.hidden"
+          dict-code="hidden"
+          value-type="number"
+          placeholder="请选择"
+          clearable
+          class="w-45!"
         />
       </el-form-item>
       <el-form-item>

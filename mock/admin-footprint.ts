@@ -1,6 +1,7 @@
 // 足迹地图管理 mock(对齐后端 /admin/footprint 接口)
-// page 契约对齐 FootprintPageResponse:id(字符串化)/city/placeName/longitude/latitude/arrivalDate/photoUrl/remark/createTime
+// page 契约对齐 FootprintPageResponse:id(字符串化)/city/placeName/longitude/latitude/arrivalDate/hidden/photoUrl/remark/createTime
 // insert/update 契约对齐 FootprintInsertRequest/UpdateRequest:照片以 URL 直存(上传后保存记录时绑定)
+// change-hidden 契约对齐 FootprintChangeHiddenRequest:仅覆盖 hidden 字段
 // delete 契约对齐 DELETE /admin/footprint/delete/{ids}:批量逻辑删除(ids 逗号拼接)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 import { mockPhoto } from "./portal/mock-photo";
@@ -33,6 +34,7 @@ const footprints = [
     longitude: 104.065735,
     latitude: 30.659462,
     arrivalDate: "2023-02-15",
+    hidden: 0,
     photoUrl: mockPhoto("成都 · 足迹照片", "#d3ecff", "#cfe0ff"),
     remark: "第一次一起旅行,锦里的灯笼亮起来的时候,像置身电影里。",
     createTime: "2026-01-01 08:00:00",
@@ -45,6 +47,7 @@ const footprints = [
     longitude: 100.22504,
     latitude: 25.6065,
     arrivalDate: "2023-07-02",
+    hidden: 0,
     photoUrl: mockPhoto("大理 · 足迹照片", "#d3ecff", "#cfe0ff"),
     remark: "在洱海边看了日出,风很轻,时间也很慢。",
     createTime: "2026-01-02 09:30:00",
@@ -57,6 +60,7 @@ const footprints = [
     longitude: 116.407387,
     latitude: 39.904179,
     arrivalDate: "2025-05-21",
+    hidden: 0,
     photoUrl: null,
     remark: "在一起纪念日,我们在故宫的城墙下许了愿。",
     createTime: "2026-01-03 10:00:00",
@@ -69,6 +73,7 @@ const footprints = [
     longitude: 120.382639,
     latitude: 36.067082,
     arrivalDate: "2025-08-20",
+    hidden: 1,
     photoUrl: null,
     remark: "喝了袋装啤酒,走了八大关,把夏天留在了海边。",
     createTime: "2026-01-04 14:00:00",
@@ -99,9 +104,14 @@ export default defineFakeRoute([
       const city = String(query.city ?? "");
       const begin = String(query.arrivalDateBegin ?? "");
       const end = String(query.arrivalDateEnd ?? "");
+      const hidden =
+        query.hidden === undefined || query.hidden === ""
+          ? null
+          : Number(query.hidden);
       const records = footprints
         .filter(item => item.delFlag === 0)
         .filter(item => !city || item.city.includes(city))
+        .filter(item => hidden === null || item.hidden === hidden)
         .filter(
           item => !begin || (item.arrivalDate ?? "") >= begin
         )
@@ -131,6 +141,7 @@ export default defineFakeRoute([
         longitude: body?.longitude ?? null,
         latitude: body?.latitude ?? null,
         arrivalDate: body?.arrivalDate || null,
+        hidden: body?.hidden ?? 0,
         photoUrl: body?.photoUrl || null,
         remark: body?.remark || null,
         createTime: formatNow(),
@@ -155,6 +166,19 @@ export default defineFakeRoute([
       target.arrivalDate = body?.arrivalDate || null;
       target.photoUrl = body?.photoUrl || null;
       target.remark = body?.remark || null;
+      return ok(null, "修改成功");
+    }
+  },
+  // 修改显隐(PUT /admin/footprint/change-hidden;仅覆盖 hidden 字段)
+  {
+    url: "/admin/footprint/change-hidden",
+    method: "put",
+    response: ({ body }) => {
+      const target = footprints.find(
+        item => item.id === String(body?.id) && item.delFlag === 0
+      );
+      if (!target) return fail("足迹不存在");
+      target.hidden = Number(body?.hidden ?? target.hidden);
       return ok(null, "修改成功");
     }
   },

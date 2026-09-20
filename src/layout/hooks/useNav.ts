@@ -86,6 +86,8 @@ export function useNav() {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning",
+        // 确认语义弹窗禁用点击遮罩关闭,防误触取消
+        closeOnClickModal: false,
         draggable: true
       }
     )

@@ -1,4 +1,5 @@
-// 足迹地图 mock(GET /portal/footprint/page 分页,按到访日期升序;photoUrl 为内联 SVG 占位图)
+// 足迹地图 mock(GET /portal/footprint/page 分页与 /portal/footprint/list/map-points 点集,按到访日期升序;
+// photoUrl 为内联 SVG 占位图;hidden 演示显隐口径——隐藏记录不出现在任何门户接口)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 import { mockPhoto } from "./mock-photo";
 import { fakePageResponse } from "../utils";
@@ -161,16 +162,32 @@ const footprints = [
     longitude: -74.006,
     latitude: 40.7128,
     arrivalDate: "2026-11-26",
+    hidden: 1,
     photoUrl: null,
     remark: "时代广场的人潮里,我们只看得见彼此。"
   }
 ];
+
+/** 门户可见数据(仅显隐为「显示」的足迹,对齐后端门户查询的 hidden=0 强制过滤) */
+const visibleFootprints = footprints.filter(item => item.hidden === 0);
 
 export default defineFakeRoute([
   // 足迹分页(GET /portal/footprint/page;数据按到访日期升序,与列表契约一致)
   {
     url: "/portal/footprint/page",
     method: "get",
-    response: ({ query }) => fakePageResponse(footprints, query)
+    response: ({ query }) => fakePageResponse(visibleFootprints, query)
+  },
+  // 足迹地图全量点集(GET /portal/footprint/list/map-points;按到访日期升序)
+  {
+    url: "/portal/footprint/list/map-points",
+    method: "get",
+    response: () => ({
+      success: true,
+      code: 200,
+      msg: "操作成功",
+      timestamp: Date.now(),
+      data: visibleFootprints
+    })
   }
 ]);

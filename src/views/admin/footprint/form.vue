@@ -16,6 +16,7 @@ const props = withDefaults(defineProps<FormProps>(), {
     longitude: null,
     latitude: null,
     arrivalDate: "",
+    hidden: 0,
     photoUrl: "",
     remark: ""
   })
@@ -76,6 +77,18 @@ defineExpose({ getRef });
             value-format="YYYY-MM-DD"
             placeholder="选择日期"
             class="w-full!"
+          />
+        </el-form-item>
+      </re-col>
+      <re-col v-if="newFormInline.title === '新增'">
+        <el-form-item label="显隐">
+          <el-switch
+            v-model="newFormInline.hidden"
+            inline-prompt
+            :active-value="0"
+            :inactive-value="1"
+            active-text="显示"
+            inactive-text="隐藏"
           />
         </el-form-item>
       </re-col>

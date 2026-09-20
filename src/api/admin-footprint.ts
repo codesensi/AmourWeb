@@ -16,6 +16,8 @@ export interface FootprintPageItem {
   latitude?: number | null;
   /** 到访日期(格式:yyyy-MM-dd) */
   arrivalDate?: string | null;
+  /** 显隐标识: 0-显示, 1-隐藏 */
+  hidden: number;
   /** 关联照片地址(站内 /file/view/{id} 或外链;无照片为 null) */
   photoUrl?: string | null;
   /** 备注 */
@@ -32,6 +34,8 @@ export type FootprintQuery = PageQuery & {
   arrivalDateBegin?: string;
   /** 到访日期范围终点(含;yyyy-MM-dd) */
   arrivalDateEnd?: string;
+  /** 显隐标识: 0-显示, 1-隐藏 */
+  hidden?: number;
 };
 
 /** 足迹分页查询(GET /admin/footprint/page;登录态) */
@@ -43,7 +47,7 @@ export const getFootprintPage = (params?: FootprintQuery) => {
   );
 };
 
-/** 足迹新增/修改参数(修改时 id 必填;经纬度由地图选点或手动录入;照片以 URL 直存) */
+/** 足迹新增/修改参数(修改时 id 必填;经纬度由地图选点或手动录入;照片以 URL 直存;显隐仅新增传入,修改走 change-hidden) */
 export type FootprintSave = {
   id?: string;
   city: string;
@@ -53,6 +57,8 @@ export type FootprintSave = {
   latitude?: number | null;
   /** 到访日期(yyyy-MM-dd;可空) */
   arrivalDate?: string | null;
+  /** 显隐标识: 0-显示, 1-隐藏 */
+  hidden?: number;
   /** 关联照片地址(上传组件返回的 /file/view/{id} 或外链;可空) */
   photoUrl?: string | null;
   remark?: string;
@@ -69,6 +75,13 @@ export const insertFootprint = (data: FootprintSave) => {
 export const updateFootprint = (data: FootprintSave) => {
   return http.request<ApiResult<null>>("put", "/admin/footprint/update", {
     data
+  });
+};
+
+/** 修改足迹显隐(PUT /admin/footprint/change-hidden;显隐独立端点) */
+export const changeFootprintHidden = (id: string, hidden: number) => {
+  return http.request<ApiResult<null>>("put", "/admin/footprint/change-hidden", {
+    data: { id, hidden }
   });
 };
 

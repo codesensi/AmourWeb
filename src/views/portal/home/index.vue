@@ -3,7 +3,7 @@ import { computed, markRaw, onBeforeUnmount, ref, watch } from "vue";
 import { RouterLink, useRouter } from "vue-router";
 import MapPinLine from "~icons/ri/map-pin-line";
 import { getAnniversaryList } from "@/api/portal/anniversary";
-import { getFootprintList } from "@/api/portal/footprint";
+import { getFootprintMapPoints } from "@/api/portal/footprint";
 import { getHeroes } from "@/api/portal/hero";
 import { getLovePhotoCover } from "@/api/portal/love-photo";
 import { fallbackAvatar } from "@/utils/avatar";
@@ -182,20 +182,22 @@ const coverHearts = [
 
 /* ---------------- 卷首语:足迹世界地图 ---------------- */
 
+/* ---------------- 卷首语:足迹世界地图 ---------------- */
+
 /** 足迹原始数据(缓存 5 分钟,KeepAlive 激活时过期重拉);
- * 地图连线需全量点位,以单一大页一次拉取
+ * 地图连线需全量点位,map-points 专用端点一次拉取
  * (独立 key footprintMap:与足迹页分页 ["footprint"] 数据形状不同,共用会导致
  *  useInfiniteQuery 读到单对象缓存时抛 TypeError 使整页空白) */
-const { data: footprintPage } = usePortalQuery(queryKeys.footprintMap(), () =>
-  getFootprintList({ pageNumber: 1, pageSize: 500 })
+const { data: footprintPoints } = usePortalQuery(
+  queryKeys.footprintMap(),
+  getFootprintMapPoints
 );
 
-/** 地图点位:有坐标的足迹按到访时间升序,依此连线
+/** 地图点位:有坐标的足迹(后端已按到访日期升序,依此连线)
  * (元素经 markRaw 剥离响应式,避免 echarts 每帧重绘遍历 Proxy) */
 const mapPoints = computed<MapPoint[]>(() =>
-  (footprintPage.value?.records ?? [])
+  (footprintPoints.value ?? [])
     .filter(it => it.longitude != null && it.latitude != null)
-    .sort((a, b) => (a.arrivalDate ?? "").localeCompare(b.arrivalDate ?? ""))
     .map(it =>
       markRaw({
         id: it.id,

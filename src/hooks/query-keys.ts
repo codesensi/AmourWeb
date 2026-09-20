@@ -26,7 +26,7 @@ export const queryKeys = {
   /** 足迹分页(到访城市,按到访日期升序) */
   footprint: () =>
     ({ key: ["footprint"], staleTime: 5 * 60_000 }) as PortalResource,
-  /** 足迹地图全量点(首页卡片,单一大页一次拉取;数据形状与足迹分页不同,必须独立 key) */
+  /** 足迹地图全量点(首页卡片,map-points 专用端点;数据形状与足迹分页不同,必须独立 key) */
   footprintMap: () =>
     ({ key: ["footprint", "map"], staleTime: 5 * 60_000 }) as PortalResource,
   /** 纪念日分页(按下一次发生日升序;倒计时由前端本地时钟驱动) */

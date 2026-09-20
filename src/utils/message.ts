@@ -106,6 +106,8 @@ const confirmAction = (
     confirmButtonText: options?.confirmButtonText ?? "确定",
     cancelButtonText: "取消",
     type: "warning",
+    // 确认语义弹窗禁用点击遮罩关闭:防误触导致的静默取消(如状态开关回弹)
+    closeOnClickModal: false,
     // 内容恒以纯文本/VNode 挂载:VNode 的文本子节点由 Vue 转义,HTML 注入面归零
     dangerouslyUseHTMLString: false,
     draggable: true
