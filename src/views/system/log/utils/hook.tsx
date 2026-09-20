@@ -48,6 +48,10 @@ export function useLogPage(tab: LogTab) {
       .map(item => ({ value: Number(item.dictValue), label: item.dictLabel }))
   );
 
+  // 连续翻页游标:记录上一次成功查询的页码与本页末条 ID;翻下一页时以末条 ID 为键集游标
+  // (后端 id < lastId 定位,消除深 offset 扫描),首页/跳页不下发游标,回退 offset 兜底
+  let prevPage = 1;
+  const lastIdOfPage = ref<string | undefined>(undefined);
   // 分页查询公共骨架:分页状态 + 结果列表 + 加载态 + 序号守卫搜索 + 分页事件写回 + 表单重置
   const {
     pagination,
@@ -57,8 +61,24 @@ export function useLogPage(tab: LogTab) {
     handleSizeChange,
     handleCurrentChange,
     resetForm
-  } = usePageQuery(
-    query => getLogPage(tab, { ...toRaw(form), ...query }),
+  } = usePageQuery<SysLogItem>(query => {
+    // 仅连续下一页下发游标;size 变化/跳页/重置不满足连续性,回退 offset 兜底
+    const lastId =
+      query.pageNumber === prevPage + 1 ? lastIdOfPage.value : undefined;
+    return getLogPage(tab, { ...toRaw(form), ...query, lastId }).then(
+      result => {
+        // 仅成功响应推进游标:页码与本页末条 ID(空页清空游标,下页走 offset)
+        if (result.success && result.data) {
+          prevPage = result.data.pageNumber;
+          const records = result.data.records;
+          lastIdOfPage.value = records.length
+            ? records[records.length - 1].id
+            : undefined;
+        }
+        return result;
+      }
+    );
+  },
     // 懒加载页签:首次查询在页签激活时触发,激活前不展示加载态
     { loading: false }
   );

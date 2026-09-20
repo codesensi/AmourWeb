@@ -42,6 +42,8 @@ export type LogQuery = PageQuery & {
   status?: string;
   /** 日志类型集合(多选过滤,空则不过滤) */
   logTypes?: number[];
+  /** 键集游标:上一页最后一条日志的 ID(连续翻下一页时下发,消除深 offset 扫描) */
+  lastId?: string;
 };
 
 /** 日志分页查询(GET /sys/log/login/page、/sys/log/operate/page;登录态;logTypes 多选时逗号分隔下发,对齐 dict codes 惯例) */
