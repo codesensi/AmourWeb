@@ -17,8 +17,8 @@ defineOptions({
 
 /** 登录/操作两个 Tab 的定义(按权限过滤显隐,粒度与后端接口权限码一一对应) */
 const tabDefs = [
-  { name: "login", label: "登录日志", perm: "log:login:page" },
-  { name: "operate", label: "操作日志", perm: "log:operate:page" }
+  { name: "login", label: "登录日志", perm: "system:log-login:page" },
+  { name: "operate", label: "操作日志", perm: "system:log-operate:page" }
 ].filter(tab => hasPerms(tab.perm));
 
 const activeTab = ref(tabDefs[0]?.name ?? "");
