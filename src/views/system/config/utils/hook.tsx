@@ -8,6 +8,7 @@ import type { SysConfigPageItem } from "@/api/sys-config";
 import { DICT_CODES } from "@/api/sys-dict";
 import { useDict } from "@/hooks/useDict";
 import { queryClient } from "@/plugins/vue-query";
+import { initSiteLogo } from "@/utils/sys-config";
 import { queryKeys } from "@/hooks/query-keys";
 import { ref, toRaw, reactive, watch } from "vue";
 
@@ -130,6 +131,9 @@ export function useConfigPage() {
         await queryClient.invalidateQueries({
           queryKey: queryKeys.sysConfig().key
         });
+        // 立即重拉一次:回填 siteTitle/siteLogo/favicon 响应式状态与 <head> favicon,
+        // 管理员无需刷新页面即可看到新配置生效
+        await initSiteLogo();
         message(`已修改配置${curData.configKey}，新值即时生效`, {
           type: "success"
         });

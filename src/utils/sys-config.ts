@@ -1,5 +1,6 @@
 import { ref } from "vue";
 import { getSysConfig } from "@/api/sys-config";
+import { siteTitle } from "@/config";
 import { queryClient } from "@/plugins/vue-query";
 import { queryKeys } from "@/hooks/query-keys";
 
@@ -52,6 +53,11 @@ async function fetchSysConfigAll(): Promise<Partial<SysConfig>> {
       ? item.configValue === "true"
       : item.configValue;
   }
+  // siteTitle 是站点名配置的响应式镜像:每次重拉成功后同步,
+  // 配合管理端保存后的缓存失效,使改名即时反映到浏览器标题
+  if (config.name) {
+    siteTitle.value = config.name;
+  }
   return config;
 }
 
@@ -79,7 +85,6 @@ export async function fetchSysConfig<F extends SysConfigField>(
   }
   return data;
 }
-
 /** 站点 Logo 兜底图(配置缺失或图片加载失败时,三端统一回退 public/favicon.ico) */
 export const LOGO_FALLBACK = "/favicon.ico";
 
@@ -121,7 +126,12 @@ export function applySiteFavicon(value: string | undefined) {
  * 同时回填 favicon(与 logo 同属 base 分组品牌资源,一次请求两键)。
  */
 export function initSiteLogo(): Promise<void> {
-  if (siteLogoTask) return siteLogoTask;
+  // 查询缓存被管理端失效(invalidateQueries)时清空去重标记重新执行,
+  // 让 logo/favicon 拿到新值,而非复用失效前的旧 Promise
+  const invalidated = queryClient.getQueryState(
+    queryKeys.sysConfig().key
+  )?.isInvalidated;
+  if (siteLogoTask && !invalidated) return siteLogoTask;
   siteLogoTask = fetchSysConfig("logo", "favicon").then(({ logo, favicon }) => {
     siteLogo.value = logo ?? "";
     applySiteFavicon(favicon);
