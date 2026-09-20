@@ -26,7 +26,7 @@ export const uploadFile = (
   const formData = new FormData();
   // 文件名需携带扩展名,后端按扩展名白名单校验
   formData.append("file", blob, originalName);
-  return http.request<UploadFileResult>("post", `/sys/file/upload/${bizType}`, {
+  return http.request<UploadFileResult["data"]>("post", `/sys/file/upload/${bizType}`, {
     data: formData,
     // 覆盖 http 工具默认的 application/json:显式声明 multipart 后,
     // axios 不再把 FormData 序列化成 JSON(transformRequest 的 JSON 分支),
@@ -83,7 +83,7 @@ export type FileQuery = PageQuery & {
 
 /** 文件分页查询(GET /sys/file/page;登录态,system:file:page 权限) */
 export const getFilePage = (params?: FileQuery) => {
-  return http.request<ApiResult<PageResult<FileItem>>>("get", "/sys/file/page", {
+  return http.request<PageResult<FileItem>>("get", "/sys/file/page", {
     params: omitEmpty(params)
   });
 };
@@ -93,17 +93,17 @@ export const getFilePage = (params?: FileQuery) => {
  * 仅逻辑删除,物理文件保留,可在回收站恢复或彻底删除。
  */
 export const deleteFile = (id: string) => {
-  return http.request<ApiResult<null>>("delete", `/sys/file/${id}`);
+  return http.request<null>("delete", `/sys/file/${id}`);
 };
 
 /** 恢复回收站文件(PUT /sys/file/{id}/restore;登录态,system:file:delete 权限) */
 export const restoreFile = (id: string) => {
-  return http.request<ApiResult<null>>("put", `/sys/file/${id}/restore`);
+  return http.request<null>("put", `/sys/file/${id}/restore`);
 };
 
 /** 彻底删除回收站文件(DELETE /sys/file/{id}/physical;登录态,system:file:delete 权限) */
 export const physicalDeleteFile = (id: string) => {
-  return http.request<ApiResult<null>>("delete", `/sys/file/${id}/physical`);
+  return http.request<null>("delete", `/sys/file/${id}/physical`);
 };
 
 /**
@@ -112,8 +112,9 @@ export const physicalDeleteFile = (id: string) => {
  * 由调用方按响应 Content-Type 识别降级。
  */
 export const downloadFile = (id: string) => {
-  return http.request<Blob>("get", `/sys/file/download/${id}`, {
+  // 非统一契约响应(二进制流):显式断言逃生,由拦截器的原样透传通道保证
+  return http.request<never>("get", `/sys/file/download/${id}`, {
     responseType: "blob",
     timeout: 0
-  });
+  }) as unknown as Promise<Blob>;
 };

@@ -1,4 +1,3 @@
-import type { ApiResult } from "@/api/types";
 import { http } from "@/utils/http";
 
 /** 一言(GET /portal/saying 免登录;后端已降级,content 可能为空) */
@@ -13,5 +12,5 @@ export type SayingData = {
 
 /** 查询一言(GET /portal/saying,免登录;content 为空时由前端不展示) */
 export const getPortalSaying = () => {
-  return http.request<ApiResult<SayingData>>("get", "/portal/saying");
+  return http.request<SayingData>("get", "/portal/saying");
 };

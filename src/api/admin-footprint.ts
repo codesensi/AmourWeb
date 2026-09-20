@@ -1,6 +1,6 @@
 import { http } from "@/utils/http";
 import { omitEmpty } from "@/utils/params";
-import type { ApiResult, PageQuery, PageResult } from "@/api/types";
+import type { PageQuery, PageResult } from "@/api/types";
 
 /** 足迹管理-行数据(分页;完整字段) */
 export interface FootprintPageItem {
@@ -40,7 +40,7 @@ export type FootprintQuery = PageQuery & {
 
 /** 足迹分页查询(GET /admin/footprint/page;登录态) */
 export const getFootprintPage = (params?: FootprintQuery) => {
-  return http.request<ApiResult<PageResult<FootprintPageItem>>>(
+  return http.request<PageResult<FootprintPageItem>>(
     "get",
     "/admin/footprint/page",
     { params: omitEmpty(params) }
@@ -66,28 +66,28 @@ export type FootprintSave = {
 
 /** 新增足迹(POST /admin/footprint/insert) */
 export const insertFootprint = (data: FootprintSave) => {
-  return http.request<ApiResult<null>>("post", "/admin/footprint/insert", {
+  return http.request<null>("post", "/admin/footprint/insert", {
     data
   });
 };
 
 /** 修改足迹(PUT /admin/footprint/update;按 id 覆盖全部可编辑字段) */
 export const updateFootprint = (data: FootprintSave) => {
-  return http.request<ApiResult<null>>("put", "/admin/footprint/update", {
+  return http.request<null>("put", "/admin/footprint/update", {
     data
   });
 };
 
 /** 修改足迹显隐(PUT /admin/footprint/change-hidden;显隐独立端点) */
 export const changeFootprintHidden = (id: string, hidden: number) => {
-  return http.request<ApiResult<null>>("put", "/admin/footprint/change-hidden", {
+  return http.request<null>("put", "/admin/footprint/change-hidden", {
     data: { id, hidden }
   });
 };
 
 /** 批量逻辑删除足迹(DELETE /admin/footprint/delete/{ids};单条传 id,批量逗号拼接) */
 export const deleteFootprint = (ids: string) => {
-  return http.request<ApiResult<null>>(
+  return http.request<null>(
     "delete",
     `/admin/footprint/delete/${ids}`
   );

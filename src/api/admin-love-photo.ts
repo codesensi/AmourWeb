@@ -1,6 +1,6 @@
 import { http } from "@/utils/http";
 import { omitEmpty } from "@/utils/params";
-import type { ApiResult, PageQuery, PageResult } from "@/api/types";
+import type { PageQuery, PageResult } from "@/api/types";
 
 /** 恋爱画册管理-行数据(分页;完整字段) */
 export interface LovePhotoPageItem {
@@ -34,7 +34,7 @@ export type LovePhotoQuery = PageQuery & {
 
 /** 恋爱画册分页查询(GET /admin/love-photo/page;登录态) */
 export const getLovePhotoPage = (params?: LovePhotoQuery) => {
-  return http.request<ApiResult<PageResult<LovePhotoPageItem>>>(
+  return http.request<PageResult<LovePhotoPageItem>>(
     "get",
     "/admin/love-photo/page",
     { params: omitEmpty(params) }
@@ -55,28 +55,28 @@ export type LovePhotoSave = {
 
 /** 新增照片(POST /admin/love-photo/insert) */
 export const insertLovePhoto = (data: LovePhotoSave) => {
-  return http.request<ApiResult<null>>("post", "/admin/love-photo/insert", {
+  return http.request<null>("post", "/admin/love-photo/insert", {
     data
   });
 };
 
 /** 修改照片(PUT /admin/love-photo/update;按 id 覆盖全部可编辑字段) */
 export const updateLovePhoto = (data: LovePhotoSave) => {
-  return http.request<ApiResult<null>>("put", "/admin/love-photo/update", {
+  return http.request<null>("put", "/admin/love-photo/update", {
     data
   });
 };
 
 /** 修改照片显隐(PUT /admin/love-photo/change-hidden;显隐独立端点) */
 export const changeLovePhotoHidden = (id: string, hidden: number) => {
-  return http.request<ApiResult<null>>("put", "/admin/love-photo/change-hidden", {
+  return http.request<null>("put", "/admin/love-photo/change-hidden", {
     data: { id, hidden }
   });
 };
 
 /** 批量逻辑删除照片(DELETE /admin/love-photo/delete/{ids};单条传 id,批量逗号拼接) */
 export const deleteLovePhoto = (ids: string) => {
-  return http.request<ApiResult<null>>(
+  return http.request<null>(
     "delete",
     `/admin/love-photo/delete/${ids}`
   );

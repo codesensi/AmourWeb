@@ -1,5 +1,4 @@
 import { http } from "@/utils/http";
-import type { ApiResult } from "@/api/types";
 
 /** 个人中心-用户资料(对齐 sys_user 资料字段) */
 export interface ProfileInfo {
@@ -18,14 +17,14 @@ export interface ProfileInfo {
 
 /** 个人中心-更新基础信息(PUT /sys/user/update-profile,仅允许操作当前登录用户) */
 export const updateProfile = (data: Omit<ProfileInfo, "username">) => {
-  return http.request<ApiResult<null>>("put", "/sys/user/update-profile", {
+  return http.request<null>("put", "/sys/user/update-profile", {
     data
   });
 };
 
 /** 个人中心-修改用户名(PUT /sys/user/rename,成功后服务端踢出会话,需重新登录) */
 export const renameUser = (data: { username: string }) => {
-  return http.request<ApiResult<null>>("put", "/sys/user/rename", { data });
+  return http.request<null>("put", "/sys/user/rename", { data });
 };
 
 /** 个人中心-修改密码(PUT /sys/user/update-password,成功后服务端踢出会话,需重新登录) */
@@ -33,7 +32,7 @@ export const updatePassword = (data: {
   oldPassword: string;
   newPassword: string;
 }) => {
-  return http.request<ApiResult<null>>("put", "/sys/user/update-password", {
+  return http.request<null>("put", "/sys/user/update-password", {
     data
   });
 };

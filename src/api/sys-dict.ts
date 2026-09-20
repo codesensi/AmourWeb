@@ -1,6 +1,6 @@
 import { http } from "@/utils/http";
 import { omitEmpty } from "@/utils/params";
-import type { ApiResult, PageQuery, PageResult } from "@/api/types";
+import type { PageQuery, PageResult } from "@/api/types";
 
 /** 字典项(后端 sys_dict 下发,仅展示字段) */
 export type SysDictItem = {
@@ -50,7 +50,7 @@ export const DICT_CODES = {
 
 /** 字典批量查询(GET /portal/dict/list-by-codes,免登录;codes 逗号分隔) */
 export const getDictByCodes = (codes: Array<string>) => {
-  return http.request<ApiResult<Array<SysDictGroup>>>(
+  return http.request<Array<SysDictGroup>>(
     "get",
     "/portal/dict/list-by-codes",
     { params: { codes: codes.join(",") } }
@@ -74,7 +74,7 @@ export type SysDictTypeItem = {
 
 /** 字典类型列表(GET /sys/dict/type/list,管理端) */
 export const getDictTypeList = () => {
-  return http.request<ApiResult<Array<SysDictTypeItem>>>(
+  return http.request<Array<SysDictTypeItem>>(
     "get",
     "/sys/dict/type/list"
   );
@@ -102,21 +102,21 @@ export type DictTypeUpdateRequest = {
 
 /** 字典类型管理-新增(POST /sys/dict/type/insert) */
 export const insertDictType = (data: DictTypeInsertRequest) => {
-  return http.request<ApiResult<null>>("post", "/sys/dict/type/insert", {
+  return http.request<null>("post", "/sys/dict/type/insert", {
     data
   });
 };
 
 /** 字典类型管理-修改(PUT /sys/dict/type/update) */
 export const updateDictType = (data: DictTypeUpdateRequest) => {
-  return http.request<ApiResult<null>>("put", "/sys/dict/type/update", {
+  return http.request<null>("put", "/sys/dict/type/update", {
     data
   });
 };
 
 /** 字典类型管理-删除(DELETE /sys/dict/type/delete/{id},内置类型/含条目类型后端禁删) */
 export const deleteDictType = (id: string) => {
-  return http.request<ApiResult<null>>("delete", `/sys/dict/type/delete/${id}`);
+  return http.request<null>("delete", `/sys/dict/type/delete/${id}`);
 };
 
 /** 字典管理-行数据(分页) */
@@ -156,7 +156,7 @@ export type SysDictQuery = PageQuery & {
 
 /** 字典管理-分页查询(GET /sys/dict/data/page) */
 export const getDictPage = (params?: SysDictQuery) => {
-  return http.request<ApiResult<PageResult<SysDictPageItem>>>(
+  return http.request<PageResult<SysDictPageItem>>(
     "get",
     "/sys/dict/data/page",
     { params: omitEmpty(params) }
@@ -203,26 +203,26 @@ export type DictChangeStatusRequest = {
 
 /** 字典管理-新增条目(POST /sys/dict/data/insert) */
 export const insertDict = (data: DictDataInsertRequest) => {
-  return http.request<ApiResult<null>>("post", "/sys/dict/data/insert", {
+  return http.request<null>("post", "/sys/dict/data/insert", {
     data
   });
 };
 
 /** 字典管理-修改条目(PUT /sys/dict/data/update) */
 export const updateDict = (data: DictDataUpdateRequest) => {
-  return http.request<ApiResult<null>>("put", "/sys/dict/data/update", {
+  return http.request<null>("put", "/sys/dict/data/update", {
     data
   });
 };
 
 /** 字典管理-修改状态(PUT /sys/dict/data/change-status) */
 export const changeDictStatus = (data: DictChangeStatusRequest) => {
-  return http.request<ApiResult<null>>("put", "/sys/dict/data/change-status", {
+  return http.request<null>("put", "/sys/dict/data/change-status", {
     data
   });
 };
 
 /** 字典管理-删除条目(DELETE /sys/dict/data/delete/{id},内置条目后端禁删) */
 export const deleteDict = (id: string) => {
-  return http.request<ApiResult<null>>("delete", `/sys/dict/data/delete/${id}`);
+  return http.request<null>("delete", `/sys/dict/data/delete/${id}`);
 };

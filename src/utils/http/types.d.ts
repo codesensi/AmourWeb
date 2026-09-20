@@ -10,9 +10,7 @@ export type RequestMethods = Extract<
   "get" | "post" | "put" | "delete" | "patch" | "options" | "head"
 >;
 
-export interface PureHttpError extends AxiosError {
-  isCancelRequest?: boolean;
-}
+export interface PureHttpError extends AxiosError {}
 
 export interface PureHttpResponse extends AxiosResponse {
   config: PureHttpRequestConfig;
@@ -21,13 +19,4 @@ export interface PureHttpResponse extends AxiosResponse {
 export interface PureHttpRequestConfig extends AxiosRequestConfig {
   beforeRequestCallback?: (request: PureHttpRequestConfig) => void;
   beforeResponseCallback?: (response: PureHttpResponse) => void;
-}
-
-export default class PureHttp {
-  request<T>(
-    method: RequestMethods,
-    url: string,
-    param?: AxiosRequestConfig,
-    axiosConfig?: PureHttpRequestConfig
-  ): Promise<T>;
 }

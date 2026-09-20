@@ -1,4 +1,3 @@
-import type { ApiResult } from "@/api/types";
 import { http } from "@/utils/http";
 import { portalPage } from "./utils";
 
@@ -23,4 +22,4 @@ export const getLovePhoto = portalPage<LovePhotoItem>(
 
 /** 画册封面照片(GET /portal/love-photo/cover,免登录;sort 首位,画册为空时 data 为 null) */
 export const getLovePhotoCover = () =>
-  http.request<ApiResult<LovePhotoItem | null>>("get", "/portal/love-photo/cover");
+  http.request<LovePhotoItem | null>("get", "/portal/love-photo/cover");

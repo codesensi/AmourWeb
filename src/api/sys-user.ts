@@ -1,6 +1,6 @@
 import { http } from "@/utils/http";
 import { omitEmpty } from "@/utils/params";
-import type { ApiResult, PageQuery, PageResult } from "@/api/types";
+import type { PageQuery, PageResult } from "@/api/types";
 
 /** 用户管理-行数据 */
 export type SysUserItem = {
@@ -44,7 +44,7 @@ export type SysUserQuery = PageQuery & {
 
 /** 用户管理-分页查询(GET /sys/user/page) */
 export const getUserPage = (params?: SysUserQuery) => {
-  return http.request<ApiResult<PageResult<SysUserItem>>>(
+  return http.request<PageResult<SysUserItem>>(
     "get",
     "/sys/user/page",
     { params: omitEmpty(params) }
@@ -115,41 +115,41 @@ export type AssignRolesRequest = {
 
 /** 用户管理-新增(POST /sys/user/insert) */
 export const insertUser = (data: UserInsertRequest) => {
-  return http.request<ApiResult<null>>("post", "/sys/user/insert", { data });
+  return http.request<null>("post", "/sys/user/insert", { data });
 };
 
 /** 用户管理-修改(PUT /sys/user/update) */
 export const updateUser = (data: UserUpdateRequest) => {
-  return http.request<ApiResult<null>>("put", "/sys/user/update", { data });
+  return http.request<null>("put", "/sys/user/update", { data });
 };
 
 /** 用户管理-删除(DELETE /sys/user/delete/{ids},id 支持英文逗号分隔批量删除) */
 export const deleteUser = (id: string) => {
-  return http.request<ApiResult<null>>("delete", `/sys/user/delete/${id}`);
+  return http.request<null>("delete", `/sys/user/delete/${id}`);
 };
 
 /** 用户管理-重置密码为系统默认密码(PUT /sys/user/reset-password/{id}) */
 export const resetUserPwd = (id: string) => {
-  return http.request<ApiResult<null>>("put", `/sys/user/reset-password/${id}`);
+  return http.request<null>("put", `/sys/user/reset-password/${id}`);
 };
 
 /** 用户管理-修改用户状态(PUT /sys/user/change-status) */
 export const changeUserStatus = (data: UserChangeStatusRequest) => {
-  return http.request<ApiResult<null>>("put", "/sys/user/change-status", {
+  return http.request<null>("put", "/sys/user/change-status", {
     data
   });
 };
 
 /** 用户管理-分配角色(PUT /sys/user/assign-roles) */
 export const assignRoles = (data: AssignRolesRequest) => {
-  return http.request<ApiResult<null>>("put", "/sys/user/assign-roles", {
+  return http.request<null>("put", "/sys/user/assign-roles", {
     data
   });
 };
 
 /** 用户管理-获取用户已有角色 id(GET /sys/user/role-ids/{id}) */
 export const getUserRoleIds = (id: string) => {
-  return http.request<ApiResult<Array<string>>>(
+  return http.request<Array<string>>(
     "get",
     `/sys/user/role-ids/${id}`
   );

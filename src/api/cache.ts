@@ -1,5 +1,4 @@
 import { http } from "@/utils/http";
-import type { ApiResult } from "@/api/types";
 
 /** 缓存命中统计(对齐后端 CacheStatsResponse;自缓存实例创建/应用启动起累计) */
 export type CacheStatsItem = {
@@ -47,5 +46,5 @@ export type CacheInfo = {
 
 /** 缓存内容列表(GET /sys/cache/list,时点快照) */
 export const getCacheList = () => {
-  return http.request<ApiResult<Array<CacheInfo>>>("get", "/sys/cache/list");
+  return http.request<Array<CacheInfo>>("get", "/sys/cache/list");
 };

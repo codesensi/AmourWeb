@@ -59,9 +59,6 @@ class PureHttp {
     this.httpInterceptorsResponse();
   }
 
-  /** 初始化配置对象 */
-  private static initConfig: PureHttpRequestConfig = {};
-
   /** 保存当前`Axios`实例对象 */
   private static axiosInstance: AxiosInstance = Axios.create(defaultConfig);
 
@@ -72,10 +69,6 @@ class PureHttp {
         // 优先判断post/get等方法是否传入回调，否则执行初始化设置等回调
         if (typeof config.beforeRequestCallback === "function") {
           config.beforeRequestCallback(config);
-          return Promise.resolve(config);
-        }
-        if (PureHttp.initConfig.beforeRequestCallback) {
-          PureHttp.initConfig.beforeRequestCallback(config);
           return Promise.resolve(config);
         }
         /** 请求白名单：无需携带`token`的接口（防止登录前请求造成死循环），全等匹配避免误伤其他以白名单结尾的路径 */
@@ -107,10 +100,6 @@ class PureHttp {
           $config.beforeResponseCallback(response);
           return response.data;
         }
-        if (PureHttp.initConfig.beforeResponseCallback) {
-          PureHttp.initConfig.beforeResponseCallback(response);
-          return response.data;
-        }
 
         const res = response.data as ApiResult;
         // 非统一契约响应（如第三方接口、二进制流），原样返回
@@ -131,8 +120,6 @@ class PureHttp {
         return res;
       },
       (error: PureHttpError) => {
-        const $error = error;
-        $error.isCancelRequest = Axios.isCancel($error);
         // 后端契约:非 2xx 时响应体仍为统一 Result 结构(GlobalExceptionHandler 已语义化 HTTP 状态码)
         const res = error.response?.data as ApiResult | undefined;
         if (res && typeof res.success === "boolean") {
@@ -155,25 +142,24 @@ class PureHttp {
         // 响应体非统一契约时的 HTTP 401 兜底:登录态失效,清除凭证并回到登录页
         if (error.response?.status === Code.UNAUTHORIZED) {
           handleUnauthorized();
-          return Promise.reject($error);
+          return Promise.reject(error);
         }
         // 网络异常/超时等非契约错误:统一提示(主动取消的请求不打扰用户)
-        if (!$error.isCancelRequest) {
+        if (!Axios.isCancel(error)) {
           message("网络异常，请稍后重试", { type: "error" });
         }
-        // 所有的响应异常 区分来源为取消请求/非取消请求
-        return Promise.reject($error);
+        return Promise.reject(error);
       }
     );
   }
 
-  /** 通用请求工具函数 */
+  /** 通用请求工具函数（响应拦截后 resolve 的是统一契约体,故收敛为 ApiResult<T>;非契约响应由调用方断言） */
   public request<T>(
     method: RequestMethods,
     url: string,
     param?: AxiosRequestConfig,
     axiosConfig?: PureHttpRequestConfig
-  ): Promise<T> {
+  ): Promise<ApiResult<T>> {
     const config = {
       method,
       url,
@@ -181,7 +167,7 @@ class PureHttp {
       ...axiosConfig
     } as PureHttpRequestConfig;
 
-    return PureHttp.axiosInstance.request(config) as Promise<T>;
+    return PureHttp.axiosInstance.request(config) as Promise<ApiResult<T>>;
   }
 }
 

@@ -27,12 +27,12 @@ export type LoginResult = ApiResult<{
 
 /** 登录 */
 export const login = (data: LoginRequest) => {
-  return http.request<LoginResult>("post", "/login", { data });
+  return http.request<LoginResult["data"]>("post", "/login", { data });
 };
 
 /** 退出系统(通知后端作废当前 token) */
 export const logout = () => {
-  return http.request<ApiResult<null>>("post", "/logout");
+  return http.request<null>("post", "/logout");
 };
 
 /** 菜单项(后端扁平 D/M/B 结构) */
@@ -77,5 +77,5 @@ export type CurrentUserResult = ApiResult<{
 
 /** 获取当前登录用户信息(含菜单) */
 export const getCurrentUser = () => {
-  return http.request<CurrentUserResult>("get", "/sys/user/current-user");
+  return http.request<CurrentUserResult["data"]>("get", "/sys/user/current-user");
 };

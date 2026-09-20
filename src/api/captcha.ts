@@ -11,5 +11,5 @@ export type CaptchaResult = ApiResult<{
 
 /** 获取图形验证码 */
 export const getCaptchaImage = () => {
-  return http.request<CaptchaResult>("get", "/captcha");
+  return http.request<CaptchaResult["data"]>("get", "/captcha");
 };

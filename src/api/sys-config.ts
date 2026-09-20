@@ -22,7 +22,7 @@ export type SysConfigResult = ApiResult<Array<SysConfigItem>>;
  * @param keys 需要下发的配置键集合(必传;不传后端返回空列表)
  */
 export const getSysConfig = (keys: Array<string>) => {
-  return http.request<SysConfigResult>("get", "/portal/config/list-by-keys", {
+  return http.request<SysConfigResult["data"]>("get", "/portal/config/list-by-keys", {
     // 逗号分隔传输(?keys=name,icp),Spring 默认按逗号拆分为 List<String>
     params: { keys: keys.join(",") }
   });
@@ -57,7 +57,7 @@ export type SysConfigQuery = PageQuery & {
 
 /** 系统配置管理-分页查询(GET /sys/config/page;登录态) */
 export const getConfigPage = (params?: SysConfigQuery) => {
-  return http.request<ApiResult<PageResult<SysConfigPageItem>>>(
+  return http.request<PageResult<SysConfigPageItem>>(
     "get",
     "/sys/config/page",
     { params: omitEmpty(params) }
@@ -74,5 +74,5 @@ export type SysConfigUpdate = {
 
 /** 修改系统配置(PUT /sys/config/update;更新后后端失效 config 缓存,热更新即时生效) */
 export const updateConfig = (data: SysConfigUpdate) => {
-  return http.request<ApiResult<null>>("put", "/sys/config/update", { data });
+  return http.request<null>("put", "/sys/config/update", { data });
 };

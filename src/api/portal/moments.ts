@@ -1,4 +1,3 @@
-import type { ApiResult } from "@/api/types";
 import { http } from "@/utils/http";
 import { portalPage } from "./utils";
 
@@ -21,6 +20,6 @@ export const getMoments = portalPage<MomentsItem>("/portal/moments");
 
 /** 点点滴滴-文章详情(GET /portal/moments/detail,免登录;未命中返回 data null) */
 export const getMoment = (id: number) =>
-  http.request<ApiResult<MomentsItem>>("get", "/portal/moments/detail", {
+  http.request<MomentsItem>("get", "/portal/moments/detail", {
     params: { id }
   });

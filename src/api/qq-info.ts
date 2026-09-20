@@ -1,4 +1,3 @@
-import type { ApiResult } from "@/api/types";
 import { http } from "@/utils/http";
 
 /** QQ 信息(GET /qq-info 免登录;后端已降级,头像恒非空,仅后端 qq-avatar 未配置时为空) */
@@ -11,7 +10,7 @@ export type QqInfoData = {
 
 /** 查询 QQ 信息(GET /qq-info,免登录;昵称可能为空,由前端提示手动填写) */
 export const getQqInfo = (qq: string) => {
-  return http.request<ApiResult<QqInfoData>>("get", "/qq-info", {
+  return http.request<QqInfoData>("get", "/qq-info", {
     params: { qq }
   });
 };

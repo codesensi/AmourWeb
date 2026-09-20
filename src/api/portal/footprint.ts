@@ -1,4 +1,3 @@
-import type { ApiResult } from "@/api/types";
 import { http } from "@/utils/http";
 import { portalPage } from "./utils";
 
@@ -25,7 +24,7 @@ export const getFootprintList = portalPage<FootprintItem>("/portal/footprint/pag
 
 /** 足迹地图全量点集(GET /portal/footprint/list/map-points,免登录;按到访日期升序,后端防御性上限 1000) */
 export const getFootprintMapPoints = () =>
-  http.request<ApiResult<FootprintItem[]>>(
+  http.request<FootprintItem[]>(
     "get",
     "/portal/footprint/list/map-points"
   );

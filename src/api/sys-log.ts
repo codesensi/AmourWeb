@@ -1,6 +1,6 @@
 import { http } from "@/utils/http";
 import { omitEmpty } from "@/utils/params";
-import type { ApiResult, PageQuery, PageResult } from "@/api/types";
+import type { PageQuery, PageResult } from "@/api/types";
 
 /** 日志行数据(后端 sys_log 下发,仅展示字段;登录/操作日志共用) */
 export type SysLogItem = {
@@ -47,7 +47,7 @@ export type LogQuery = PageQuery & {
 /** 日志分页查询(GET /sys/log/login/page、/sys/log/operate/page;登录态;logTypes 多选时逗号分隔下发,对齐 dict codes 惯例) */
 export const getLogPage = (type: "login" | "operate", params?: LogQuery) => {
   const { logTypes, ...rest } = params ?? {};
-  return http.request<ApiResult<PageResult<SysLogItem>>>(
+  return http.request<PageResult<SysLogItem>>(
     "get",
     `/sys/log/${type}/page`,
     {

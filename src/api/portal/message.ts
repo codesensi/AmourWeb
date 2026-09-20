@@ -1,4 +1,3 @@
-import type { ApiResult } from "@/api/types";
 import { http } from "@/utils/http";
 import { portalPage } from "./utils";
 
@@ -21,5 +20,5 @@ export const sendMessage = (data: {
   name: string;
   text: string;
 }) => {
-  return http.request<ApiResult<null>>("post", "/portal/message", { data });
+  return http.request<null>("post", "/portal/message", { data });
 };

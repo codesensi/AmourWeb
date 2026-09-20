@@ -1,6 +1,6 @@
 import { http } from "@/utils/http";
 import { omitEmpty } from "@/utils/params";
-import type { ApiResult, PageQuery, PageResult } from "@/api/types";
+import type { PageQuery, PageResult } from "@/api/types";
 
 /** 角色管理-行数据(分页) */
 export type SysRoleItem = {
@@ -42,7 +42,7 @@ export type SysRoleQuery = PageQuery & {
 
 /** 角色管理-分页查询(GET /sys/role/page) */
 export const getRolePage = (params?: SysRoleQuery) => {
-  return http.request<ApiResult<PageResult<SysRoleItem>>>(
+  return http.request<PageResult<SysRoleItem>>(
     "get",
     "/sys/role/page",
     { params: omitEmpty(params) }
@@ -51,7 +51,7 @@ export const getRolePage = (params?: SysRoleQuery) => {
 
 /** 角色管理-全量列表(GET /sys/role/list,分配角色等场景的选项数据源) */
 export const getRoleList = () => {
-  return http.request<ApiResult<Array<SysRoleOption>>>("get", "/sys/role/list");
+  return http.request<Array<SysRoleOption>>("get", "/sys/role/list");
 };
 
 /** 角色管理-新增请求参数(对齐后端 RoleInsertRequest) */
@@ -96,29 +96,29 @@ export type AssignMenusRequest = {
 
 /** 角色管理-新增(POST /sys/role/insert) */
 export const insertRole = (data: RoleInsertRequest) => {
-  return http.request<ApiResult<null>>("post", "/sys/role/insert", { data });
+  return http.request<null>("post", "/sys/role/insert", { data });
 };
 
 /** 角色管理-修改(PUT /sys/role/update) */
 export const updateRole = (data: RoleUpdateRequest) => {
-  return http.request<ApiResult<null>>("put", "/sys/role/update", { data });
+  return http.request<null>("put", "/sys/role/update", { data });
 };
 
 /** 角色管理-修改角色状态(PUT /sys/role/change-status) */
 export const changeRoleStatus = (data: RoleChangeStatusRequest) => {
-  return http.request<ApiResult<null>>("put", "/sys/role/change-status", {
+  return http.request<null>("put", "/sys/role/change-status", {
     data
   });
 };
 
 /** 角色管理-删除(DELETE /sys/role/delete/{ids},id 支持英文逗号分隔批量删除) */
 export const deleteRole = (id: string) => {
-  return http.request<ApiResult<null>>("delete", `/sys/role/delete/${id}`);
+  return http.request<null>("delete", `/sys/role/delete/${id}`);
 };
 
 /** 角色管理-获取角色已勾选菜单 id(GET /sys/role/menu-ids/{id}) */
 export const getRoleMenuIds = (id: string) => {
-  return http.request<ApiResult<Array<string>>>(
+  return http.request<Array<string>>(
     "get",
     `/sys/role/menu-ids/${id}`
   );
@@ -126,7 +126,7 @@ export const getRoleMenuIds = (id: string) => {
 
 /** 角色管理-保存菜单授权(PUT /sys/role/assign-menus) */
 export const assignMenus = (data: AssignMenusRequest) => {
-  return http.request<ApiResult<null>>("put", "/sys/role/assign-menus", {
+  return http.request<null>("put", "/sys/role/assign-menus", {
     data
   });
 };

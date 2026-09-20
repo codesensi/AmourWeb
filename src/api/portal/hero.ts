@@ -1,4 +1,3 @@
-import type { ApiResult } from "@/api/types";
 import { http } from "@/utils/http";
 
 /** 门户主角-单个主角信息(对齐后端 HeroUserResponse) */
@@ -23,5 +22,5 @@ export type HeroData = {
 
 /** 查询门户男女主(GET /portal/hero,免登录;字段可能为空,由前端兜底) */
 export const getHeroes = () => {
-  return http.request<ApiResult<HeroData>>("get", "/portal/hero");
+  return http.request<HeroData>("get", "/portal/hero");
 };
