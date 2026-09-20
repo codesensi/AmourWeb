@@ -176,7 +176,10 @@ router.beforeEach((to: ToRouteType, _from) => {
       }
     } else {
       // 刷新
+      // dynamicRoutesLoaded 防重入:装配失败(瞬时故障)后重复导航不再重试,
+      // 停留在错误页等待用户手动刷新,避免错误页触发 initRouter 的连锁循环
       if (
+        !usePermissionStoreHook().dynamicRoutesLoaded &&
         usePermissionStoreHook().wholeMenus.length === 0 &&
         to.path !== "/login"
       ) {

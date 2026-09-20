@@ -28,9 +28,22 @@ const modulesRoutes = import.meta.glob("/src/views/**/*.{vue,tsx}");
 
 // 动态路由(由当前登录用户菜单装配)
 import { getCurrentUser, type MenuItem } from "@/api/auth";
+import { Code } from "@/api/types";
 import { useUserStoreHook } from "@/store/modules/user";
 
 const PAGE_NOT_FOUND_ROUTE_NAME = "PageNotFound" as const;
+
+/**
+ * 判断请求异常是否为登录态失效。
+ * http 拦截器 reject 时携带的形态有二：统一契约失败体（含业务码 code）与
+ * axios 错误对象（HTTP 状态码在 response.status），两条通道统一在此判定。
+ */
+function isUnauthorized(error: any): boolean {
+  return (
+    error?.code === Code.UNAUTHORIZED ||
+    error?.response?.status === Code.UNAUTHORIZED
+  );
+}
 
 function handRank(routeInfo: any) {
   const { name, path, parentId, meta } = routeInfo;
@@ -273,12 +286,13 @@ function initRouter() {
         usePermissionStoreHook().markDynamicRoutesLoaded();
         resolve(router);
       })
-      .catch(() => {
-        // 获取用户信息失败(登录态失效/后端异常)时兜底登出并放行 resolve,
-        // 避免 Promise 永不 settle 导致刷新白屏、NProgress 挂起;
-        // 错误提示由 http 拦截器统一弹出,此处不再重复提示
-        useUserStoreHook().logOut();
-        // 登出同样视为"装配已尝试",配合 logOut 内部的 resetRouter 重置标记
+      .catch((error: any) => {
+        // 401(登录态失效):http 拦截器已统一弹提示并登出,不再重复处理;
+        // 其余失败(后端重启/网络抖动等瞬时故障)保留登录态,仅引导至错误页,
+        // 避免「记住密码」用户被瞬时故障误踢出登录
+        if (!isUnauthorized(error)) {
+          router.push("/server-error");
+        }
         usePermissionStoreHook().markDynamicRoutesLoaded();
         resolve(router);
       });
