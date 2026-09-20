@@ -38,8 +38,11 @@ const ALL_FIELDS = Object.keys(SYS_CONFIG_KEYS) as SysConfigField[];
  * 全键拉取并归一化站点公共配置(查询层 queryFn,一次请求覆盖全部键)。
  * 键停用/后端未下发时对应字段为 undefined,与"成功但未配置"语义一致;
  * 网络异常向上抛出,由查询层记录失败状态,下次调用自动重试。
+ *
+ * 门户布局经 useQuery 订阅本函数(与登录页/侧边栏共享同一份缓存),
+ * 管理端保存后 invalidateQueries 触发自动重拉,站名等改动即时下发。
  */
-async function fetchSysConfigAll(): Promise<Partial<SysConfig>> {
+export async function fetchSysConfigAll(): Promise<Partial<SysConfig>> {
   const res = await getSysConfig(
     ALL_FIELDS.map(field => SYS_CONFIG_KEYS[field].key)
   );
@@ -94,6 +97,51 @@ export async function fetchSysConfig<F extends SysConfigField>(
 }
 /** 站点 Logo 兜底图(配置缺失或图片加载失败时,三端统一回退 public/favicon.ico) */
 export const LOGO_FALLBACK = "/favicon.ico";
+
+/** 跨标签页配置变更广播通道(内存缓存每个标签页独立,失效通知不可达,以此补桥) */
+const SYS_CONFIG_CHANNEL_NAME = "amour-sys-config";
+let sysConfigChannel: BroadcastChannel | null = null;
+
+function getSysConfigChannel(): BroadcastChannel {
+  if (!sysConfigChannel) {
+    sysConfigChannel = new BroadcastChannel(SYS_CONFIG_CHANNEL_NAME);
+  }
+  return sysConfigChannel;
+}
+
+/**
+ * 管理端保存站点配置后广播失效通知。
+ * <p>
+ * vue-query 的内存缓存按标签页隔离,跨标签页的 invalidateQueries 不可达,
+ * 以 BroadcastChannel 补桥:其他标签页(如门户)收到通知后自行失效重拉。
+ * 环境不支持(BroadcastChannel 不可用)时静默降级为不广播。
+ */
+export function broadcastSysConfigInvalidated(): void {
+  try {
+    getSysConfigChannel().postMessage({ type: "sys-config:invalidated" });
+  } catch {
+    /* 广播不可用时静默降级:各标签页仍可经刷新获取新配置 */
+  }
+}
+
+/**
+ * 订阅其他标签页的站点配置变更广播(同标签页内不会触发)。
+ *
+ * @param handler 收到广播时的处理(通常为 invalidateQueries 后由查询层自动重拉)
+ * @returns 取消订阅函数;环境不支持时返回空操作
+ */
+export function onSysConfigInvalidated(handler: () => void): () => void {
+  try {
+    const channel = getSysConfigChannel();
+    const listener = (event: MessageEvent) => {
+      if (event.data?.type === "sys-config:invalidated") handler();
+    };
+    channel?.addEventListener("message", listener);
+    return () => channel?.removeEventListener("message", listener);
+  } catch {
+    return () => {};
+  }
+}
 
 /** 站点 Logo 的全局响应式状态(空值时消费侧回退本地静态默认图) */
 export const siteLogo = ref("");

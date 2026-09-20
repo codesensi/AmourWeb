@@ -465,7 +465,7 @@ onUnmounted(() => clearTimeout(submitTimer));
     box-shadow var(--am-duration) ease;
 }
 
-/* 邮票角标:齿孔虚线框 + 品牌爱心(与刊名同源),微微倾斜似手贴上去的 */
+/* 邮票角标:齿孔虚线框 + 品牌爱心(与站名同源),微微倾斜似手贴上去的 */
 .postcard-stamp {
   position: absolute;
   top: var(--am-space-md);

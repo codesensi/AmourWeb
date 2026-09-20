@@ -1,40 +1,57 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, watch } from "vue";
 import { useRoute } from "vue-router";
+import { useQuery, useQueryClient } from "@tanstack/vue-query";
 import PortalHeader from "./PortalHeader.vue";
 import PortalFooter from "./PortalFooter.vue";
 import { providePortalSysConfig } from "./usePortalSysConfig";
 import {
   applySiteFavicon,
   applySiteLogo,
-  fetchSysConfig,
+  fetchSysConfigAll,
+  onSysConfigInvalidated,
   type SysConfig
 } from "@/utils/sys-config";
+import { queryKeys } from "@/hooks/query-keys";
 // 门户样式入口(「双人小站」:base 元素级重置 + 设计令牌)
 import "@/assets/portal/index.css";
 
 defineOptions({ name: "PortalLayout" });
 
 const route = useRoute();
+const queryClient = useQueryClient();
 
-/** 站点公共配置:按需拉取门户所需键(后端 config 缓存兜底),经 provide 下发子组件 */
-const sysConfig = ref<Partial<SysConfig>>({});
-onMounted(async () => {
-  const config = await fetchSysConfig(
-    "name",
-    "icp",
-    "copyrightYear",
-    "siteLoveStartDate",
-    "logo",
-    "favicon"
-  );
-  // logo 顺手回填全局状态,管理端/登录页共享,门户内不再单独拉取
-  applySiteLogo(config.logo);
-  // favicon 同步注入 <head>(与 logo 同批拉取,免重复请求)
-  applySiteFavicon(config.favicon);
-  Object.assign(sysConfig.value, config);
+/** 站点公共配置:订阅全局查询缓存(staleTime=Infinity 常驻),管理端保存后
+ *  invalidateQueries 触发自动重拉,站名/备案/版权年份等改动即时生效;
+ *  logo/favicon 顺带回填全局状态(管理端/登录页共享,门户内不再单独拉取) */
+const { data: sysConfigData } = useQuery({
+  queryKey: queryKeys.sysConfig().key,
+  queryFn: fetchSysConfigAll,
+  staleTime: Infinity
 });
+
+/** 下发给子组件的形态:配置未到达时为空对象,消费侧按需兜底 */
+const sysConfig = computed<Partial<SysConfig>>(() => sysConfigData.value ?? {});
 providePortalSysConfig(sysConfig);
+
+// 配置到达/更新时回填 logo/favicon 全局状态并同步 <head> favicon
+watch(
+  () => sysConfigData.value,
+  config => {
+    if (!config) return;
+    applySiteLogo(config.logo);
+    applySiteFavicon(config.favicon);
+  }
+);
+
+/** 跨标签页联动:管理端标签页保存配置后广播通知,本标签页失效重拉
+ *  (vue-query 内存缓存按标签页隔离,BroadcastChannel 补桥;返回取消订阅,卸载时释放) */
+onMounted(() => {
+  const unsubscribe = onSysConfigInvalidated(() => {
+    void queryClient.invalidateQueries({ queryKey: queryKeys.sysConfig().key });
+  });
+  onUnmounted(unsubscribe);
+});
 
 /* ---------------- 列表状态与滚动位置保持(KeepAlive + 滚动记忆) ---------------- */
 

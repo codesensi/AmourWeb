@@ -2,8 +2,15 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { RouterLink } from "vue-router";
+import { usePortalSysConfig } from "./usePortalSysConfig";
 
 defineOptions({ name: "PortalHeader" });
+
+/** 站点公共配置:由 PortalLayout 经 providePortalSysConfig 注入 */
+const sysConfig = usePortalSysConfig();
+
+/** 站名:消费站点名称配置,缺失时回退默认站名(与首页名字列兜底一致) */
+const brandName = computed(() => sysConfig.value.name || "AMOUR");
 
 /** 目录式导航:一级条目 + 「更多」分组(线性语义图标贯穿全站) */
 const NAV_ITEMS = [
@@ -25,7 +32,7 @@ const moreItems = NAV_ITEMS.slice(5);
 
 const route = useRoute();
 
-/** 滚动收窄:滚过封面后刊头条收紧并显出分隔线 */
+/** 滚动收窄:滚过封面后顶栏收紧并显出分隔线 */
 const scrolled = ref(false);
 function onScroll() {
   scrolled.value = window.scrollY > 24;
@@ -184,7 +191,7 @@ function onDocClick(event: MouseEvent) {
 <template>
   <header class="masthead" :class="{ 'masthead-scrolled': scrolled }">
     <div class="masthead-inner">
-      <!-- 刊名 -->
+      <!-- 站名 -->
       <RouterLink class="brand" to="/">
         <svg class="brand-heart" viewBox="0 0 24 24" aria-hidden="true">
           <path
@@ -192,8 +199,8 @@ function onDocClick(event: MouseEvent) {
             fill="currentColor"
           />
         </svg>
-        <span class="brand-name">AMOUR</span>
-        <span class="brand-vol">FOR US · 恋爱中</span>
+        <span class="brand-name">{{ brandName }}</span>
+        <span class="brand-slogan">FOR US · 恋爱中</span>
       </RouterLink>
 
       <!-- 桌面端目录导航 -->
@@ -347,7 +354,7 @@ function onDocClick(event: MouseEvent) {
 </template>
 
 <style scoped>
-/* 刊头条:吸顶,滚过后收紧并显出底部分隔线 */
+/* 顶栏:吸顶,滚过后收紧并显出底部分隔线 */
 .masthead {
   position: sticky;
   top: 0;
@@ -372,7 +379,7 @@ function onDocClick(event: MouseEvent) {
   margin: 0 auto;
 }
 
-/* 刊名 */
+/* 站名 */
 .brand {
   display: flex;
   gap: 10px;
@@ -420,7 +427,7 @@ function onDocClick(event: MouseEvent) {
   letter-spacing: 0.06em;
 }
 
-.brand-vol {
+.brand-slogan {
   font-family: var(--am-font-mono);
   font-size: var(--am-text-xs);
   color: var(--am-ink-secondary);
