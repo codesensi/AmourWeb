@@ -7,6 +7,7 @@ import {
   routerArrays
 } from "../utils";
 import { type LoginRequest, type LoginResult, login, logout } from "@/api/auth";
+import { queryClient } from "@/plugins/vue-query";
 import { useMultiTagsStoreHook } from "./multi-tags";
 import { setToken, removeToken, getStoredUserInfo } from "@/utils/auth";
 
@@ -83,6 +84,10 @@ export const useUserStore = defineStore("pure-user", {
       this.roles = [];
       this.permissions = [];
       removeToken();
+      // 清空 vue-query 查询缓存:登出后同浏览器换账号时,避免上一账号视角的
+      // 查询结果在 staleTime 窗口内被命中展示(缓存命中不发起请求,无 401 兜底);
+      // 公共配置(如 sys-config)一并清除,下次进入页面自动重新回源
+      queryClient.clear();
       useMultiTagsStoreHook().handleTags("equal", [...routerArrays]);
       resetRouter();
       router.push("/login");
