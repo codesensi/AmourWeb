@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref } from "vue";
+import { onBeforeUnmount, ref } from "vue";
 import {
   getTimeCapsule,
   type TimeCapsuleItem
@@ -52,11 +52,10 @@ function open(item: TimeCapsuleItem) {
   opened.value = new Set([...opened.value, item.id]);
 }
 
-/** 展示时间文案(yyyy 年 M 月 D 日) */
-const formatOpenTime = computed(
-  () => (item: TimeCapsuleItem) =>
-    item.openTime.slice(0, 10).replaceAll("-", " / ")
-);
+/** 展示时间文案(yyyy 年 M 月 D 日);不依赖响应式数据,用普通函数避免伪响应式 */
+function formatOpenTime(item: TimeCapsuleItem): string {
+  return item.openTime.slice(0, 10).replaceAll("-", " / ");
+}
 </script>
 
 <template>
