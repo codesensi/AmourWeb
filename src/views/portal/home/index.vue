@@ -5,7 +5,7 @@ import MapPinLine from "~icons/ri/map-pin-line";
 import { getAnniversaryList } from "@/api/portal/anniversary";
 import { getFootprintList } from "@/api/portal/footprint";
 import { getHeroes } from "@/api/portal/hero";
-import { getLovePhoto } from "@/api/portal/love-photo";
+import { getLovePhotoCover } from "@/api/portal/love-photo";
 import { fallbackAvatar } from "@/utils/avatar";
 import { resolveUserDisplay } from "@/utils/user-display";
 import { prefersReducedMotion } from "@/utils/motion";
@@ -254,14 +254,13 @@ const nextAnniversary = computed(() => {
     : { name: item.name, date: item.anniversaryDate, days };
 });
 
-/* ---------------- 恋爱画册:最新一张照片 ---------------- */
+/* ---------------- 恋爱画册:封面照片 ---------------- */
 
-/** 最新照片(取画册第一张;接口不可用/为空时整卡不渲染) */
-const { data: latestPhotoPage } = usePortalQuery(queryKeys.latestPhoto(), () =>
-  getLovePhoto({ pageNumber: 1, pageSize: 1 })
+/** 画册封面照片(sort 首位;接口不可用/画册为空时整卡不渲染) */
+const { data: latestPhoto } = usePortalQuery(
+  queryKeys.latestPhoto(),
+  getLovePhotoCover
 );
-
-const latestPhoto = computed(() => latestPhotoPage.value?.records[0] ?? null);
 </script>
 
 <template>

@@ -59,5 +59,17 @@ export default defineFakeRoute([
     url: "/portal/love-photo/page",
     method: "get",
     response: ({ query }) => fakePageResponse(photos, query)
+  },
+  // 画册封面(GET /portal/love-photo/cover;sort 首位即 photos[0],画册为空时 data 为 null)
+  {
+    url: "/portal/love-photo/cover",
+    method: "get",
+    response: () => ({
+      success: true,
+      code: 200,
+      msg: "操作成功",
+      timestamp: Date.now(),
+      data: photos[0] ?? null
+    })
   }
 ]);
