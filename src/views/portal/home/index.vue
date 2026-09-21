@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { getAnniversaryList } from "@/api/portal/anniversary";
+import { getAnniversaryNext } from "@/api/portal/anniversary";
 import { getLovePhotoCover } from "@/api/portal/love-photo";
 import { nextOccurrenceDays } from "@/utils/anniversary";
 import reveal from "@/directives/reveal";
@@ -18,16 +18,16 @@ const vReveal = reveal;
 
 /* ---------------- 纪念日预告:最近的一个 ---------------- */
 
-/** 最近纪念日(封面焦点):接口按下一次发生日升序,取首条即最近;
+/** 最近纪念日(封面焦点):独立接口取下一次发生日最近的一条;
  * 数据到达时按当日计算剩余天数
  * (独立 key anniversaryFocus:与纪念日页分页 ["anniversary"] 数据形状不同) */
-const { data: anniversaryPage } = usePortalQuery(
+const { data: nextAnniversaryItem } = usePortalQuery(
   queryKeys.anniversaryFocus(),
-  () => getAnniversaryList({ pageNumber: 1, pageSize: 1 })
+  getAnniversaryNext
 );
 
 const nextAnniversary = computed(() => {
-  const item = anniversaryPage.value?.records[0];
+  const item = nextAnniversaryItem.value;
   if (!item) return null;
   const days = nextOccurrenceDays(item, new Date());
   return days === null

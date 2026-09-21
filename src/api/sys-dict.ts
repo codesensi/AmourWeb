@@ -45,7 +45,9 @@ export const DICT_CODES = {
   /** 日志类型(与 LogTypeEnum 对齐) */
   logType: "log-type",
   /** 照片显隐(与 HiddenEnum 对齐) */
-  hidden: "hidden"
+  hidden: "hidden",
+  /** 纪念日类型(与 AnniversaryTypeEnum 对齐) */
+  anniversaryType: "anniversary-type"
 } as const;
 
 /** 字典批量查询(GET /portal/dict/list-by-codes,免登录;codes 逗号分隔) */

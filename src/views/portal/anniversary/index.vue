@@ -8,6 +8,7 @@ import PortalLoadMore from "@/components/PortalLoadMore/index.vue";
 import { anniversaryMonthDay, nextOccurrenceDays } from "@/utils/anniversary";
 import reveal from "@/directives/reveal";
 import { queryKeys } from "@/hooks/query-keys";
+import { useDict } from "@/hooks/useDict";
 import { usePortalList } from "@/hooks/usePortalQuery";
 
 defineOptions({ name: "PortalAnniversary" });
@@ -21,15 +22,18 @@ const { items, loading, hasMore, loadMore } = usePortalList<AnniversaryItem>(
   getAnniversaryList
 );
 
-/** 类型文案与线描图标标识 */
-const TYPE_META: Record<number, { label: string; icon: string }> = {
-  1: { label: "生日", icon: "cake" },
-  2: { label: "纪念日", icon: "heart" },
-  3: { label: "节日", icon: "gift" }
+/** 类型文案走字典(anniversary-type),未命中时 labelOf 回退为原值 */
+const { labelOf: typeLabel } = useDict("anniversary-type");
+
+/** 类型线描图标标识与字典无关:生日-蛋糕,节日-礼盒,其余-心形 */
+const TYPE_ICON: Record<string, string> = {
+  birthday: "cake",
+  festival: "gift",
+  anniversary: "heart"
 };
 
-function typeMeta(type: number | undefined) {
-  return TYPE_META[type ?? 0] ?? { label: "纪念", icon: "heart" };
+function typeIcon(type: string | undefined): string {
+  return (type && TYPE_ICON[type]) || "heart";
 }
 
 /** 已加载条目附倒计时(按剩余天数升序;一次性过去日期不展示) */
@@ -91,7 +95,7 @@ const nearest = computed(() => countdownItems.value[0] ?? null);
           <div class="ann-head">
             <!-- 线描类型图标(生日/纪念日/节日) -->
             <svg
-              v-if="typeMeta(it.item.type).icon === 'cake'"
+              v-if="typeIcon(it.item.type) === 'cake'"
               class="ann-icon"
               viewBox="0 0 24 24"
               fill="none"
@@ -106,7 +110,7 @@ const nearest = computed(() => countdownItems.value[0] ?? null);
               />
             </svg>
             <svg
-              v-else-if="typeMeta(it.item.type).icon === 'gift'"
+              v-else-if="typeIcon(it.item.type) === 'gift'"
               class="ann-icon"
               viewBox="0 0 24 24"
               fill="none"
@@ -136,7 +140,7 @@ const nearest = computed(() => countdownItems.value[0] ?? null);
               />
             </svg>
             <h3 class="ann-name">{{ it.item.name }}</h3>
-            <span class="ann-type">{{ typeMeta(it.item.type).label }}</span>
+            <span class="ann-type">{{ typeLabel(it.item.type) }}</span>
           </div>
           <div class="ann-row">
             <span class="ann-date">
