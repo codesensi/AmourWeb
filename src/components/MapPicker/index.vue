@@ -6,9 +6,10 @@ import { cityLevels } from "@/utils/city-levels";
 
 /**
  * 高德地图选点(footprint 表单专用)
- * - key/安全密钥取自系统配置(security.amap-key / security.amap-code,经免登录配置接口下发);
+ * - key 取自系统配置(security.amap-key,经免登录配置接口下发);安全密钥不下发浏览器,
+ *   由后端 /_AMapService 代理转发高德服务请求时附加;
  * - 搜索(PlaceSearch,结果必带坐标)与点选地图均可回填坐标,并以逆地理编码反查城市名供表单一并填充;
- * - 未配置 key 或 SDK 加载失败时进入本地模式:输入城市名由内置城市表(市/区县)匹配坐标,经纬度输入框始终可用(手动录入兜底)。
+ * - 未配置 key 或 SDK 加载失败时进入本地模式:输入城市名由内置城市表(市/区县)匹配坐标回填。
  */
 
 interface Props {
