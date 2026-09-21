@@ -1,7 +1,15 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { getSysConfig } from "@/api/sys-config";
-import { loadAMap, getAMapGlobal, type AMapGlobal, type AMapMap, type AMapMarker, type AMapGeocoder, type AMapPlaceSearch } from "@/utils/amap";
+import {
+  loadAMap,
+  getAMapGlobal,
+  type AMapGlobal,
+  type AMapMap,
+  type AMapMarker,
+  type AMapGeocoder,
+  type AMapPlaceSearch
+} from "@/utils/amap";
 import { cityLevels } from "@/utils/city-levels";
 
 /**
@@ -186,7 +194,9 @@ onMounted(async () => {
     // key 为公开标识(域名白名单防滥用);安全密钥 jscode 经 /_AMapService 后端代理注入,不下发浏览器
     const res = await getSysConfig(["security.amap-key"]);
     if (!res.success) return;
-    const key = res.data.find(item => item.configKey === "security.amap-key")?.configValue ?? "";
+    const key =
+      res.data.find(item => item.configKey === "security.amap-key")
+        ?.configValue ?? "";
     if (!key) {
       // 未配 key 与服务降级同一语义:统一胶囊提示、降级文案与状态外泄(地图不展示)
       serviceDegraded.value = true;
@@ -340,7 +350,10 @@ function loadMore(): Promise<void> {
 /** 键盘上下键移动候选高亮(边界停住),并保证高亮项滚动进可视区 */
 function moveActive(delta: number, length: number) {
   if (!length) return;
-  activeIndex.value = Math.min(Math.max(activeIndex.value + delta, 0), length - 1);
+  activeIndex.value = Math.min(
+    Math.max(activeIndex.value + delta, 0),
+    length - 1
+  );
   const el = listScrollRef.value;
   el?.children[activeIndex.value]?.scrollIntoView({ block: "nearest" });
 }
@@ -384,15 +397,21 @@ interface LocalCity {
 }
 
 const localCandidates = ref<LocalCity[]>([]);
-let districtCache:
-  | Array<{ name: string; parent: string; lng: number; lat: number }>
-  | null = null;
+let districtCache: Array<{
+  name: string;
+  parent: string;
+  lng: number;
+  lat: number;
+}> | null = null;
 
 /** 去行政区划后缀,归一化匹配("成都市"→"成都") */
 function normalizeCityName(name: string): string {
   return name
     .replace(/\s/g, "")
-    .replace(/(特别行政区|壮族自治区|回族自治区|维吾尔自治区|自治区|自治州|地区|盟|市|区|县|旗)$/, "");
+    .replace(
+      /(特别行政区|壮族自治区|回族自治区|维吾尔自治区|自治区|自治州|地区|盟|市|区|县|旗)$/,
+      ""
+    );
 }
 
 /** 区县级数据包按需加载(public 静态 JSON,不占首屏) */
@@ -402,8 +421,12 @@ async function ensureDistricts(): Promise<
   if (districtCache) return districtCache;
   try {
     const res = await fetch(`${import.meta.env.BASE_URL}city-districts.json`);
-    const data: Array<{ name: string; parent: string; lng: number; lat: number }> =
-      (await res.json())?.districts ?? [];
+    const data: Array<{
+      name: string;
+      parent: string;
+      lng: number;
+      lat: number;
+    }> = (await res.json())?.districts ?? [];
     districtCache = data;
     return data;
   } catch {
@@ -422,7 +445,9 @@ async function searchLocal() {
   }
   const hit = (n: string) => {
     const name = normalizeCityName(n);
-    return name === keyword || name.startsWith(keyword) || name.includes(keyword);
+    return (
+      name === keyword || name.startsWith(keyword) || name.includes(keyword)
+    );
   };
   const cityHits: LocalCity[] = cityLevels
     .filter(c => hit(c.name))
@@ -490,10 +515,7 @@ function onLocalSelect(item: LocalCity) {
           v-if="localCandidates.length"
           class="border-(--el-border-color-lighter) bg-(--el-bg-color) shadow-(--el-box-shadow-light) absolute z-10 mt-1 w-full rounded border overflow-hidden"
         >
-          <div
-            ref="listScrollRef"
-            class="max-h-60 overflow-y-auto"
-          >
+          <div ref="listScrollRef" class="max-h-60 overflow-y-auto">
             <div
               v-for="(item, index) in localCandidates"
               :key="`${item.name}-${item.lng}-${item.lat}-${index}`"
@@ -502,7 +524,9 @@ function onLocalSelect(item: LocalCity) {
               @click="onLocalSelect(item)"
             >
               {{ item.name }}
-              <span class="text-(--el-text-color-secondary)">{{ item.city }}</span>
+              <span class="text-(--el-text-color-secondary)">{{
+                item.city
+              }}</span>
             </div>
           </div>
         </div>
@@ -538,7 +562,9 @@ function onLocalSelect(item: LocalCity) {
               @click="onSuggestSelect(item)"
             >
               {{ item.name }}
-              <span class="text-(--el-text-color-secondary)">{{ item.district }}</span>
+              <span class="text-(--el-text-color-secondary)">{{
+                item.district
+              }}</span>
             </div>
           </div>
         </div>
