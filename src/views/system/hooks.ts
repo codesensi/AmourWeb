@@ -338,6 +338,8 @@ export function openFormDialog<T>(options: {
     fullscreen: deviceDetection(),
     fullscreenIcon: true,
     closeOnClickModal: false,
+    // 全局禁用 Esc 关闭:防止误按 Esc 静默丢弃表单弹窗中已填写的内容
+    closeOnPressEscape: false,
     // 开启确定按钮提交加载态,防止异步提交期间连点重复提交
     sureBtnLoading: true,
     // formInline 实际取值由 ReDialog 的 options.props 注入,此处仅占位

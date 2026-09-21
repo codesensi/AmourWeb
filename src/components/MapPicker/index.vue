@@ -69,6 +69,8 @@ const amapKey = ref("");
 const listScrollRef = ref<HTMLElement>();
 /** 键盘导航高亮索引(-1 = 未选中) */
 const activeIndex = ref(-1);
+/** 候选浮层展开开关(失焦收起;键入/检索/键盘导航时展开) */
+const listOpen = ref(false);
 /** 高德分页游标:当前页(0 起计数)与命中总数 */
 let pageIndex = 0;
 let totalCount = 0;
@@ -83,6 +85,18 @@ const cityModel = computed({
   set: value => emit("update:city", value)
 });
 
+/** 坐标是否已回填(状态条据此呈现"有没有坐标") */
+const hasCoords = computed(
+  () => props.longitude != null && props.latitude != null
+);
+
+/** 状态条坐标文本(6 位小数,与入库精度一致) */
+const coordText = computed(() =>
+  hasCoords.value
+    ? `${props.longitude!.toFixed(6)}, ${props.latitude!.toFixed(6)}`
+    : ""
+);
+
 /* ---------------- 地图初始化与选点 ---------------- */
 
 const mapInstance = ref<AMapMap | null>(null);
@@ -94,10 +108,22 @@ const placeSearch = ref<AMapPlaceSearch | null>(null);
 const suggestList = ref<
   Array<{ name: string; district: string; lng: number; lat: number }>
 >([]);
-/** 搜索选择后抑制"点击地图拾取"的重复回填 */
-const suppressPick = ref(false);
 /** 搜索请求序号(防竞态:仅采纳最后一次响应) */
 let searchSeq = 0;
+/** 坐标对应的地点文本(选中回填/编辑回显时记录;据此判断搜索框文本与坐标是否脱节) */
+let coordsForPlaceName = "";
+
+/**
+ * 搜索框文本与已回填坐标是否对应。
+ * 手动改写文本后即脱节,回车确认会重新匹配,避免「文本是 A、坐标是 B」入库。
+ */
+function coordsMatchText() {
+  return (
+    props.longitude != null &&
+    props.latitude != null &&
+    searchText.value === coordsForPlaceName
+  );
+}
 
 /** 搜索框提示:高德检索降级后切换为内置城市表的说明,避免承诺无法兑现的 POI 搜索 */
 const searchPlaceholder = computed(() =>
@@ -157,6 +183,7 @@ function pickPoint(lng: number, lat: number, overwriteCity = false) {
     if (address) {
       // 程序化赋值不触发 @input,不会引发二次搜索
       searchText.value = address;
+      coordsForPlaceName = address;
     }
   });
 }
@@ -175,6 +202,8 @@ function onSuggestSelect(item: {
   if (!item.local) {
     searchText.value = item.name;
   }
+  // 本地候选保留原文为地点文本,高德候选以 POI 名为准;记录坐标对应文本供回车确认比对
+  coordsForPlaceName = item.local ? rawQuery : item.name;
   suggestList.value = [];
   activeIndex.value = -1;
   placeMarker(item.lng, item.lat);
@@ -190,6 +219,8 @@ function onSuggestSelect(item: {
 }
 
 onMounted(async () => {
+  // 编辑回显:存量坐标与地点名视为已对应,回车确认不会误重查
+  coordsForPlaceName = props.placeName ?? "";
   try {
     // key 为公开标识(域名白名单防滥用);安全密钥 jscode 经 /_AMapService 后端代理注入,不下发浏览器
     const res = await getSysConfig(["security.amap-key"]);
@@ -217,7 +248,7 @@ onMounted(async () => {
     mapInstance.value = map;
     map.on("click", (event: any) => {
       // 降级时禁用点选:无逆地理服务,点选只有孤立坐标而无城市语义
-      if (serviceDegraded.value || suppressPick.value) return;
+      if (serviceDegraded.value) return;
       // 点选是明确的位置意图,城市总是更新为所点位置(与搜索候选选中行为一致)
       pickPoint(event.lnglat.getLng(), event.lnglat.getLat(), true);
     });
@@ -261,6 +292,8 @@ async function probeService() {
 
 /** 搜索:PlaceSearch POI 检索,候选滚动触底分页加载;失败时回退内置城市表匹配 */
 function searchPlace(): Promise<void> {
+  // 键入/回车触发检索时展开候选浮层
+  listOpen.value = true;
   if (!placeSearch.value || !searchText.value) {
     suggestList.value = [];
     return Promise.resolve();
@@ -350,6 +383,8 @@ function loadMore(): Promise<void> {
 /** 键盘上下键移动候选高亮(边界停住),并保证高亮项滚动进可视区 */
 function moveActive(delta: number, length: number) {
   if (!length) return;
+  // 键盘导航时展开浮层(失焦收起后重新聚焦仍可继续键盘选择)
+  listOpen.value = true;
   activeIndex.value = Math.min(
     Math.max(activeIndex.value + delta, 0),
     length - 1
@@ -360,15 +395,27 @@ function moveActive(delta: number, length: number) {
 
 /** 回车确认:确保候选已加载后自动选中第一条,地图直接跟随定位 */
 async function onSearchConfirm() {
+  // 文本与坐标已对应时不再重复覆盖(回车重复确认防覆盖)
+  if (coordsMatchText()) return;
   if (suggestList.value.length === 0) {
     await searchPlace();
   }
+  // 候选加载期间可能已发生点选/搜索回填,二次校验防误覆盖
+  if (coordsMatchText()) return;
   const index = activeIndex.value >= 0 ? activeIndex.value : 0;
   const picked = suggestList.value[index] ?? suggestList.value[0];
   if (picked) {
     activeIndex.value = -1;
     onSuggestSelect(picked);
   }
+}
+
+/** 显式清除定位:坐标置空并移除地图标记,供用户刻意保留无坐标的足迹记录。 */
+function clearCoords() {
+  emit("update:longitude", null);
+  emit("update:latitude", null);
+  markerInstance.value?.setMap(null);
+  markerInstance.value = null;
 }
 
 onBeforeUnmount(() => {
@@ -437,6 +484,8 @@ async function ensureDistricts(): Promise<
 
 /** 无 key 本地搜索:市级 + 区县级(懒加载)联想 */
 async function searchLocal() {
+  // 键入触发本地匹配时展开候选浮层
+  listOpen.value = true;
   activeIndex.value = -1;
   const keyword = normalizeCityName(searchText.value);
   if (!keyword) {
@@ -477,6 +526,8 @@ async function searchLocal() {
 
 /** 回车确认:自动选中高亮候选(无高亮时选第一条) */
 function confirmLocal() {
+  // 文本与坐标已对应时不再重复覆盖(回车重复确认防覆盖)
+  if (coordsMatchText()) return;
   const index = activeIndex.value >= 0 ? activeIndex.value : 0;
   const picked = localCandidates.value[index] ?? localCandidates.value[0];
   if (picked) {
@@ -488,6 +539,7 @@ function confirmLocal() {
 /** 本地候选选中:回填城市与坐标(候选名经 searchText 的 watch 同步为精确地点,坐标为 GCJ-02) */
 function onLocalSelect(item: LocalCity) {
   searchText.value = item.name;
+  coordsForPlaceName = item.name;
   localCandidates.value = [];
   activeIndex.value = -1;
   emit("update:city", item.city);
@@ -505,14 +557,16 @@ function onLocalSelect(item: LocalCity) {
           v-model="searchText"
           :placeholder="searchPlaceholder"
           clearable
+          @blur="listOpen = false"
+          @keydown.esc="listOpen = false"
           @keyup.enter="confirmLocal"
           @keydown.down.prevent="moveActive(1, localCandidates.length)"
           @keydown.up.prevent="moveActive(-1, localCandidates.length)"
           @input="searchLocal"
         />
-        <!-- 本地候选浮层:与高德候选一致的交互 -->
+        <!-- 本地候选浮层:与高德候选一致的交互(mousedown.prevent 保持输入框焦点,便于连续键盘操作) -->
         <div
-          v-if="localCandidates.length"
+          v-if="localCandidates.length && listOpen"
           class="border-(--el-border-color-lighter) bg-(--el-bg-color) shadow-(--el-box-shadow-light) absolute z-10 mt-1 w-full rounded border overflow-hidden"
         >
           <div ref="listScrollRef" class="max-h-60 overflow-y-auto">
@@ -521,6 +575,7 @@ function onLocalSelect(item: LocalCity) {
               :key="`${item.name}-${item.lng}-${item.lat}-${index}`"
               class="cursor-pointer px-3 py-1.5 text-sm hover:bg-(--el-fill-color-light)"
               :class="{ 'bg-(--el-fill-color-light)': index === activeIndex }"
+              @mousedown.prevent
               @click="onLocalSelect(item)"
             >
               {{ item.name }}
@@ -539,6 +594,8 @@ function onLocalSelect(item: LocalCity) {
           :placeholder="searchPlaceholder"
           clearable
           :loading="searching"
+          @blur="listOpen = false"
+          @keydown.esc="listOpen = false"
           @keyup.enter="onSearchConfirm"
           @keydown.down.prevent="moveActive(1, suggestList.length)"
           @keydown.up.prevent="moveActive(-1, suggestList.length)"
@@ -546,7 +603,7 @@ function onLocalSelect(item: LocalCity) {
         />
         <!-- 候选浮层:绝对定位悬浮于地图之上(z 高于高德 logo/版权层);内容区触底分页加载下一页 -->
         <div
-          v-if="suggestList.length"
+          v-if="suggestList.length && listOpen"
           class="border-(--el-border-color-lighter) bg-(--el-bg-color) shadow-(--el-box-shadow-light) absolute z-[200] mt-1 w-full rounded border overflow-hidden"
         >
           <div
@@ -559,6 +616,7 @@ function onLocalSelect(item: LocalCity) {
               :key="`${item.name}-${item.lng}-${item.lat}-${index}`"
               class="cursor-pointer px-3 py-1.5 text-sm hover:bg-(--el-fill-color-light)"
               :class="{ 'bg-(--el-fill-color-light)': index === activeIndex }"
+              @mousedown.prevent
               @click="onSuggestSelect(item)"
             >
               {{ item.name }}
@@ -571,5 +629,29 @@ function onLocalSelect(item: LocalCity) {
       </div>
       <div ref="mapEl" class="h-60 w-full overflow-hidden rounded" />
     </template>
+    <!-- 坐标回填状态:直观呈现当前有无坐标及其对门户足迹页的影响 -->
+    <div class="mt-1.5 flex items-center gap-1.5 text-xs" aria-live="polite">
+      <template v-if="hasCoords">
+        <span class="size-1.5 shrink-0 rounded-full bg-(--el-color-success)" />
+        <span class="text-(--el-color-success)">已定位</span>
+        <span class="text-(--el-text-color-regular)">{{ coordText }}</span>
+        <span class="text-(--el-text-color-secondary)">GCJ-02</span>
+        <el-button
+          link
+          type="primary"
+          size="small"
+          @mousedown.prevent
+          @click="clearCoords"
+        >
+          清除定位
+        </el-button>
+      </template>
+      <template v-else>
+        <span class="size-1.5 shrink-0 rounded-full bg-(--el-color-warning)" />
+        <span class="text-(--el-text-color-secondary)">
+          未获取到坐标，该足迹仅在足迹页时间轴展示
+        </span>
+      </template>
+    </div>
   </div>
 </template>

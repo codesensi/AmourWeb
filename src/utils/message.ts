@@ -108,6 +108,8 @@ const confirmAction = (
     type: "warning",
     // 确认语义弹窗禁用点击遮罩关闭:防误触导致的静默取消(如状态开关回弹)
     closeOnClickModal: false,
+    // 全局禁用 Esc 关闭:防误按 Esc 静默取消确认操作
+    closeOnPressEscape: false,
     // 内容恒以纯文本/VNode 挂载:VNode 的文本子节点由 Vue 转义,HTML 注入面归零
     dangerouslyUseHTMLString: false,
     draggable: true

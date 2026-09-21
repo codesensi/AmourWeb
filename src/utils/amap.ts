@@ -49,6 +49,8 @@ interface AMapMap {
 interface AMapMarker {
   setPosition(position: [number, number]): void;
   on(event: "click", handler: () => void): void;
+  /** 从地图移除标记(null;清除定位时使用) */
+  setMap(map: AMapMap | null): void;
 }
 
 interface AMapMarkerOptions {

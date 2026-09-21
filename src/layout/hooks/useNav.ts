@@ -88,6 +88,8 @@ export function useNav() {
         type: "warning",
         // 确认语义弹窗禁用点击遮罩关闭,防误触取消
         closeOnClickModal: false,
+        // 全局禁用 Esc 关闭:防误按 Esc 静默取消确认操作
+        closeOnPressEscape: false,
         draggable: true
       }
     )
