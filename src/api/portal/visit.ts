@@ -12,3 +12,8 @@ export type VisitTotal = {
 export const getVisitTotal = () => {
   return http.request<VisitTotal>("get", "/portal/visit/total");
 };
+
+/** 上报一次访问(POST /portal/visit/report;去重由前端按「访客 + 日」控制) */
+export const reportVisit = () => {
+  return http.request<null>("post", "/portal/visit/report");
+};

@@ -2,9 +2,8 @@
 import { computed, onMounted, ref } from "vue";
 import { RouterLink } from "vue-router";
 import { getPortalSaying, type SayingData } from "@/api/portal/saying";
-import { getVisitTotal } from "@/api/portal/visit";
+import { getVisitTotal, reportVisit } from "@/api/portal/visit";
 import { usePortalSysConfig } from "./usePortalSysConfig";
-import { prefersReducedMotion } from "@/utils/motion";
 
 defineOptions({ name: "PortalFooter" });
 
@@ -37,6 +36,23 @@ const FALLBACK_SAYING: SayingData = {
 /** 访问累计(PV):接口不可用时不展示该行 */
 const totalPv = ref<number | null>(null);
 
+/** 访问累计(UV):与 PV 同接口同成败,一并展示 */
+const totalUv = ref<number | null>(null);
+
+/** 上报访问(每浏览器每日一次:localStorage 按日标记去重;失败静默,下次访问再计) */
+function reportVisitOnce() {
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  const reportedKey = "amour_visit_reported";
+  try {
+    if (localStorage.getItem(reportedKey) === today) return;
+    localStorage.setItem(reportedKey, today);
+  } catch {
+    // localStorage 不可用(隐私模式等):跳过去重直接上报
+  }
+  void reportVisit().catch(() => {});
+}
+
 /** 管理后台地址:项目为 hash 路由,须带 # 前缀,否则 /admin 会被当作首页 */
 const adminHref = `${import.meta.env.BASE_URL}#/admin`;
 
@@ -45,25 +61,9 @@ const sayingFrom = computed(() =>
   [saying.value?.source, saying.value?.author].filter(Boolean).join("·")
 );
 
-/** 访问数滚动入场:从 0 计到目标值(rAF 缓动,reduced-motion 时直接到位) */
-function countUp(target: number) {
-  if (prefersReducedMotion()) {
-    totalPv.value = target;
-    return;
-  }
-  const duration = 900;
-  const startAt = performance.now();
-  function tick(now: number) {
-    const progress = Math.min(1, (now - startAt) / duration);
-    const eased = 1 - (1 - progress) ** 3;
-    totalPv.value = Math.round(target * eased);
-    if (progress < 1) requestAnimationFrame(tick);
-  }
-  requestAnimationFrame(tick);
-}
-
 onMounted(async () => {
   // 一言与访问计数互不阻塞:一言拿不到(失败/空数据)时显示兜底文案,访问计数失败静默降级
+  reportVisitOnce();
   try {
     const { success, data } = await getPortalSaying();
     saying.value = success && data?.content ? data : FALLBACK_SAYING;
@@ -72,7 +72,10 @@ onMounted(async () => {
   }
   try {
     const { success, data } = await getVisitTotal();
-    if (success && data) countUp(data.pv);
+    if (success && data) {
+      totalPv.value = data.pv;
+      totalUv.value = data.uv;
+    }
   } catch {
     // 静默降级
   }
@@ -97,7 +100,9 @@ onMounted(async () => {
         <p v-if="totalPv !== null" class="colophon-visit">
           我们的故事已被翻开
           <b class="colophon-visit-num">{{ totalPv }}</b>
-          次
+          次，已被
+          <b class="colophon-visit-num">{{ totalUv }}</b>
+          位访客翻开过
         </p>
 
         <p class="colophon-copy">
