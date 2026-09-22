@@ -23,6 +23,8 @@ export interface AnniversaryPageItem {
   hidden: number;
   /** 创建时间(yyyy-MM-dd HH:mm:ss) */
   createTime?: string;
+  /** 创建人用户名(服务层批量回填;未登录来源记录为空) */
+  creatorName?: string;
 }
 
 /** 纪念日分页查询参数 */
@@ -81,8 +83,5 @@ export const changeAnniversaryHidden = (id: string, hidden: number) => {
 
 /** 批量逻辑删除纪念日(DELETE /admin/anniversary/delete/{ids};单条传 id,批量逗号拼接) */
 export const deleteAnniversary = (ids: string) => {
-  return http.request<null>(
-    "delete",
-    `/admin/anniversary/delete/${ids}`
-  );
+  return http.request<null>("delete", `/admin/anniversary/delete/${ids}`);
 };

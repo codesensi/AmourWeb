@@ -20,6 +20,8 @@ export interface LovePhotoPageItem {
   hidden: number;
   /** 创建时间(yyyy-MM-dd HH:mm:ss) */
   createTime?: string;
+  /** 创建人用户名(服务层批量回填;未登录来源记录为空) */
+  creatorName?: string;
 }
 
 /** 恋爱画册分页查询参数 */
@@ -76,8 +78,5 @@ export const changeLovePhotoHidden = (id: string, hidden: number) => {
 
 /** 批量逻辑删除照片(DELETE /admin/love-photo/delete/{ids};单条传 id,批量逗号拼接) */
 export const deleteLovePhoto = (ids: string) => {
-  return http.request<null>(
-    "delete",
-    `/admin/love-photo/delete/${ids}`
-  );
+  return http.request<null>("delete", `/admin/love-photo/delete/${ids}`);
 };

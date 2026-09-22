@@ -57,7 +57,9 @@ export function useFootprint(tableRef: Ref) {
       arrivalDateBegin: form.arrivalDateRange?.[0],
       arrivalDateEnd: form.arrivalDateRange?.[1],
       hidden:
-        form.hidden === "" || form.hidden == null ? undefined : Number(form.hidden)
+        form.hidden === "" || form.hidden == null
+          ? undefined
+          : Number(form.hidden)
     })
   );
 
@@ -166,6 +168,12 @@ export function useFootprint(tableRef: Ref) {
       prop: "hidden",
       minWidth: 90,
       cellRenderer: hiddenColumn
+    },
+    {
+      label: "创建人",
+      prop: "creatorName",
+      width: 110,
+      cellRenderer: ({ row }) => row.creatorName ?? ""
     },
     {
       label: "创建时间",

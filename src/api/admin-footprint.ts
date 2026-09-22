@@ -24,6 +24,8 @@ export interface FootprintPageItem {
   remark?: string | null;
   /** 创建时间(yyyy-MM-dd HH:mm:ss) */
   createTime?: string;
+  /** 创建人用户名(服务层批量回填;未登录来源记录为空) */
+  creatorName?: string;
 }
 
 /** 足迹分页查询参数 */
@@ -87,8 +89,5 @@ export const changeFootprintHidden = (id: string, hidden: number) => {
 
 /** 批量逻辑删除足迹(DELETE /admin/footprint/delete/{ids};单条传 id,批量逗号拼接) */
 export const deleteFootprint = (ids: string) => {
-  return http.request<null>(
-    "delete",
-    `/admin/footprint/delete/${ids}`
-  );
+  return http.request<null>("delete", `/admin/footprint/delete/${ids}`);
 };

@@ -172,6 +172,13 @@ export function useLoveList(tableRef: Ref) {
       cellRenderer: hiddenColumn
     },
     {
+      label: "创建人",
+      prop: "creatorName",
+      width: 110,
+      cellRenderer: ({ row }: { row?: LoveListPageItem }) =>
+        row?.creatorName ?? ""
+    },
+    {
       label: "创建时间",
       prop: "createTime",
       minWidth: 170

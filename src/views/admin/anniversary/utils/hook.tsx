@@ -39,33 +39,49 @@ export function useAnniversary(tableRef: Ref) {
   const formRef = ref();
 
   // 分页查询公共骨架:分页状态 + 结果列表 + 加载态 + 序号守卫搜索 + 分页事件写回 + 表单重置
-  const { pagination, dataList, loading, search, handleSizeChange, handleCurrentChange, resetForm } =
-    usePageQuery(query =>
-      getAnniversaryPage({
-        ...query,
-        name: form.name,
-        hidden:
-          form.hidden === "" || form.hidden == null ? undefined : Number(form.hidden)
-      })
-    );
+  const {
+    pagination,
+    dataList,
+    loading,
+    search,
+    handleSizeChange,
+    handleCurrentChange,
+    resetForm
+  } = usePageQuery(query =>
+    getAnniversaryPage({
+      ...query,
+      name: form.name,
+      hidden:
+        form.hidden === "" || form.hidden == null
+          ? undefined
+          : Number(form.hidden)
+    })
+  );
 
   /** 管理端写操作后失效门户纪念日缓存(key 前缀同时覆盖纪念日页分页与首页卡片两个子资源) */
   const invalidatePortalAnniversary = () =>
-    queryClient.invalidateQueries({ queryKey: queryKeys.anniversaryList().key });
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.anniversaryList().key
+    });
 
   // 删除/批量删除/多选三件套(确认弹窗、成功提示与刷新联动由骨架统一)
-  const { selectedNum, handleDelete, onbatchDel, handleSelectionChange, onSelectionCancel } =
-    useBatchDelete<AnniversaryPageItem>({
-      tableRef,
-      remove: deleteAnniversary,
-      nameOf: row => row.name,
-      entity: "纪念日",
-      unit: "条",
-      afterDeleted: () => {
-        search();
-        void invalidatePortalAnniversary();
-      }
-    });
+  const {
+    selectedNum,
+    handleDelete,
+    onbatchDel,
+    handleSelectionChange,
+    onSelectionCancel
+  } = useBatchDelete<AnniversaryPageItem>({
+    tableRef,
+    remove: deleteAnniversary,
+    nameOf: row => row.name,
+    entity: "纪念日",
+    unit: "条",
+    afterDeleted: () => {
+      search();
+      void invalidatePortalAnniversary();
+    }
+  });
 
   /** 类型字典:表格类型列文案取字典 label */
   const { labelOf: typeLabelOf } = useDict(DICT_CODES.anniversaryType);
@@ -141,6 +157,12 @@ export function useAnniversary(tableRef: Ref) {
       prop: "hidden",
       minWidth: 90,
       cellRenderer: hiddenColumn
+    },
+    {
+      label: "创建人",
+      prop: "creatorName",
+      width: 110,
+      cellRenderer: ({ row }) => row.creatorName ?? ""
     },
     {
       label: "创建时间",

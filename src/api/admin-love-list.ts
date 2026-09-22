@@ -18,6 +18,8 @@ export interface LoveListPageItem {
   hidden: number;
   /** 创建时间(yyyy-MM-dd HH:mm:ss) */
   createTime?: string;
+  /** 创建人用户名(服务层批量回填;未登录来源记录为空) */
+  creatorName?: string;
 }
 
 /** 恋爱清单分页查询参数 */
