@@ -36,11 +36,8 @@ const viewMode = ref<ViewMode>("all");
 
 const visibleItems = computed(() => {
   if (viewMode.value === "done") return items.value.filter(it => it.done);
-  // 混排:未完成在前,已完成在后(保持各自加载顺序)
-  return [
-    ...items.value.filter(it => !it.done),
-    ...items.value.filter(it => it.done)
-  ];
+  // 全部视图:直接沿用接口的 sort 升序,已完成项不后置(保持清单的既定顺序)
+  return items.value;
 });
 
 /* ---------------- 纪念照影院模式 ---------------- */

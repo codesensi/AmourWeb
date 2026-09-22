@@ -49,7 +49,9 @@ export const DICT_CODES = {
   /** 纪念日类型(与 AnniversaryTypeEnum 对齐) */
   anniversaryType: "anniversary-type",
   /** 留言审核状态(与 MessageAuditStatusEnum 对齐) */
-  messageAuditStatus: "message-audit-status"
+  messageAuditStatus: "message-audit-status",
+  /** 通用完成状态(不带业务语义,如恋爱清单的已完成/未完成) */
+  done: "done"
 } as const;
 
 /** 字典批量查询(GET /portal/dict/list-by-codes,免登录;codes 逗号分隔) */
