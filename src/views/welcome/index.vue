@@ -1,285 +1,576 @@
 <script setup lang="ts">
-// @ts-nocheck
-import { ref, markRaw } from "vue";
+import { computed, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 import ReCol from "@/components/ReCol";
-import { useDark, randomGradient } from "./utils";
-import WelcomeTable from "./components/table/index.vue";
-import { ReNormalCountTo } from "@/components/ReCountTo";
-import { useRenderFlicker } from "@/components/ReFlicker";
-import { ChartBar, ChartLine, ChartRound } from "./components/charts";
-import Segmented, { type OptionsType } from "@/components/ReSegmented";
-import { chartData, barChartData, progressData, latestNewsData } from "./data";
+import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import {
+  type DashboardSummary,
+  type DashboardTimelineItem,
+  getDashboardSummary,
+  getDashboardTimeline
+} from "@/api/dashboard";
 
 defineOptions({
   name: "Welcome"
 });
 
-const { isDark } = useDark();
+const PAGE_SIZE = 10;
 
-let curWeek = ref(1); // 0上周、1本周
-const optionsBasis: Array<OptionsType> = [
+/** 模块入口配置(icon/标题与侧边栏菜单保持一致) */
+const moduleEntries = [
   {
-    label: "上周"
+    title: "点点滴滴",
+    path: "/admin/moments",
+    icon: "ep:sunny",
+    countKey: "moments"
   },
   {
-    label: "本周"
+    title: "恋爱画册",
+    path: "/admin/love-photo",
+    icon: "ep:camera",
+    countKey: "photos"
+  },
+  {
+    title: "恋爱清单",
+    path: "/admin/love-list",
+    icon: "ep:list",
+    countKey: "loveList"
+  },
+  {
+    title: "留言簿",
+    path: "/admin/message",
+    icon: "ep:chat-dot-round",
+    countKey: "messages"
+  },
+  {
+    title: "纪念日",
+    path: "/admin/anniversary",
+    icon: "ep:calendar",
+    countKey: "anniversaries"
+  },
+  {
+    title: "时间胶囊",
+    path: "/admin/time-capsule",
+    icon: "ep:box",
+    countKey: "timeCapsules"
+  },
+  {
+    title: "情侣日志",
+    path: "/admin/diary",
+    icon: "ep:notebook",
+    countKey: "diaries"
+  },
+  {
+    title: "足迹",
+    path: "/admin/footprint",
+    icon: "ep:location",
+    countKey: "footprints"
   }
-];
+] as const;
+
+/** 条目类型对应的中文标签 */
+const typeLabels: Record<string, string> = {
+  photos: "恋爱画册",
+  moments: "点点滴滴",
+  diary: "情侣日志"
+};
+
+/** 快捷操作配置(页面收尾 CTA,点击跳对应管理页) */
+const quickActions = [
+  {
+    title: "记点滴",
+    desc: "记录今天的小事",
+    path: "/admin/moments",
+    icon: "ep:sunny"
+  },
+  {
+    title: "传照片",
+    desc: "充实恋爱画册",
+    path: "/admin/love-photo",
+    icon: "ep:upload"
+  },
+  {
+    title: "写日志",
+    desc: "写下此刻心情",
+    path: "/admin/diary",
+    icon: "ep:notebook"
+  }
+] as const;
+
+const router = useRouter();
+const loading = ref(true);
+const summary = ref<DashboardSummary | null>(null);
+
+/** 时间线状态 */
+const timelineItems = ref<DashboardTimelineItem[]>([]);
+const timelineTotal = ref(0);
+const timelinePageNumber = ref(1);
+const timelineLoading = ref(false);
+const timelineHasMore = computed(
+  () => timelineTotal.value > timelineItems.value.length
+);
+
+/** 按时段问候 */
+const greeting = computed(() => {
+  const hour = new Date().getHours();
+  if (hour < 6) return "夜深了";
+  if (hour < 12) return "上午好";
+  if (hour < 14) return "中午好";
+  if (hour < 18) return "下午好";
+  return "晚上好";
+});
+
+/** 今日日期(yyyy年M月d日 星期X) */
+const todayText = computed(() => {
+  const now = new Date();
+  const week = ["日", "一", "二", "三", "四", "五", "六"][now.getDay()];
+  return `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日 星期${week}`;
+});
+
+/** 下一个纪念日剩余天数(按月/日计算下一次发生日) */
+const nextAnniversaryDays = computed(() => {
+  const next = summary.value?.nextAnniversary;
+  if (!next) return null;
+  const [, month, day] = next.anniversaryDate.split("-").map(Number);
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  let target = new Date(now.getFullYear(), month - 1, day);
+  if (target.getTime() < todayStart.getTime()) {
+    target = new Date(now.getFullYear() + 1, month - 1, day);
+  }
+  return Math.round((target.getTime() - todayStart.getTime()) / 86400000);
+});
+
+/** 入口卡计数(恋爱清单取进度总数,其余取各模块计数) */
+function entryCount(countKey: string): number | null {
+  if (!summary.value) return null;
+  if (countKey === "loveList") {
+    return summary.value.loveListProgress?.total ?? null;
+  }
+  const counts = summary.value.counts as Record<string, number | undefined>;
+  return counts[countKey] ?? null;
+}
+
+/** 加载概览数据 */
+async function loadSummary() {
+  try {
+    summary.value = (await getDashboardSummary()).data;
+  } finally {
+    loading.value = false;
+  }
+}
+
+/** 加载时间线(reset=true 时回到第一页并清空已有条目) */
+async function loadTimeline(reset = false) {
+  if (timelineLoading.value) return;
+  if (reset) {
+    timelinePageNumber.value = 1;
+  } else if (!timelineHasMore.value) {
+    return;
+  }
+  timelineLoading.value = true;
+  try {
+    const page = (
+      await getDashboardTimeline({
+        pageNumber: timelinePageNumber.value,
+        pageSize: PAGE_SIZE
+      })
+    ).data;
+    if (reset) {
+      timelineItems.value = page.records;
+    } else {
+      timelineItems.value = timelineItems.value.concat(page.records);
+    }
+    timelineTotal.value = page.totalRow;
+    timelinePageNumber.value += 1;
+  } finally {
+    timelineLoading.value = false;
+  }
+}
+
+/** 条目类型标签 */
+function typeLabel(type: string) {
+  return typeLabels[type] ?? "回忆";
+}
+
+onMounted(() => {
+  loadSummary();
+  loadTimeline(true);
+});
 </script>
 
 <template>
-  <div>
-    <el-row :gutter="24" justify="space-around">
+  <div class="p-2">
+    <!-- ① 概览卡:问候 + 在一起天数 + 下一个纪念日倒计时 -->
+    <el-card shadow="never" class="mb-3">
+      <el-skeleton :loading="loading" animated :rows="2">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div class="text-lg font-medium">{{ greeting }}，欢迎回来</div>
+            <div
+              class="mt-1 text-sm"
+              style="color: var(--el-text-color-secondary)"
+            >
+              {{ todayText }}
+            </div>
+          </div>
+          <div class="flex items-center gap-6">
+            <div v-if="summary?.togetherDays != null" class="text-center">
+              <div
+                class="text-2xl font-semibold"
+                style="color: var(--el-color-primary)"
+              >
+                {{ summary.togetherDays }}
+              </div>
+              <div
+                class="text-xs"
+                style="color: var(--el-text-color-secondary)"
+              >
+                在一起(天)
+              </div>
+            </div>
+            <template v-if="summary?.nextAnniversary">
+              <el-divider direction="vertical" class="h-10" />
+              <div class="text-center">
+                <div class="text-sm font-medium">
+                  {{ summary.nextAnniversary.name }}
+                </div>
+                <div
+                  class="mt-1 text-xs"
+                  style="color: var(--el-text-color-secondary)"
+                >
+                  {{ summary.nextAnniversary.anniversaryDate }}
+                  <template v-if="nextAnniversaryDays != null">
+                    · 还有
+                    <span
+                      style="
+                        font-variant-numeric: tabular-nums;
+                        color: var(--el-color-primary);
+                      "
+                    >
+                      {{ nextAnniversaryDays }}
+                    </span>
+                    天
+                  </template>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </el-skeleton>
+    </el-card>
+
+    <!-- ② 模块入口网格 -->
+    <el-row :gutter="16">
       <re-col
-        v-for="(item, index) in chartData"
-        :key="index"
-        v-motion
-        class="card-gap"
+        v-for="entry in moduleEntries"
+        :key="entry.path"
+        class="mb-4"
         :value="6"
-        :md="12"
+        :md="6"
         :sm="12"
         :xs="24"
-        :initial="{
-          opacity: 0,
-          y: 100
-        }"
-        :enter="{
-          opacity: 1,
-          y: 0,
-          transition: {
-            delay: 80 * (index + 1)
-          }
-        }"
       >
-        <el-card class="line-card" shadow="never">
-          <div class="flex justify-between">
-            <span class="text-md font-medium">
-              {{ item.name }}
-            </span>
-            <div
-              class="size-8 flex-c rounded-md"
-              :style="{
-                backgroundColor: isDark ? 'transparent' : item.bgColor
-              }"
+        <el-card
+          shadow="hover"
+          class="entry-card"
+          @click="router.push(entry.path)"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <el-icon :size="22" style="color: var(--el-color-primary)">
+                <component :is="useRenderIcon(entry.icon)" />
+              </el-icon>
+              <span class="font-medium">{{ entry.title }}</span>
+            </div>
+            <el-tag
+              v-if="entryCount(entry.countKey) == null"
+              size="small"
+              type="info"
             >
-              <IconifyIconOffline
-                :icon="item.icon"
-                :color="item.color"
-                width="18"
-                height="18"
-              />
-            </div>
-          </div>
-          <div class="flex justify-between items-start mt-3">
-            <div class="w-1/2">
-              <ReNormalCountTo
-                :duration="item.duration"
-                :fontSize="'1.6em'"
-                :startVal="100"
-                :endVal="item.value"
-              />
-              <p class="font-medium text-green-500">{{ item.percent }}</p>
-            </div>
-            <ChartLine
-              v-if="item.data.length > 1"
-              class="w-1/2!"
-              :color="item.color"
-              :data="item.data"
-            />
-            <ChartRound v-else class="w-1/2!" />
-          </div>
-        </el-card>
-      </re-col>
-
-      <re-col
-        v-motion
-        class="card-gap"
-        :value="18"
-        :xs="24"
-        :initial="{
-          opacity: 0,
-          y: 100
-        }"
-        :enter="{
-          opacity: 1,
-          y: 0,
-          transition: {
-            delay: 400
-          }
-        }"
-      >
-        <el-card class="bar-card" shadow="never">
-          <div class="flex justify-between">
-            <span class="text-md font-medium">分析概览</span>
-            <Segmented v-model="curWeek" :options="optionsBasis" />
-          </div>
-          <div class="flex justify-between items-start mt-3">
-            <ChartBar
-              :requireData="barChartData[curWeek].requireData"
-              :questionData="barChartData[curWeek].questionData"
-            />
-          </div>
-        </el-card>
-      </re-col>
-
-      <re-col
-        v-motion
-        class="card-gap"
-        :value="6"
-        :xs="24"
-        :initial="{
-          opacity: 0,
-          y: 100
-        }"
-        :enter="{
-          opacity: 1,
-          y: 0,
-          transition: {
-            delay: 480
-          }
-        }"
-      >
-        <el-card shadow="never">
-          <div class="flex justify-between">
-            <span class="text-md font-medium">解决概率</span>
-          </div>
-          <div
-            v-for="(item, index) in progressData"
-            :key="index"
-            :class="[
-              'flex',
-              'justify-between',
-              'items-start',
-              index === 0 ? 'mt-8' : 'mt-[2.15rem]'
-            ]"
-          >
-            <el-progress
-              :text-inside="true"
-              :percentage="item.percentage"
-              :stroke-width="21"
-              :color="item.color"
-              striped
-              striped-flow
-              :duration="item.duration"
-            />
-            <span class="text-nowrap ml-2 text-text_color_regular text-sm">
-              {{ item.week }}
+              待建设
+            </el-tag>
+            <span
+              v-else
+              class="text-lg font-medium"
+              style="font-variant-numeric: tabular-nums"
+            >
+              {{ entryCount(entry.countKey) }}
             </span>
           </div>
         </el-card>
       </re-col>
+    </el-row>
 
-      <re-col
-        v-motion
-        class="card-gap"
-        :value="18"
-        :xs="24"
-        :initial="{
-          opacity: 0,
-          y: 100
-        }"
-        :enter="{
-          opacity: 1,
-          y: 0,
-          transition: {
-            delay: 560
-          }
-        }"
-      >
-        <el-card shadow="never">
-          <div class="flex justify-between">
-            <span class="text-md font-medium">数据统计</span>
-          </div>
-          <el-scrollbar max-height="504" class="mt-3">
-            <WelcomeTable />
-          </el-scrollbar>
-        </el-card>
-      </re-col>
-
-      <re-col
-        v-motion
-        class="card-gap"
-        :value="6"
-        :xs="24"
-        :initial="{
-          opacity: 0,
-          y: 100
-        }"
-        :enter="{
-          opacity: 1,
-          y: 0,
-          transition: {
-            delay: 640
-          }
-        }"
-      >
-        <el-card shadow="never">
-          <div class="flex justify-between">
-            <span class="text-md font-medium">最新动态</span>
-          </div>
-          <el-scrollbar max-height="504" class="mt-3">
-            <el-timeline>
+    <!-- ③ 最近回忆时间线 + ④ 数据统计 -->
+    <el-row :gutter="16">
+      <re-col :value="16" :md="16" :sm="24" :xs="24" class="mb-4">
+        <el-card shadow="never" class="timeline-card h-full">
+          <template #header>
+            <span class="font-medium">最近回忆</span>
+          </template>
+          <el-skeleton
+            :loading="timelineLoading && timelineItems.length === 0"
+            :rows="6"
+            animated
+          >
+            <el-timeline v-if="timelineItems.length">
               <el-timeline-item
-                v-for="(item, index) in latestNewsData"
+                v-for="(item, index) in timelineItems"
                 :key="index"
-                center
+                :timestamp="item.time"
                 placement="top"
-                :icon="
-                  markRaw(
-                    useRenderFlicker({
-                      background: randomGradient({
-                        randomizeHue: true
-                      })
-                    })
-                  )
-                "
-                :timestamp="item.date"
               >
-                <p class="text-text_color_regular text-sm">
-                  {{
-                    `新增 ${item.requiredNumber} 条问题，${item.resolveNumber} 条已解决`
-                  }}
-                </p>
+                <div class="flex items-center gap-2">
+                  <el-tag size="small" effect="plain">
+                    {{ typeLabel(item.type) }}
+                  </el-tag>
+                  <span class="font-medium">{{ item.title }}</span>
+                </div>
+                <div
+                  v-if="item.content"
+                  class="mt-1 text-sm"
+                  style="color: var(--el-text-color-regular)"
+                >
+                  {{ item.content }}
+                </div>
+                <el-image
+                  v-if="item.imageUrl"
+                  class="mt-2 w-40 rounded-md"
+                  :src="item.imageUrl"
+                  :preview-src-list="[item.imageUrl]"
+                  preview-teleported
+                  hide-on-click-modal
+                  fit="cover"
+                  lazy
+                />
               </el-timeline-item>
             </el-timeline>
-          </el-scrollbar>
+            <el-empty v-else description="还没有留下回忆">
+              <el-button
+                type="primary"
+                @click="router.push('/admin/love-photo')"
+              >
+                去恋爱画册上传第一张照片
+              </el-button>
+            </el-empty>
+            <div v-if="timelineHasMore" class="text-center">
+              <el-button
+                text
+                type="primary"
+                :loading="timelineLoading"
+                @click="loadTimeline(false)"
+              >
+                加载更多
+              </el-button>
+            </div>
+          </el-skeleton>
+        </el-card>
+      </re-col>
+      <re-col :value="8" :md="8" :sm="24" :xs="24" class="mb-4">
+        <div class="flex h-full flex-col gap-4">
+          <el-card shadow="never">
+            <template #header>
+              <span class="font-medium">照片墙</span>
+            </template>
+            <el-skeleton :loading="loading" animated :rows="3">
+              <div
+                v-if="summary?.recentPhotos?.length"
+                class="grid grid-cols-3 gap-2"
+              >
+                <el-image
+                  v-for="(url, index) in summary.recentPhotos"
+                  :key="url"
+                  class="aspect-square w-full rounded-md"
+                  :src="url"
+                  :preview-src-list="summary.recentPhotos"
+                  :initial-index="index"
+                  preview-teleported
+                  hide-on-click-modal
+                  fit="cover"
+                  lazy
+                />
+              </div>
+              <el-empty v-else description="还没有照片">
+                <el-button
+                  type="primary"
+                  @click="router.push('/admin/love-photo')"
+                >
+                  去恋爱画册上传
+                </el-button>
+              </el-empty>
+            </el-skeleton>
+          </el-card>
+          <el-card shadow="never" class="stat-card flex-1">
+            <template #header>
+              <span class="font-medium">我们的数据</span>
+            </template>
+            <el-skeleton :loading="loading" animated :rows="5">
+              <div class="grid grid-cols-2 gap-3">
+                <div class="stat-cell">
+                  <div class="stat-value">
+                    {{ summary?.counts?.messages ?? 0 }}
+                  </div>
+                  <div class="stat-label">留言簿</div>
+                </div>
+                <div class="stat-cell">
+                  <div class="stat-value">
+                    <template v-if="summary?.loveListProgress?.total">
+                      {{
+                        Math.round(
+                          (summary.loveListProgress.done * 100) /
+                            summary.loveListProgress.total
+                        )
+                      }}%
+                    </template>
+                    <template v-else>-</template>
+                  </div>
+                  <div class="stat-label">
+                    恋爱清单{{
+                      summary?.loveListProgress?.total
+                        ? `（${summary.loveListProgress.done}/${summary.loveListProgress.total}）`
+                        : ""
+                    }}
+                  </div>
+                </div>
+                <div class="stat-cell">
+                  <div class="stat-value">
+                    {{ summary?.footprintsCityCount ?? 0 }}
+                  </div>
+                  <div class="stat-label">足迹到访城市</div>
+                </div>
+                <div class="stat-cell">
+                  <div class="stat-value">
+                    {{ summary?.counts?.timeCapsules ?? 0 }}
+                  </div>
+                  <div class="stat-label">时间胶囊</div>
+                </div>
+              </div>
+              <div v-if="summary?.latestMessage" class="mt-5">
+                <div class="mb-1 text-sm">最新留言</div>
+                <div
+                  class="rounded-md p-3 text-sm"
+                  style="background: var(--el-fill-color-light)"
+                >
+                  <span class="font-medium">{{
+                    summary.latestMessage.nickname
+                  }}</span>
+                  <span
+                    class="ml-2 text-xs"
+                    style="color: var(--el-text-color-secondary)"
+                  >
+                    {{ summary.latestMessage.createTime }}
+                  </span>
+                  <div class="mt-1">{{ summary.latestMessage.content }}</div>
+                </div>
+              </div>
+            </el-skeleton>
+          </el-card>
+        </div>
+      </re-col>
+    </el-row>
+
+    <!-- ⑤ 快捷操作:三个最高频动作的收尾入口 -->
+    <el-row :gutter="16">
+      <re-col
+        v-for="action in quickActions"
+        :key="action.path"
+        :value="8"
+        :md="8"
+        :sm="24"
+        :xs="24"
+        class="mb-4"
+      >
+        <el-card
+          shadow="hover"
+          class="quick-action-card"
+          @click="router.push(action.path)"
+        >
+          <div class="flex items-center justify-center gap-2">
+            <el-icon :size="18" style="color: var(--el-color-primary)">
+              <component :is="useRenderIcon(action.icon)" />
+            </el-icon>
+            <span class="font-medium">{{ action.title }}</span>
+            <span class="text-xs" style="color: var(--el-text-color-secondary)">
+              {{ action.desc }}
+            </span>
+          </div>
         </el-card>
       </re-col>
     </el-row>
   </div>
 </template>
 
-<style lang="scss" scoped>
-:deep(.el-card) {
-  --el-card-border-color: none;
+<style scoped lang="scss">
+/* 统计卡等高填充:header 固定,body 撑满剩余高度并将留言贴底 */
+.stat-card {
+  display: flex;
+  flex-direction: column;
 
-  /* 解决概率进度条宽度 */
-  .el-progress--line {
-    width: 85%;
+  :deep(.el-card__body) {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
   }
 
-  /* 解决概率进度条字体大小 */
-  .el-progress-bar__innerText {
-    font-size: 15px;
-  }
-
-  /* 隐藏 el-scrollbar 滚动条 */
-  .el-scrollbar__bar {
-    display: none;
-  }
-
-  /* el-timeline 每一项上下、左右边距 */
-  .el-timeline-item {
-    margin: 0 6px;
+  /* 骨架层是 body 的唯一子元素,需同样纵向拉伸才能让内容分布生效 */
+  :deep(.el-skeleton) {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: space-between;
   }
 }
 
-:deep(.el-timeline.is-start) {
-  padding-left: 0;
+/* 统计数字格:浅底圆角,大数字 + 小标签 */
+.stat-cell {
+  padding: 12px 16px;
+  text-align: center;
+  background: var(--el-fill-color-light);
+  border-radius: 8px;
+
+  .stat-value {
+    font-size: 22px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--el-color-primary);
+  }
+
+  .stat-label {
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--el-text-color-secondary);
+  }
 }
 
-/* 卡片行距:mb-4.5 为小数间距类,当前 Tailwind 版本不生成,改用 scoped 规则实现 18px */
-.card-gap {
-  margin-bottom: 18px;
+/* 可点击卡片显式手型光标 */
+.entry-card,
+.quick-action-card {
+  cursor: pointer;
+}
+
+/* 时间线卡:大屏下保证合理最小高度,空态与加载更多落在恰当位置 */
+.timeline-card {
+  display: flex;
+  flex-direction: column;
+
+  :deep(.el-card__body) {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+  }
+
+  /* 骨架层为 body 唯一子元素,同样纵向拉伸 */
+  :deep(.el-skeleton) {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+  }
+
+  /* 时间线与空态占据剩余空间,空态自然垂直居中 */
+  :deep(.el-timeline),
+  :deep(.el-empty) {
+    flex: 1;
+  }
 }
 </style>

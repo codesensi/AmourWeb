@@ -111,13 +111,13 @@ const onLogin = async (formEl: FormInstance | undefined) => {
           // 获取后端路由
           await initRouter();
           disabled.value = true;
-          // redirect 回跳:仅接受站内路径(以 / 开头且非 //,防开放重定向),
-          // 登录后回到被 401 登出前的页面;缺省落首菜单
+          // redirect 回跳:仅接受管理端路径(门户为公开页,无需登录,登录后应进管理端;
+          // 白名单正则同时防开放重定向),缺省落首菜单
           const { redirect } = route.query;
           const target =
-            typeof redirect === "string" && /^\/(?!\/)/.test(redirect)
+            typeof redirect === "string" && /^\/admin(\/|$)/.test(redirect)
               ? redirect
-              : getTopMenu(true).path ?? "/";
+              : (getTopMenu(true).path ?? "/");
           router.push(target).then(() => {
             message("登录成功", { type: "success" });
           });
