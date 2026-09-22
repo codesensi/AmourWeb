@@ -1,34 +1,59 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed } from "vue";
+import { useQuery } from "@tanstack/vue-query";
 import {
   getNoticeList,
   markNoticesRead,
   type NoticeItem
 } from "@/api/sys-notice";
+import { auditMessage } from "@/api/admin-message";
+import { queryClient } from "@/plugins/vue-query";
+import { queryKeys } from "@/hooks/query-keys";
+import { hasPerms } from "@/utils/auth";
+import { message } from "@/utils/message";
 import NoticeList from "./components/NoticeList.vue";
 
 import BellIcon from "~icons/lucide/bell";
 import ArrowLeftIcon from "~icons/ri/arrow-left-s-line";
 
+/** 通知轮询间隔(毫秒):取 10~30 秒区间的折中值;标签页失焦时 vue-query 默认自动暂停 */
+const NOTICE_REFETCH_INTERVAL_MS = 15_000;
+
 const dropdownRef = ref();
-/** 通知列表(登录态接口;拉取失败静默降级为空态,与 fetchSysConfig 同款兜底风格) */
-const notices = ref<Array<NoticeItem>>([]);
 /** 当前查看的通知(空=列表视图,非空=详情视图) */
 const currentNotice = ref<NoticeItem | null>(null);
+/** 审批提交中(通过/驳回共用,防止重复提交) */
+const auditLoading = ref(false);
+
+/** 通知列表:vue-query 订阅 + 定时轮询(新留言的通知准实时出现;
+ *  拉取失败静默降级为空态,与 fetchSysConfig 同款兜底风格) */
+const { data: notices } = useQuery<Array<NoticeItem>>({
+  queryKey: queryKeys.notice().key,
+  queryFn: async () => {
+    try {
+      const res = await getNoticeList();
+      return res.data ?? [];
+    } catch {
+      return [];
+    }
+  },
+  refetchInterval: NOTICE_REFETCH_INTERVAL_MS
+});
 
 /** 未读数(角标红点由它驱动) */
 const unreadCount = computed(
-  () => notices.value.filter(item => !item.read).length
+  () => (notices.value ?? []).filter(item => !item.read).length
 );
 
-onMounted(async () => {
-  try {
-    const res = await getNoticeList();
-    notices.value = res.data ?? [];
-  } catch {
-    notices.value = [];
-  }
-});
+/**
+ * 是否展示审批操作:留言审核通知且当前用户持有留言修改权限(超管/主角)。
+ * 审批动作复用管理端留言审核端点,通知仅作为待办入口。
+ */
+const canAudit = computed(
+  () =>
+    currentNotice.value?.bizType === "message-audit" &&
+    hasPerms("admin:message:update")
+);
 
 /** 打开详情:进入即标记已读(未读时);标记失败则保持未读,下次进入可重试 */
 const onOpen = async (item: NoticeItem) => {
@@ -36,17 +61,46 @@ const onOpen = async (item: NoticeItem) => {
   if (!item.read) {
     try {
       await markNoticesRead([item.id]);
-      item.read = true;
+      queryClient.setQueryData<Array<NoticeItem>>(
+        queryKeys.notice().key,
+        list =>
+          (list ?? []).map(n => (n.id === item.id ? { ...n, read: true } : n))
+      );
     } catch {
       /* 静默降级:保持未读状态 */
     }
   }
 };
 
+/**
+ * 审批留言(通过/驳回):复用管理端留言审核端点,成功后失效门户留言缓存。
+ * 后端在审核落定后消化本条通知,失效通知缓存重拉后该通知自动消失。
+ */
+const onAudit = async (auditStatus: "approved" | "rejected") => {
+  const item = currentNotice.value;
+  if (!item?.bizId || auditLoading.value) return;
+  auditLoading.value = true;
+  try {
+    await auditMessage({ id: item.bizId, auditStatus });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.message().key });
+    message(`留言已${auditStatus === "approved" ? "通过" : "驳回"}`, {
+      type: "success"
+    });
+    await queryClient.invalidateQueries({ queryKey: queryKeys.notice().key });
+    currentNotice.value = null;
+  } catch {
+    /* 失败提示由 http 拦截器统一弹出,通知保持当前状态可重试 */
+  } finally {
+    auditLoading.value = false;
+  }
+};
+
 /** 全部标记已读:接口幂等,成功后本地同步置为已读,避免二次拉取 */
 const onMarkAsRead = async () => {
   await markNoticesRead();
-  notices.value = notices.value.map(item => ({ ...item, read: true }));
+  queryClient.setQueryData<Array<NoticeItem>>(queryKeys.notice().key, list =>
+    (list ?? []).map(item => ({ ...item, read: true }))
+  );
 };
 
 /** 面板关闭即复位为列表视图:避免下次打开仍停留在上次未退出的详情 */
@@ -76,7 +130,7 @@ const onVisibleChange = (visible: boolean) => {
     <template #dropdown>
       <el-dropdown-menu>
         <el-empty
-          v-if="notices.length === 0"
+          v-if="!notices?.length"
           description="暂无消息"
           :image-size="60"
           style="width: 330px"
@@ -112,16 +166,35 @@ const onVisibleChange = (visible: boolean) => {
             >
               {{ currentNotice.content }}
             </div>
+            <!-- 留言审核通知:持有留言修改权限的超管/主角可直接审批(审批落定后通知自动消化) -->
+            <div v-if="canAudit" class="mt-3 flex justify-end gap-2">
+              <el-button
+                type="primary"
+                size="small"
+                :loading="auditLoading"
+                @click="onAudit('approved')"
+              >
+                通过
+              </el-button>
+              <el-button
+                type="danger"
+                size="small"
+                :loading="auditLoading"
+                @click="onAudit('rejected')"
+              >
+                驳回
+              </el-button>
+            </div>
           </div>
         </div>
         <template v-else>
           <el-scrollbar max-height="345px">
             <div class="noticeList-container" style="width: 330px">
-              <NoticeList :list="notices" @open="onOpen" />
+              <NoticeList :list="notices ?? []" @open="onOpen" />
             </div>
           </el-scrollbar>
           <div
-            v-if="notices.length > 0"
+            v-if="!!notices?.length"
             class="border-t border-t-(--el-border-color-light) text-sm"
           >
             <div class="flex justify-end m-1">

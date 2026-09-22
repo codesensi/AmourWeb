@@ -147,6 +147,11 @@ async function submit() {
   formStatus.value = "";
   try {
     await sendMessage({ qq: form.qq, name: form.name, text: form.text });
+    // 成功后清空表单与 QQ 头像预览,避免残留信息误导二次提交
+    form.qq = "";
+    form.name = "";
+    form.text = "";
+    previewQqAvatar.value = "";
     message("留言提交成功,审核通过后上墙！", { type: "success" });
     submitText.value = "留言成功";
     formStatus.value = "留言提交成功,审核通过后就会出现在明信片墙上。";

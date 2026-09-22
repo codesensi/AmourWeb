@@ -3,7 +3,6 @@ import { portalPage } from "./utils";
 
 /** 留言-留言项 */
 export type MessageItem = {
-  qq: string;
   nickname: string;
   avatar: string;
   content: string;
@@ -11,10 +10,10 @@ export type MessageItem = {
   location: string;
 };
 
-/** 留言分页(GET /portal/message) */
+/** 留言分页(GET /portal/message,仅审核通过的留言) */
 export const getMessage = portalPage<MessageItem>("/portal/message");
 
-/** 提交留言(POST /portal/message,字段 {qq, name, text}) */
+/** 提交留言(POST /portal/message,字段 {qq, name, text};头像/IP 由后端采集,落库即待审核) */
 export const sendMessage = (data: {
   qq: string;
   name: string;

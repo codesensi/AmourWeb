@@ -47,7 +47,9 @@ export const DICT_CODES = {
   /** 照片显隐(与 HiddenEnum 对齐) */
   hidden: "hidden",
   /** 纪念日类型(与 AnniversaryTypeEnum 对齐) */
-  anniversaryType: "anniversary-type"
+  anniversaryType: "anniversary-type",
+  /** 留言审核状态(与 MessageAuditStatusEnum 对齐) */
+  messageAuditStatus: "message-audit-status"
 } as const;
 
 /** 字典批量查询(GET /portal/dict/list-by-codes,免登录;codes 逗号分隔) */
@@ -76,10 +78,7 @@ export type SysDictTypeItem = {
 
 /** 字典类型列表(GET /sys/dict/type/list,管理端) */
 export const getDictTypeList = () => {
-  return http.request<Array<SysDictTypeItem>>(
-    "get",
-    "/sys/dict/type/list"
-  );
+  return http.request<Array<SysDictTypeItem>>("get", "/sys/dict/type/list");
 };
 
 /** 字典类型管理-新增请求参数(对齐后端 DictTypeInsertRequest) */

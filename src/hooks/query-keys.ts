@@ -50,6 +50,8 @@ export const queryKeys = {
     ({ key: ["love-list"], staleTime: 5 * 60_000 }) as PortalResource,
   /** 留言板分页(访客可写,每次激活都校验) */
   message: () => ({ key: ["message"], staleTime: 0 }) as PortalResource,
+  /** 通知中心列表(登录态铃铛,管理端定时轮询驱动准实时出现;审批后即时失效重拉) */
+  notice: () => ({ key: ["notice"], staleTime: 0 }) as PortalResource,
   /** 时间胶囊分页 */
   timeCapsule: () =>
     ({ key: ["time-capsule"], staleTime: 60_000 }) as PortalResource,

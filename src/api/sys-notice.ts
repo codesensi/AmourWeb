@@ -1,5 +1,8 @@
 import { http } from "@/utils/http";
 
+/** 通知业务类型(与后端 NoticeBizTypeEnum 的 code 一致) */
+export type NoticeBizType = "message-audit";
+
 /** 通知条目(登录态,当前用户视角;read 为该用户的已读状态) */
 export interface NoticeItem {
   /** 通知ID(后端雪花ID字符串化,避免 JS 精度丢失) */
@@ -8,6 +11,10 @@ export interface NoticeItem {
   title: string;
   /** 通知内容 */
   content: string;
+  /** 业务类型(触发本通知的业务事件;空表示无关联业务) */
+  bizType?: NoticeBizType;
+  /** 业务ID(与 bizType 联合定位业务数据;后端雪花ID字符串化) */
+  bizId?: string;
   /** 创建时间(yyyy-MM-dd HH:mm:ss) */
   createTime: string;
   /** 当前用户是否已读 */
