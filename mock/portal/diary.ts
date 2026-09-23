@@ -1,24 +1,53 @@
-// 情侣日记 mock(GET /portal/diary 分页;双人日记按 user_id 分属两人)
+// 情侣日记 mock(GET /portal/diary/page 分页;双人日记按 user_id 分属两人)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 import { mockPhoto } from "./mock-photo";
 import { fakePageResponse } from "../utils";
 
-/** 两位记录人的展示信息(头像用内联 SVG 占位,保证离线可用) */
+/** 两位记录人的展示信息(头像用内联 SVG 占位,保证离线可用;username/nickname/qq 对齐后端 sys_user 种子) */
 const writers = [
   {
-    userId: 1,
-    nickname: "小满",
-    avatar: mockPhoto("小满", "#fdeef0", "#fbcfe8")
+    userId: 2,
+    username: "li",
+    nickname: "Li",
+    qq: "2623669948",
+    avatar: mockPhoto("li", "#fdeef0", "#fbcfe8")
   },
   {
-    userId: 2,
-    nickname: "阿澄",
-    avatar: mockPhoto("阿澄", "#e8f0fe", "#c7d9f7")
+    userId: 3,
+    username: "su",
+    nickname: "Su",
+    qq: "673822943",
+    avatar: mockPhoto("su", "#e8f0fe", "#c7d9f7")
   }
 ];
 
-/** 心情标识池(前端映射为线描图标;null 表示未标记心情) */
-const moods = ["sunny", "rainy", "starry", null, "sunny"];
+/** 心情标识池(与后端 DiaryMoodEnum 对齐;unknown 表示不标记心情) */
+const moods = [
+  "sunny",
+  "cloudy",
+  "overcast",
+  "rainy",
+  "drizzle",
+  "thunderstorm",
+  "windy",
+  "snowy",
+  "sleet",
+  "hail",
+  "starry",
+  "bloom",
+  "moon",
+  "rainbow",
+  "fog",
+  "leaf",
+  "sunset",
+  "meteor",
+  "aurora",
+  "unknown",
+  "sunny",
+  "drizzle",
+  "unknown",
+  "starry"
+];
 
 /** 日记内容池 */
 const contents = [
@@ -37,9 +66,11 @@ const diaryList = Array.from({ length: 18 }, (_, i) => {
   const month = String(((i * 5) % 12) + 1).padStart(2, "0");
   const day = String((i % 27) + 1).padStart(2, "0");
   return {
-    id: i + 1,
+    id: String(i + 1),
     userId: writer.userId,
+    username: writer.username,
     nickname: writer.nickname,
+    qq: writer.qq,
     avatar: writer.avatar,
     diaryDate: `2025-${month}-${day}`,
     mood: moods[i % moods.length],
@@ -50,7 +81,7 @@ const diaryList = Array.from({ length: 18 }, (_, i) => {
 export default defineFakeRoute([
   // 日记分页(GET /portal/diary)
   {
-    url: "/portal/diary",
+    url: "/portal/diary/page",
     method: "get",
     response: ({ query }) => fakePageResponse(diaryList, query)
   }

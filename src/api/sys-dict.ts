@@ -51,7 +51,9 @@ export const DICT_CODES = {
   /** 留言审核状态(与 MessageAuditStatusEnum 对齐) */
   messageAuditStatus: "message-audit-status",
   /** 通用完成状态(不带业务语义,如恋爱清单的已完成/未完成) */
-  done: "done"
+  done: "done",
+  /** 日记心情(与 DiaryMoodEnum 对齐) */
+  diaryMood: "diary-mood"
 } as const;
 
 /** 字典批量查询(GET /portal/dict/list-by-codes,免登录;codes 逗号分隔) */

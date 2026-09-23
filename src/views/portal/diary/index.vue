@@ -4,7 +4,7 @@ import { getDiary, type DiaryItem } from "@/api/portal/diary";
 import { queryKeys } from "@/hooks/query-keys";
 import { usePortalList } from "@/hooks/usePortalQuery";
 import PortalLoadMore from "@/components/PortalLoadMore/index.vue";
-import { fallbackAvatar } from "@/utils/avatar";
+import { resolveUserDisplay } from "@/utils/user-display";
 import { prefersReducedMotion } from "@/utils/motion";
 import reveal from "@/directives/reveal";
 
@@ -20,16 +20,16 @@ const { items, loading, hasMore, loadMore } = usePortalList<DiaryItem>(
   { pageSize: 12 }
 );
 
-/** 展开状态(超过 2 行截断展开) */
-const expanded = ref(new Set<number>());
+/** 展开状态(超过 2 行截断展开;id 为后端字符串化的 Long) */
+const expanded = ref(new Set<string>());
 
 /** 展开过渡时长(与 CSS max-height 过渡一致) */
 const EXPAND_MS = 400;
 
 /** 进行中的高度过渡定时器:快速连点时清理上一次 */
-const timers = new Map<number, number>();
+const timers = new Map<string, number>();
 
-function toggle(id: number) {
+function toggle(id: string) {
   const el = contentEls.get(id);
   const isExpanding = !expanded.value.has(id);
   // 减少动态偏好或元素缺失:状态瞬时切换,跳过高度动画
@@ -78,19 +78,19 @@ function toggle(id: number) {
 }
 
 /** 溢出检测结果:需要显示展开按钮的日记 id(已展开的恒显示「收起」) */
-const expandable = ref(new Set<number>());
+const expandable = ref(new Set<string>());
 
 /** 模板 ref 收集正文元素,供溢出量测 */
-const contentEls = new Map<number, HTMLElement>();
+const contentEls = new Map<string, HTMLElement>();
 
-function setContentRef(id: number, el: unknown) {
+function setContentRef(id: string, el: unknown) {
   if (el) contentEls.set(id, el as HTMLElement);
   else contentEls.delete(id);
 }
 
 /** 量测正文是否超过两行:未展开时滚动高大于可视高即溢出 */
 function measureOverflow() {
-  const next = new Set<number>();
+  const next = new Set<string>();
   for (const [id, el] of contentEls) {
     if (expanded.value.has(id) || el.scrollHeight > el.clientHeight + 1) {
       next.add(id);
@@ -128,18 +128,43 @@ onUnmounted(() => {
   timers.clear();
 });
 
-/** 记录人列表(按 user_id 聚合,维持首次出现顺序) */
-const writers = computed(() => {
-  const map = new Map<number, DiaryItem>();
-  for (const it of items.value) {
-    if (!map.has(it.userId)) map.set(it.userId, it);
-  }
-  return [...map.values()].map(it => ({
-    userId: it.userId,
-    nickname: it.nickname,
-    avatar: it.avatar
-  }));
-});
+/** 记录人展示信息(按 user_id 聚合,维持首次出现顺序) */
+type WriterColumn = {
+  userId: number;
+  name: string;
+  avatar: string;
+};
+
+const writers = ref<Array<WriterColumn>>([]);
+
+/** 分栏头展示链路与门户首页一致:QQ 昵称 → 昵称 → 用户名;
+ * 头像 QQ → 上传头像 → 兜底图(resolveUserDisplay 内部降级,恒非空) */
+watch(
+  items,
+  async list => {
+    const map = new Map<number, DiaryItem>();
+    for (const it of list) {
+      if (!map.has(it.userId)) map.set(it.userId, it);
+    }
+    const resolved = await Promise.all(
+      [...map.values()].map(async it => {
+        const display = await resolveUserDisplay({
+          nickname: it.nickname,
+          username: it.username,
+          avatar: it.avatar,
+          qq: it.qq
+        });
+        return {
+          userId: it.userId,
+          name: display.name,
+          avatar: display.avatar
+        };
+      })
+    );
+    writers.value = resolved;
+  },
+  { immediate: true }
+);
 
 /** 按记录人分组的日记(组内按日期倒序,后端契约按时间倒序) */
 const columns = computed(() => {
@@ -149,16 +174,31 @@ const columns = computed(() => {
   }));
 });
 
-/** 头像兜底 */
-function avatarSrc(it: DiaryItem): string {
-  return it.avatar || fallbackAvatar;
-}
-
-/** 心情线描图标(枚举:m sunny/rainy/starry;其余不展示) */
+/** 心情线描图标(unknown 为不标记不展示;枚举与后端 DiaryMoodEnum 对齐) */
 function moodIcon(mood: string | null): string | null {
-  if (!mood) return null;
-  if (["sunny", "rainy", "starry"].includes(mood)) return mood;
-  return null;
+  if (!mood || mood === "unknown") return null;
+  const known = [
+    "sunny",
+    "cloudy",
+    "overcast",
+    "rainy",
+    "drizzle",
+    "thunderstorm",
+    "windy",
+    "snowy",
+    "sleet",
+    "hail",
+    "starry",
+    "bloom",
+    "moon",
+    "rainbow",
+    "fog",
+    "leaf",
+    "sunset",
+    "meteor",
+    "aurora"
+  ];
+  return known.includes(mood) ? mood : null;
 }
 </script>
 
@@ -175,8 +215,8 @@ function moodIcon(mood: string | null): string | null {
     <div v-if="columns.length" class="diary-columns">
       <section v-for="col in columns" :key="col.userId" class="diary-column">
         <header class="diary-col-head">
-          <img :src="col.avatar || fallbackAvatar" :alt="col.nickname" />
-          <span class="diary-col-name">{{ col.nickname }} 的手账</span>
+          <img :src="col.avatar" :alt="col.name" />
+          <span class="diary-col-name">{{ col.name }} 的手账</span>
         </header>
 
         <article
@@ -233,6 +273,248 @@ function moodIcon(mood: string | null): string | null {
               <path
                 d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3zM19 15l.9 2.6L21 18.5l-.9.9-.9 2.6-.9-2.6-.9-.9.9-.9L18.7 15l.9 1z"
               />
+            </svg>
+            <svg
+              v-else-if="moodIcon(it.mood) === 'cloudy'"
+              class="diary-mood"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M16 18a3 3 0 0 0 0-6 4.5 4.5 0 0 0-8.5-1.5A3.5 3.5 0 0 0 7 18h9z"
+              />
+            </svg>
+            <svg
+              v-else-if="moodIcon(it.mood) === 'windy'"
+              class="diary-mood"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M3 8h9a2.5 2.5 0 1 0-2-3.2" />
+              <path d="M3 12h13a2.5 2.5 0 1 1-2 4" />
+              <path d="M3 16h6" />
+            </svg>
+            <svg
+              v-else-if="moodIcon(it.mood) === 'snowy'"
+              class="diary-mood"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M12 3v18M4.2 7.5l15.6 9M19.8 7.5l-15.6 9" />
+              <path d="M12 6.5l-2-1m2 1l2-1m-2 13l-2 1m2-1l2 1" />
+            </svg>
+            <svg
+              v-else-if="moodIcon(it.mood) === 'bloom'"
+              class="diary-mood"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="9" r="2.2" />
+              <path
+                d="M12 6.8c0-2.5 1.5-3.8 3.2-3.8 0 2.4-1.2 3.6-3.2 3.8zm0 0c-2-0.2-3.2-1.4-3.2-3.8C10.8 3 12 4.3 12 6.8z"
+              />
+              <path d="M12 11.2V15m0 0c-2.8 0-5 1.6-5 4h10c0-2.4-2.2-4-5-4z" />
+            </svg>
+            <svg
+              v-else-if="moodIcon(it.mood) === 'moon'"
+              class="diary-mood"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" />
+            </svg>
+            <svg
+              v-else-if="moodIcon(it.mood) === 'rainbow'"
+              class="diary-mood"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M3 18a9 9 0 0 1 18 0" />
+              <path d="M7 18a5 5 0 0 1 10 0" />
+            </svg>
+            <svg
+              v-else-if="moodIcon(it.mood) === 'fog'"
+              class="diary-mood"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M5 8h14M7 12h12M4 16h11" />
+            </svg>
+            <svg
+              v-else-if="moodIcon(it.mood) === 'leaf'"
+              class="diary-mood"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M5 19C5 9 11 4 20 4c0 9-5 14-13 14" />
+              <path d="M5 19c2-5 5-8 9-10" />
+            </svg>
+            <svg
+              v-else-if="moodIcon(it.mood) === 'overcast'"
+              class="diary-mood"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M6 8.5a3 3 0 0 1 5.6-1.5" />
+              <path
+                d="M15 19a4 4 0 0 0 .8-7.9A5.5 5.5 0 0 0 5.5 12 3.5 3.5 0 0 0 6 19h9z"
+              />
+            </svg>
+            <svg
+              v-else-if="moodIcon(it.mood) === 'drizzle'"
+              class="diary-mood"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M17 13a3.5 3.5 0 0 0-.5-7 5 5 0 0 0-9 1.5A3.8 3.8 0 0 0 8 13"
+              />
+              <path d="M9 16.5v1.5m3-1v2m3-2.5v1.5" />
+            </svg>
+            <svg
+              v-else-if="moodIcon(it.mood) === 'thunderstorm'"
+              class="diary-mood"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M17 12a3.5 3.5 0 0 0-.5-7 5 5 0 0 0-9 1.5A3.8 3.8 0 0 0 8 12"
+              />
+              <path d="M12.5 13l-2 3.5h2.5l-1.5 3.5" />
+            </svg>
+            <svg
+              v-else-if="moodIcon(it.mood) === 'sleet'"
+              class="diary-mood"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M17 13a3.5 3.5 0 0 0-.5-7 5 5 0 0 0-9 1.5A3.8 3.8 0 0 0 8 13"
+              />
+              <path d="M9 16.5l-1 2m4-2.5l-1 2m4-2l-1 2" />
+              <path
+                d="M17.5 17.5l1.5-1.5m0 3l-1.5-1.5m0 0L15.5 18m1.5 1.5V21"
+              />
+            </svg>
+            <svg
+              v-else-if="moodIcon(it.mood) === 'hail'"
+              class="diary-mood"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M17 13a3.5 3.5 0 0 0-.5-7 5 5 0 0 0-9 1.5A3.8 3.8 0 0 0 8 13"
+              />
+              <path d="M9 16.5v.5m3 1v.5m3-2.5v.5" />
+            </svg>
+            <svg
+              v-else-if="moodIcon(it.mood) === 'sunset'"
+              class="diary-mood"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M8 17a4 4 0 0 1 8 0" />
+              <path
+                d="M4 17h2m12 0h2M12 9V7m-5.5 3.5l1.4 1.4m8.6-1.4l-1.4 1.4M3 21h18"
+              />
+            </svg>
+            <svg
+              v-else-if="moodIcon(it.mood) === 'meteor'"
+              class="diary-mood"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M8 13l1 2.4 2.5 1-2.4 1-1 2.6-1-2.6-2.5-1 2.5-1z" />
+              <path d="M12 12l7-7m-4 12l5-5" />
+            </svg>
+            <svg
+              v-else-if="moodIcon(it.mood) === 'aurora'"
+              class="diary-mood"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M3 10c2-3 4-3 6 0s4 3 6 0 4-3 6 0" />
+              <path d="M3 15.5c2-3 4-3 6 0s4 3 6 0 4-3 6 0" />
             </svg>
           </header>
           <p
