@@ -91,19 +91,10 @@ export const getDashboardSummary = () => {
   return http.request<DashboardSummary>("get", "/admin/dashboard/summary");
 };
 
-/** 最近回忆时间线分页参数 */
-export interface DashboardTimelineQuery {
-  /** 页码(1 起) */
-  pageNumber: number;
-  /** 每页条数 */
-  pageSize: number;
-}
-
-/** 最近回忆时间线(GET /admin/dashboard/timeline;登录态) */
-export const getDashboardTimeline = (params: DashboardTimelineQuery) => {
+/** 最近回忆时间线(GET /admin/dashboard/timeline;登录态,固定返回最新条数) */
+export const getDashboardTimeline = () => {
   return http.request<PageResult<DashboardTimelineItem>>(
     "get",
-    "/admin/dashboard/timeline",
-    { params }
+    "/admin/dashboard/timeline"
   );
 };

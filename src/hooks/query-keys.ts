@@ -37,8 +37,8 @@ export const queryKeys = {
     ({ key: ["anniversary", "focus"], staleTime: Infinity }) as PortalResource,
   /** 点滴文章分页 */
   moments: () => ({ key: ["moments"], staleTime: 30_000 }) as PortalResource,
-  /** 点滴文章详情(按 id 参数化) */
-  moment: (id: number) =>
+  /** 点滴文章详情(按 id 参数化;雪花号字符串透传,禁止 Number 化) */
+  moment: (id: string) =>
     ({ key: ["moment", id], staleTime: 30_000 }) as PortalResource,
   /** 恋爱日记分页 */
   diary: () => ({ key: ["diary"], staleTime: 60_000 }) as PortalResource,

@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import DOMPurify from "dompurify";
 import { RouterLink } from "vue-router";
+import { ref, watch } from "vue";
 import { getMoments, type MomentsItem } from "@/api/portal/moments";
 import { queryKeys } from "@/hooks/query-keys";
 import { usePortalList } from "@/hooks/usePortalQuery";
+import { resolveUserDisplay } from "@/utils/user-display";
 import PortalLoadMore from "@/components/PortalLoadMore/index.vue";
 import reveal from "@/directives/reveal";
 
@@ -16,9 +19,47 @@ const { items, loading, hasMore, loadMore } = usePortalList<MomentsItem>(
   getMoments
 );
 
-/** 富文本摘要:去标签取纯文本并统一截断,引导进入详情页阅读全文 */
-function excerptOf(html: string, max = 96): string {
-  const text = html
+/** 作者展示列(头像/昵称,QQ 昵称 → 昵称 → 用户名;头像恒非空) */
+interface WriterColumn {
+  id: string;
+  name: string;
+  avatar: string;
+}
+
+const writers = ref<Record<string, WriterColumn>>({});
+
+/** 数据到达后解析作者展示信息(头像/昵称),内部静默降级 */
+watch(
+  () => items.value,
+  async list => {
+    if (!list?.length) return;
+    for (const it of list) {
+      if (writers.value[it.id]) continue;
+      writers.value[it.id] = {
+        id: it.id,
+        ...(await resolveUserDisplay({
+          nickname: it.nickname,
+          username: it.username,
+          avatar: it.avatar,
+          qq: it.qq
+        }))
+      };
+    }
+  },
+  { immediate: true, deep: true }
+);
+
+/** 标签拆分:逗号分隔 → 去空数组 */
+function tagsOf(item: MomentsItem): string[] {
+  return (item.tags ?? "")
+    .split(",")
+    .map(tag => tag.trim())
+    .filter(Boolean);
+}
+
+/** 富文本摘要:净化后去标签取纯文本并统一截断,引导进入详情页阅读全文 */
+function excerptOf(item: MomentsItem, max = 96): string {
+  const text = DOMPurify.sanitize(item.content ?? "", { ALLOWED_TAGS: [] })
     .replace(/<[^>]+>/g, " ")
     .replace(/\s+/g, " ")
     .trim();
@@ -43,12 +84,25 @@ function excerptOf(html: string, max = 96): string {
       class="moment reveal"
     >
       <div class="moment-body">
-        <h2 class="moment-title">
-          <RouterLink :to="`/moments/${it.id}`" class="moment-link">
-            {{ it.title }}
-          </RouterLink>
-        </h2>
-        <p class="moment-excerpt">{{ excerptOf(it.content) }}</p>
+        <div class="moment-title-row">
+          <span class="moment-index" aria-hidden="true">
+            {{ String(i + 1).padStart(2, "0") }}
+          </span>
+          <h2 class="moment-title">
+            <RouterLink :to="`/moments/${it.id}`" class="moment-link">
+              {{ it.title }}
+            </RouterLink>
+          </h2>
+        </div>
+        <p v-if="it.category || tagsOf(it).length" class="moment-pills">
+          <span v-if="it.category" class="moment-pill moment-pill--category">
+            {{ it.category }}
+          </span>
+          <span v-for="tag in tagsOf(it)" :key="tag" class="moment-pill">
+            #{{ tag }}
+          </span>
+        </p>
+        <p class="moment-excerpt">{{ excerptOf(it) }}</p>
         <RouterLink :to="`/moments/${it.id}`" class="moment-more">
           阅读全文
           <svg
@@ -66,9 +120,13 @@ function excerptOf(html: string, max = 96): string {
         </RouterLink>
       </div>
       <div class="moment-aside">
-        <span class="moment-index">{{ String(i + 1).padStart(2, "0") }}</span>
-        <span class="moment-author">{{ it.author }}</span>
-        <time class="moment-date">{{ it.date }}</time>
+        <img
+          class="moment-avatar"
+          :src="writers[it.id]?.avatar"
+          :alt="writers[it.id]?.name"
+        />
+        <span class="moment-author">{{ writers[it.id]?.name }}</span>
+        <time class="moment-date">{{ it.recordDate }}</time>
       </div>
     </article>
 
@@ -107,6 +165,13 @@ function excerptOf(html: string, max = 96): string {
 .moment-body {
   flex: 1;
   min-width: 0;
+}
+
+/* 标题行:前导序号与标题同行,基线对齐 */
+.moment-title-row {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
 }
 
 /* 标题:衬线大字,悬停玫瑰色 + 下划线浮现 */
@@ -167,7 +232,7 @@ function excerptOf(html: string, max = 96): string {
   transform: translateX(4px);
 }
 
-/* 右侧署名栏:序号 + 作者 + 日期纵排 */
+/* 右侧署名栏:头像 + 作者 + 日期纵排(序号已移至标题行) */
 .moment-aside {
   display: flex;
   flex-shrink: 0;
@@ -176,10 +241,22 @@ function excerptOf(html: string, max = 96): string {
   align-items: flex-end;
 }
 
+.moment-avatar {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 2px;
+  object-fit: cover;
+  border: 1px solid var(--am-line);
+  border-radius: 50%;
+}
+
+/* 标题行前导序号:等宽玫瑰小字 */
 .moment-index {
+  flex-shrink: 0;
   font-family: var(--am-font-mono);
   font-size: var(--am-text-sm);
   color: var(--am-rose);
+  letter-spacing: 0.08em;
 }
 
 .moment-author {
@@ -191,6 +268,29 @@ function excerptOf(html: string, max = 96): string {
   font-family: var(--am-font-mono);
   font-size: var(--am-text-xs);
   color: var(--am-ink-secondary);
+}
+
+/* 分类/标签 pill:分类玫瑰实底、标签虚线框 + # 前缀,双通道区分不依赖颜色 */
+.moment-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0 0;
+}
+
+.moment-pill {
+  padding: 2px 10px;
+  font-family: var(--am-font-mono);
+  font-size: var(--am-text-xs);
+  color: var(--am-ink-secondary);
+  border: 1px dashed var(--am-line);
+  border-radius: 999px;
+}
+
+.moment-pill--category {
+  color: var(--am-rose);
+  background: color-mix(in srgb, var(--am-rose) 12%, transparent);
+  border-color: transparent;
 }
 
 @media (width <= 640px) {

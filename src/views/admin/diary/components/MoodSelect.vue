@@ -89,13 +89,13 @@ const model = computed({
 /* 下拉选项/选中回显的心情图标行 */
 .mood-option {
   display: inline-flex;
-  align-items: center;
   gap: 6px;
+  align-items: center;
 }
 
 .mood-option-icon {
+  flex-shrink: 0;
   width: 16px;
   height: 16px;
-  flex-shrink: 0;
 }
 </style>

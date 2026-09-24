@@ -14,8 +14,6 @@ defineOptions({
   name: "Welcome"
 });
 
-const PAGE_SIZE = 10;
-
 /** 模块入口配置(icon/标题与侧边栏菜单保持一致) */
 const moduleEntries = [
   {
@@ -101,14 +99,9 @@ const router = useRouter();
 const loading = ref(true);
 const summary = ref<DashboardSummary | null>(null);
 
-/** 时间线状态 */
+/** 时间线状态(后端固定返回最新条数,不做翻页) */
 const timelineItems = ref<DashboardTimelineItem[]>([]);
-const timelineTotal = ref(0);
-const timelinePageNumber = ref(1);
 const timelineLoading = ref(false);
-const timelineHasMore = computed(
-  () => timelineTotal.value > timelineItems.value.length
-);
 
 /** 按时段问候 */
 const greeting = computed(() => {
@@ -160,29 +153,12 @@ async function loadSummary() {
   }
 }
 
-/** 加载时间线(reset=true 时回到第一页并清空已有条目) */
-async function loadTimeline(reset = false) {
+/** 加载时间线(单次拉取最新条数) */
+async function loadTimeline() {
   if (timelineLoading.value) return;
-  if (reset) {
-    timelinePageNumber.value = 1;
-  } else if (!timelineHasMore.value) {
-    return;
-  }
   timelineLoading.value = true;
   try {
-    const page = (
-      await getDashboardTimeline({
-        pageNumber: timelinePageNumber.value,
-        pageSize: PAGE_SIZE
-      })
-    ).data;
-    if (reset) {
-      timelineItems.value = page.records;
-    } else {
-      timelineItems.value = timelineItems.value.concat(page.records);
-    }
-    timelineTotal.value = page.totalRow;
-    timelinePageNumber.value += 1;
+    timelineItems.value = (await getDashboardTimeline()).data.records;
   } finally {
     timelineLoading.value = false;
   }
@@ -195,7 +171,7 @@ function typeLabel(type: string) {
 
 onMounted(() => {
   loadSummary();
-  loadTimeline(true);
+  loadTimeline();
 });
 </script>
 
@@ -354,16 +330,6 @@ onMounted(() => {
                 去恋爱画册上传第一张照片
               </el-button>
             </el-empty>
-            <div v-if="timelineHasMore" class="text-center">
-              <el-button
-                text
-                type="primary"
-                :loading="timelineLoading"
-                @click="loadTimeline(false)"
-              >
-                加载更多
-              </el-button>
-            </div>
           </el-skeleton>
         </el-card>
       </re-col>
