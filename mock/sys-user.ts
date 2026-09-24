@@ -109,11 +109,15 @@ export default defineFakeRoute([
       records = records.filter(item =>
         (item.email ?? "").includes(String(query.email ?? ""))
       );
-      // 精确匹配条件(对齐后端 eq)
-      if (query.gender)
+      // 精确匹配条件(对齐后端 eq;显式判空,避免数字 0 被当作 falsy 跳过过滤)
+      if (query.gender !== undefined && query.gender !== "")
         records = records.filter(item => item.gender === query.gender);
-      if (query.status)
-        records = records.filter(item => String(item.status) === query.status);
+      if (query.status !== undefined && query.status !== "")
+        records = records.filter(
+          item => String(item.status) === String(query.status)
+        );
+      // 排序对齐后端 ORDER BY id DESC(新记录最前)
+      records.sort((a, b) => Number(b.id) - Number(a.id));
       const pageNumber = Number(query.pageNumber ?? 1);
       const pageSize = Number(query.pageSize ?? 20);
       const start = (pageNumber - 1) * pageSize;

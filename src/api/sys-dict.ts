@@ -176,8 +176,8 @@ export type DictDataInsertRequest = {
   dictValue: string;
   /** 字典标签 */
   dictLabel: string;
-  /** 排序(数字越小越靠前) */
-  sort?: number;
+  /** 排序(数字越小越靠前;后端 @NotNull 必填) */
+  sort: number;
   /** 状态:0-启用,1-禁用 */
   status?: number;
   /** 备注 */
@@ -192,8 +192,8 @@ export type DictDataUpdateRequest = {
   dictValue: string;
   /** 字典标签 */
   dictLabel: string;
-  /** 排序(数字越小越靠前) */
-  sort?: number;
+  /** 排序(数字越小越靠前;后端 @NotNull 必填) */
+  sort: number;
   /** 备注 */
   remark?: string;
 };

@@ -130,7 +130,7 @@ onUnmounted(() => {
 
 /** 记录人展示信息(按 user_id 聚合,维持首次出现顺序) */
 type WriterColumn = {
-  userId: number;
+  userId: string;
   name: string;
   avatar: string;
 };
@@ -142,7 +142,7 @@ const writers = ref<Array<WriterColumn>>([]);
 watch(
   items,
   async list => {
-    const map = new Map<number, DiaryItem>();
+    const map = new Map<string, DiaryItem>();
     for (const it of list) {
       if (!map.has(it.userId)) map.set(it.userId, it);
     }

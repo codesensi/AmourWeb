@@ -168,8 +168,8 @@ const footprints = [
   }
 ];
 
-/** 门户可见数据(仅显隐为「显示」的足迹,对齐后端门户查询的 hidden=0 强制过滤) */
-const visibleFootprints = footprints.filter(item => item.hidden === 0);
+/** 门户可见数据(仅显隐为「显示」的足迹,对齐后端门户查询的 hidden=0 强制过滤;未声明 hidden 视为显示) */
+const visibleFootprints = footprints.filter(item => item.hidden !== 1);
 
 export default defineFakeRoute([
   // 足迹分页(GET /portal/footprint/page;数据按到访日期升序,与列表契约一致)

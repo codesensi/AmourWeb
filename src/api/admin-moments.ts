@@ -8,8 +8,8 @@ export interface MomentsPageItem {
   id: string;
   /** 文章标题 */
   title: string;
-  /** 作者ID */
-  userId: number;
+  /** 作者ID(后端序列化为字符串,避免 JS 精度丢失) */
+  userId: string;
   /** 作者用户名(服务层批量回填) */
   username: string;
   /** 文章内容(富文本 HTML) */

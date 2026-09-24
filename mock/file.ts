@@ -38,7 +38,7 @@ type MockFile = {
   storageType: string;
   path: string;
   bizType: string;
-  bizId: string;
+  bizId: string | null;
   creator: string;
   creatorName: string;
   createTime: string;
@@ -71,7 +71,7 @@ let files: MockFile[] = [
     storageType: "local",
     path: "photo/202609/2002.jpg",
     bizType: "photo",
-    bizId: "",
+    bizId: null,
     creator: "2",
     creatorName: "li",
     createTime: "2026-09-03 12:30:00",
@@ -101,7 +101,7 @@ let files: MockFile[] = [
     storageType: "local",
     path: "photo/202609/2004.gif",
     bizType: "photo",
-    bizId: "",
+    bizId: null,
     creator: "2",
     creatorName: "li",
     createTime: "2026-09-08 09:15:00",
@@ -116,7 +116,7 @@ let files: MockFile[] = [
     storageType: "local",
     path: "avatar/202609/2005.jpeg",
     bizType: "avatar",
-    bizId: "",
+    bizId: null,
     creator: "1",
     creatorName: "admin",
     createTime: "2026-09-10 20:00:00",
@@ -196,7 +196,7 @@ export default defineFakeRoute([
         storageType: "local",
         path: `${bizType}/202609/${id}.png`,
         bizType,
-        bizId: "",
+        bizId: null,
         creator: "1",
         creatorName: "admin",
         createTime: formatNow(),

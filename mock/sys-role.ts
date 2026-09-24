@@ -118,14 +118,17 @@ export default defineFakeRoute([
       const name = String(query.name ?? "");
       const code = String(query.code ?? "");
       const status = query.status;
-      const records = roles.filter(
-        item =>
-          item.name.includes(name) &&
-          item.code.includes(code) &&
-          (status === undefined ||
-            status === "" ||
-            item.status === Number(status))
-      );
+      const records = roles
+        .filter(
+          item =>
+            item.name.includes(name) &&
+            item.code.includes(code) &&
+            (status === undefined ||
+              status === "" ||
+              item.status === Number(status))
+        )
+        // 排序对齐后端 ORDER BY id DESC(新记录最前)
+        .sort((a, b) => Number(b.id) - Number(a.id));
       const pageNumber = Number(query.pageNumber ?? 1);
       const pageSize = Number(query.pageSize ?? 20);
       const start = (pageNumber - 1) * pageSize;

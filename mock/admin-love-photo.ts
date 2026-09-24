@@ -1,6 +1,6 @@
 // 恋爱画册管理 mock(对齐后端 /admin/love-photo 接口)
 // page 契约对齐 LovePhotoPageResponse:id/url/caption/dateText/tags(逗号分隔串)/sort/hidden/createTime
-// insert/update 契约对齐 LovePhotoSaveRequest:tags 前端传数组,提交时按后端同规则规范化为逗号分隔串
+// insert/update 契约对齐 LovePhotoInsertRequest/LovePhotoUpdateRequest:tags 前端传数组,提交时按后端同规则规范化为逗号分隔串
 // delete 契约对齐 DELETE /admin/love-photo/delete/{ids}:批量逻辑删除(ids 逗号拼接)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 import { mockPhoto } from "./portal/mock-photo";

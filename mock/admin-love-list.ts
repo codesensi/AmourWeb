@@ -1,6 +1,6 @@
 // 恋爱清单管理 mock(对齐后端 /admin/love-list 接口)
 // page 契约对齐 LoveListPageResponse:id/content/done/photo/sort/hidden/createTime
-// insert/update 契约对齐 LoveListSaveRequest:done/hidden 并入表单整体维护
+// insert/update 契约对齐 LoveListInsertRequest/LoveListUpdateRequest:done/hidden 并入表单整体维护
 // delete 契约对齐 DELETE /admin/love-list/delete/{ids}:批量逻辑删除(ids 逗号拼接)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 import { mockPhoto } from "./portal/mock-photo";

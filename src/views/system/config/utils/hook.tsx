@@ -116,7 +116,8 @@ export function useConfigPage() {
         title: "修改",
         id: row.id,
         configKey: row.configKey,
-        configValue: row.configValue,
+        // 接口行 configValue 可空(null=未配置),表单层以空串承接,保存空串即清除配置
+        configValue: row.configValue ?? "",
         valueType: row.valueType,
         configGroup: row.configGroup,
         remark: row.remark ?? ""

@@ -6,8 +6,8 @@ import type { PageQuery, PageResult } from "@/api/types";
 export interface DiaryPageItem {
   /** 主键ID(后端序列化为字符串,避免 JS 精度丢失) */
   id: string;
-  /** 记录人ID */
-  userId: number;
+  /** 记录人ID(后端序列化为字符串,避免 JS 精度丢失) */
+  userId: string;
   /** 记录人用户名(服务层批量回填) */
   username: string;
   /** 记录人头像(服务层批量回填;空则前端兜底图) */
@@ -26,8 +26,8 @@ export interface DiaryPageItem {
 
 /** 情侣日记分页查询参数 */
 export type DiaryQuery = PageQuery & {
-  /** 记录人ID(精确匹配) */
-  userId?: number;
+  /** 记录人ID(精确匹配;后端 Long 接收,前端以字符串透传) */
+  userId?: string;
   /** 记录日期(yyyy-MM-dd;精确匹配) */
   diaryDate?: string;
   /** 心情标识(精确匹配) */

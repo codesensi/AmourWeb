@@ -7,10 +7,10 @@ export type MomentsItem = {
   /** 文章 ID(后端主键序列化为字符串,JS Number 精度丢失防护) */
   id: string;
   title: string;
-  /** 作者用户ID */
-  userId: number;
-  /** 作者用户名(服务层批量回填) */
-  username: string;
+  /** 作者用户ID(后端序列化为字符串,避免 JS 精度丢失) */
+  userId: string;
+  /** 作者用户名(服务层批量回填;作者缺失时为 null) */
+  username: string | null;
   /** 作者昵称(服务层批量回填;展示链路 QQ 昵称 → 昵称 → 用户名) */
   nickname: string | null;
   /** 作者 QQ 号(服务层批量回填;已维护时前端走 QQ 头像链路) */

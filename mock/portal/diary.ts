@@ -6,14 +6,14 @@ import { fakePageResponse } from "../utils";
 /** 两位记录人的展示信息(头像用内联 SVG 占位,保证离线可用;username/nickname/qq 对齐后端 sys_user 种子) */
 const writers = [
   {
-    userId: 2,
+    userId: "2",
     username: "li",
     nickname: "Li",
     qq: "2623669948",
     avatar: mockPhoto("li", "#fdeef0", "#fbcfe8")
   },
   {
-    userId: 3,
+    userId: "3",
     username: "su",
     nickname: "Su",
     qq: "673822943",

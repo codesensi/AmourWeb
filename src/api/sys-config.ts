@@ -6,9 +6,9 @@ import type { ApiResult, PageQuery, PageResult } from "@/api/types";
 export interface SysConfigItem {
   /** 配置键(如 name、copyright-year、site.love-start-date、captcha.enabled) */
   configKey: string;
-  /** 配置值(统一字符串存储) */
-  configValue: string;
-  /** 值类型:STRING,INTEGER,LONG,BOOLEAN,DATETIME */
+  /** 配置值(统一字符串存储;未配置时后端输出 null) */
+  configValue: string | null;
+  /** 值类型:STRING,INTEGER,LONG,BOOLEAN */
   valueType: string;
   /** 分组(base/site/captcha) */
   configGroup: string;
@@ -34,8 +34,8 @@ export type SysConfigPageItem = {
   id: string;
   /** 配置键(如 name、copyright-year、site.love-start-date、captcha.enabled) */
   configKey: string;
-  /** 配置值(统一字符串存储) */
-  configValue: string;
+  /** 配置值(统一字符串存储;未配置时为 null,如 logo/favicon/security.*) */
+  configValue: string | null;
   /** 值类型:STRING,INTEGER,LONG,BOOLEAN,DATETIME */
   valueType: string;
   /** 分组(base/site/captcha) */

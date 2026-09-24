@@ -25,10 +25,10 @@ const fail = (msg: string) => ({
   data: null
 });
 
-/** 作者展示信息(用户名对齐后端 sys_user 种子) */
+/** 作者展示信息(用户名对齐后端 sys_user 种子;userId 与后端同形,字符串化) */
 const writers = [
-  { userId: 2, username: "li" },
-  { userId: 3, username: "su" }
+  { userId: "2", username: "li" },
+  { userId: "3", username: "su" }
 ];
 
 /** 文章内容池(富文本 HTML,与门户 mock 同源风格) */
@@ -154,8 +154,8 @@ export default defineFakeRoute([
   {
     url: "/admin/moments/delete/:ids",
     method: "delete",
-    response: ({ query }) => {
-      const ids = String(query.ids).split(",");
+    response: ({ params }) => {
+      const ids = String(params.ids).split(",");
       const missing = ids.some(id => !momentsList.some(item => item.id === id));
       if (missing) {
         return fail("文章不存在");

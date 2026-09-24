@@ -4,16 +4,16 @@ import { portalPage } from "./utils";
 export type DiaryItem = {
   /** 主键ID(后端序列化为字符串,避免 JS 精度丢失) */
   id: string;
-  /** 记录人 ID(双人日记按人分栏) */
-  userId: number;
-  /** 记录人用户名(展示链路兜底用) */
-  username: string;
+  /** 记录人 ID(后端序列化为字符串,避免 JS 精度丢失;双人日记按人分栏) */
+  userId: string;
+  /** 记录人用户名(服务层批量回填;记录缺失时为 null,展示链路兜底) */
+  username: string | null;
   /** 记录人昵称(展示链路:QQ 昵称 → 昵称 → 用户名) */
   nickname: string | null;
   /** 记录人 QQ 号(已维护时走 QQ 头像链路) */
   qq: string | null;
   /** 记录人头像(空则前端兜底图) */
-  avatar: string;
+  avatar: string | null;
   /** 记录日期(yyyy-MM-dd) */
   diaryDate: string;
   /** 心情标识(unknown-不标记,与 DiaryMoodEnum 对齐;其余展示为线描图标) */

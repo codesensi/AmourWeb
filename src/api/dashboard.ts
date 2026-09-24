@@ -47,7 +47,7 @@ export interface DashboardLatestMessage {
   nickname: string;
   /** 留言内容 */
   content: string;
-  /** 留言时间(yyyy-MM-dd HH:mm) */
+  /** 留言时间(yyyy-MM-dd HH:mm:ss) */
   createTime: string;
 }
 
@@ -76,7 +76,7 @@ export type DashboardTimelineItemType = "photos" | "moments" | "diary";
 export interface DashboardTimelineItem {
   /** 条目类型 */
   type: DashboardTimelineItemType;
-  /** 时间(yyyy-MM-dd HH:mm) */
+  /** 时间(yyyy-MM-dd HH:mm:ss) */
   time: string;
   /** 标题 */
   title: string;

@@ -72,6 +72,12 @@ export default defineFakeRoute([
             auditStatus === "" ||
             auditStatus === message.auditStatus)
       );
+      // 排序对齐后端 CREATE_TIME desc → ID desc(最新留言在前)
+      filtered.sort(
+        (a, b) =>
+          b.createTime.localeCompare(a.createTime) ||
+          Number(b.id) - Number(a.id)
+      );
       return fakePageResponse(filtered, query);
     }
   },
@@ -90,8 +96,8 @@ export default defineFakeRoute([
   {
     url: "/admin/message/delete/:ids",
     method: "delete",
-    response: ({ query }) => {
-      const ids = String(query.ids ?? "")
+    response: ({ params }) => {
+      const ids = String(params.ids ?? "")
         .split(",")
         .filter(Boolean);
       const missing = ids.filter(

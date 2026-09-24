@@ -7,7 +7,7 @@ export const formRules = reactive(<FormRules>{
   pid: [{ required: true, message: "上级菜单为必填项", trigger: "change" }],
   title: [
     { required: true, message: "菜单名称为必填项", trigger: "blur" },
-    { max: 256, message: "菜单名称长度不能超过 256 位", trigger: "blur" }
+    { max: 64, message: "菜单名称长度不能超过 64 位", trigger: "blur" }
   ],
   component: [
     { max: 256, message: "组件路径长度不能超过 256 位", trigger: "blur" }

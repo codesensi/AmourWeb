@@ -3,7 +3,7 @@
 // 组数据契约对齐 DictGroupResponse:dictCode/items(dictValue/dictLabel/sort)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
-// 与后端 sys_dict 内置种子同源(13 组 48 条;组内顺序即 sort 升序)
+// 与后端 sys_dict 内置种子同源(17 组 76 条;组内顺序即 sort 升序)
 const dicts = [
   {
     id: "10001",
@@ -583,10 +583,350 @@ const dicts = [
     builtin: 1,
     remark: null,
     createTime: "2026-01-01 00:00:00"
+  },
+  // anniversary-type(纪念日类型,对应 AnniversaryTypeEnum:birthday-生日,anniversary-纪念日,festival-节日;11300 段)
+  {
+    id: "11301",
+    dictCode: "anniversary-type",
+    dictName: "纪念日类型",
+    dictValue: "birthday",
+    dictLabel: "生日",
+    sort: 1,
+    status: 0,
+    builtin: 1,
+    remark: "与 AnniversaryTypeEnum 对齐",
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11302",
+    dictCode: "anniversary-type",
+    dictName: "纪念日类型",
+    dictValue: "anniversary",
+    dictLabel: "纪念日",
+    sort: 2,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11303",
+    dictCode: "anniversary-type",
+    dictName: "纪念日类型",
+    dictValue: "festival",
+    dictLabel: "节日",
+    sort: 3,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  // message-audit-status(留言审核状态,对应 MessageAuditStatusEnum:pending-待审核,approved-通过,rejected-驳回;11400 段)
+  {
+    id: "11401",
+    dictCode: "message-audit-status",
+    dictName: "留言审核状态",
+    dictValue: "pending",
+    dictLabel: "待审核",
+    sort: 1,
+    status: 0,
+    builtin: 1,
+    remark: "与 MessageAuditStatusEnum 对齐",
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11402",
+    dictCode: "message-audit-status",
+    dictName: "留言审核状态",
+    dictValue: "approved",
+    dictLabel: "通过",
+    sort: 2,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11403",
+    dictCode: "message-audit-status",
+    dictName: "留言审核状态",
+    dictValue: "rejected",
+    dictLabel: "驳回",
+    sort: 3,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  // done(通用完成状态,对应 DoneEnum:0-未完成,1-已完成;11500 段)
+  {
+    id: "11501",
+    dictCode: "done",
+    dictName: "完成状态",
+    dictValue: "0",
+    dictLabel: "未完成",
+    sort: 1,
+    status: 0,
+    builtin: 1,
+    remark: "与 DoneEnum(0/1) 对齐",
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11502",
+    dictCode: "done",
+    dictName: "完成状态",
+    dictValue: "1",
+    dictLabel: "已完成",
+    sort: 2,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  // diary-mood(日记心情,对应 DiaryMoodEnum:unknown-不标记,sunny-晴天,cloudy-多云,overcast-阴天,rainy-雨天,drizzle-细雨,thunderstorm-雷阵雨,windy-起风,snowy-落雪,sleet-雨夹雪,hail-冰雹,starry-星夜,bloom-花开,moon-月色,rainbow-彩虹,fog-薄雾,leaf-落叶,sunset-日落,meteor-流星,aurora-极光;11600 段)
+  {
+    id: "11601",
+    dictCode: "diary-mood",
+    dictName: "日记心情",
+    dictValue: "unknown",
+    dictLabel: "不标记",
+    sort: 1,
+    status: 0,
+    builtin: 1,
+    remark: "与 DiaryMoodEnum 对齐(默认值)",
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11602",
+    dictCode: "diary-mood",
+    dictName: "日记心情",
+    dictValue: "sunny",
+    dictLabel: "晴天",
+    sort: 2,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11603",
+    dictCode: "diary-mood",
+    dictName: "日记心情",
+    dictValue: "cloudy",
+    dictLabel: "多云",
+    sort: 3,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11604",
+    dictCode: "diary-mood",
+    dictName: "日记心情",
+    dictValue: "overcast",
+    dictLabel: "阴天",
+    sort: 4,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11605",
+    dictCode: "diary-mood",
+    dictName: "日记心情",
+    dictValue: "rainy",
+    dictLabel: "雨天",
+    sort: 5,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11606",
+    dictCode: "diary-mood",
+    dictName: "日记心情",
+    dictValue: "drizzle",
+    dictLabel: "细雨",
+    sort: 6,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11607",
+    dictCode: "diary-mood",
+    dictName: "日记心情",
+    dictValue: "thunderstorm",
+    dictLabel: "雷阵雨",
+    sort: 7,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11608",
+    dictCode: "diary-mood",
+    dictName: "日记心情",
+    dictValue: "windy",
+    dictLabel: "起风",
+    sort: 8,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11609",
+    dictCode: "diary-mood",
+    dictName: "日记心情",
+    dictValue: "snowy",
+    dictLabel: "落雪",
+    sort: 9,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11610",
+    dictCode: "diary-mood",
+    dictName: "日记心情",
+    dictValue: "sleet",
+    dictLabel: "雨夹雪",
+    sort: 10,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11611",
+    dictCode: "diary-mood",
+    dictName: "日记心情",
+    dictValue: "hail",
+    dictLabel: "冰雹",
+    sort: 11,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11612",
+    dictCode: "diary-mood",
+    dictName: "日记心情",
+    dictValue: "starry",
+    dictLabel: "星夜",
+    sort: 12,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11613",
+    dictCode: "diary-mood",
+    dictName: "日记心情",
+    dictValue: "bloom",
+    dictLabel: "花开",
+    sort: 13,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11614",
+    dictCode: "diary-mood",
+    dictName: "日记心情",
+    dictValue: "moon",
+    dictLabel: "月色",
+    sort: 14,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11615",
+    dictCode: "diary-mood",
+    dictName: "日记心情",
+    dictValue: "rainbow",
+    dictLabel: "彩虹",
+    sort: 15,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11616",
+    dictCode: "diary-mood",
+    dictName: "日记心情",
+    dictValue: "fog",
+    dictLabel: "薄雾",
+    sort: 16,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11617",
+    dictCode: "diary-mood",
+    dictName: "日记心情",
+    dictValue: "leaf",
+    dictLabel: "落叶",
+    sort: 17,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11618",
+    dictCode: "diary-mood",
+    dictName: "日记心情",
+    dictValue: "sunset",
+    dictLabel: "日落",
+    sort: 18,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11619",
+    dictCode: "diary-mood",
+    dictName: "日记心情",
+    dictValue: "meteor",
+    dictLabel: "流星",
+    sort: 19,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "11620",
+    dictCode: "diary-mood",
+    dictName: "日记心情",
+    dictValue: "aurora",
+    dictLabel: "极光",
+    sort: 20,
+    status: 0,
+    builtin: 1,
+    remark: null,
+    createTime: "2026-01-01 00:00:00"
   }
 ];
 
-// 字典类型种子(对齐后端 sys_dict_type 99000 段种子:13 个内置类型)
+// 字典类型种子(对齐后端 sys_dict_type 99000 段种子:17 个内置类型)
 const dictTypes = [
   {
     id: "99001",
@@ -679,6 +1019,34 @@ const dictTypes = [
     dictName: "显隐状态",
     builtin: 1,
     remark: "与 HiddenEnum(0/1) 对齐"
+  },
+  {
+    id: "99014",
+    dictCode: "anniversary-type",
+    dictName: "纪念日类型",
+    builtin: 1,
+    remark: "与 AnniversaryTypeEnum(birthday/anniversary/festival) 对齐"
+  },
+  {
+    id: "99015",
+    dictCode: "message-audit-status",
+    dictName: "留言审核状态",
+    builtin: 1,
+    remark: "与 MessageAuditStatusEnum(pending/approved/rejected) 对齐"
+  },
+  {
+    id: "99016",
+    dictCode: "done",
+    dictName: "完成状态",
+    builtin: 1,
+    remark: "与 DoneEnum(0/1) 对齐"
+  },
+  {
+    id: "99017",
+    dictCode: "diary-mood",
+    dictName: "日记心情",
+    builtin: 1,
+    remark: "与 DiaryMoodEnum(20 种心情) 对齐"
   }
 ];
 

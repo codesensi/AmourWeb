@@ -47,7 +47,7 @@ const handleTabChange = useLazyTabs(
       @tab-change="handleTabChange"
     >
       <el-tab-pane
-        v-if="hasPerms('log:login:page')"
+        v-if="hasPerms('system:log-login:page')"
         label="登录日志"
         name="login"
       >
@@ -130,7 +130,7 @@ const handleTabChange = useLazyTabs(
       </el-tab-pane>
       <!-- lazy:首次激活时才渲染,保证表格在可见状态下计算自适应高度(隐藏态 top=0 会撑大页面) -->
       <el-tab-pane
-        v-if="hasPerms('log:operate:page')"
+        v-if="hasPerms('system:log-operate:page')"
         label="操作日志"
         name="operate"
         lazy

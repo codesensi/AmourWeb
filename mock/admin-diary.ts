@@ -1,6 +1,6 @@
 // 情侣日记管理 mock(对齐后端 /admin/diary 接口)
 // page 契约对齐 DiaryPageResponse:id/userId/username/avatar/diaryDate/mood/content/createTime
-// insert/update 契约对齐 DiarySaveRequest:记录人由后端取当前登录人填充,不接收 userId
+// insert/update 契约对齐 DiaryInsertRequest/DiaryUpdateRequest:记录人由后端取当前登录人填充,不接收 userId
 // delete 契约对齐 DELETE /admin/diary/delete/{ids}:批量逻辑删除(ids 逗号拼接)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 import { mockPhoto } from "./portal/mock-photo";
@@ -27,12 +27,12 @@ const fail = (msg: string) => ({
 /** 两位记录人的展示信息(头像用内联 SVG 占位,保证离线可用;用户名对齐后端 sys_user 种子) */
 const writers = [
   {
-    userId: 2,
+    userId: "2",
     username: "li",
     avatar: mockPhoto("li", "#fdeef0", "#fbcfe8")
   },
   {
-    userId: 3,
+    userId: "3",
     username: "su",
     avatar: mockPhoto("su", "#e8f0fe", "#c7d9f7")
   }
@@ -98,7 +98,7 @@ const diaryList = Array.from({ length: 18 }, (_, i) => {
 let nextId = 5000;
 
 /** 记录人展示信息(新增日记默认取门户男主) */
-const writerOf = (userId: number) =>
+const writerOf = (userId: string) =>
   writers.find(writer => writer.userId === userId) ?? writers[0];
 
 export default defineFakeRoute([
@@ -112,11 +112,15 @@ export default defineFakeRoute([
         item =>
           (userId === undefined ||
             userId === "" ||
-            item.userId === Number(userId)) &&
+            item.userId === String(userId)) &&
           (!diaryDate || item.diaryDate === diaryDate) &&
           (mood === undefined || mood === "" || item.mood === mood)
       );
-      filtered.sort((a, b) => b.diaryDate.localeCompare(a.diaryDate));
+      // 排序对齐后端 DIARY_DATE desc → ID desc
+      filtered.sort(
+        (a, b) =>
+          b.diaryDate.localeCompare(a.diaryDate) || Number(b.id) - Number(a.id)
+      );
       return fakePageResponse(filtered, { pageNumber, pageSize });
     }
   },
@@ -125,7 +129,7 @@ export default defineFakeRoute([
     url: "/admin/diary/insert",
     method: "post",
     response: ({ body }) => {
-      const writer = writerOf(2);
+      const writer = writerOf("2");
       diaryList.push({
         id: String(nextId++),
         userId: writer.userId,
@@ -158,8 +162,8 @@ export default defineFakeRoute([
   {
     url: "/admin/diary/delete/:ids",
     method: "delete",
-    response: ({ query }) => {
-      const ids = String(query.ids).split(",");
+    response: ({ params }) => {
+      const ids = String(params.ids).split(",");
       const missing = ids.some(id => !diaryList.some(item => item.id === id));
       if (missing) {
         return fail("日记不存在");

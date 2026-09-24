@@ -58,6 +58,21 @@ const profileRules = reactive<FormRules<ProfileInfo>>({
       message: "邮箱格式不正确",
       trigger: ["blur", "change"]
     }
+  ],
+  qq: [
+    {
+      validator: (rule, value, callback) => {
+        // 选填;填写时须为 6-12 位数字(对齐后端 UserProfileUpdateRequest 的 @Pattern)
+        if (value === "" || value == null) {
+          callback();
+        } else if (!/^\d{6,12}$/.test(value)) {
+          callback(new Error("请输入正确的QQ号格式"));
+        } else {
+          callback();
+        }
+      },
+      trigger: "blur"
+    }
   ]
 });
 
@@ -147,8 +162,13 @@ function queryEmail(
         class="w-full"
       />
     </el-form-item>
-    <el-form-item label="QQ号">
-      <el-input v-model="form.qq" clearable placeholder="请输入QQ号" />
+    <el-form-item label="QQ号" prop="qq">
+      <el-input
+        v-model="form.qq"
+        maxlength="12"
+        clearable
+        placeholder="请输入QQ号"
+      />
     </el-form-item>
     <el-form-item label="简介" prop="remark">
       <el-input

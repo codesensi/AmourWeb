@@ -15,7 +15,7 @@ export const formRules = reactive(<FormRules>{
     { required: true, message: "请选择纪念日日期", trigger: "change" },
     {
       validator: (rule, value, callback) => {
-        // 选填:填写时才校验格式(对齐后端 @Pattern 空值放行)
+        // 格式校验(必填由同组 required 规则承载,对齐后端 @NotBlank + @Pattern)
         if (value && !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
           callback(new Error("纪念日日期格式须为 yyyy-MM-dd"));
         } else {

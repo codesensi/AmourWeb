@@ -8,7 +8,7 @@ export const formRules = reactive(<FormRules>{
   ],
   caption: [
     { required: true, message: "请输入照片文案", trigger: "blur" },
-    { max: 256, message: "照片文案长度不能超过 256 位", trigger: "blur" }
+    { max: 512, message: "照片文案长度不能超过 512 位", trigger: "blur" }
   ],
   dateText: [
     {

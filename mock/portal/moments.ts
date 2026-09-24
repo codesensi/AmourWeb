@@ -9,7 +9,7 @@ const moments = [
   {
     id: "1",
     title: "Like_Girl 默认文章语法",
-    userId: 2,
+    userId: "2",
     username: "li",
     nickname: "小栗",
     qq: "2623669948",
@@ -26,7 +26,7 @@ const moments = [
   {
     id: "2",
     title: "第一次一起去看海",
-    userId: 3,
+    userId: "3",
     username: "su",
     nickname: "小素",
     qq: "673822943",
@@ -47,7 +47,7 @@ const moments = [
   {
     id: "3",
     title: "记录我们的第 1000 天",
-    userId: 2,
+    userId: "2",
     username: "li",
     nickname: "小栗",
     qq: "2623669948",
@@ -64,7 +64,7 @@ const moments = [
   {
     id: "4",
     title: "第一次一起做饭",
-    userId: 2,
+    userId: "2",
     username: "li",
     nickname: "小栗",
     qq: "2623669948",
@@ -81,7 +81,7 @@ const moments = [
   {
     id: "5",
     title: "雨天的一杯奶茶",
-    userId: 3,
+    userId: "3",
     username: "su",
     nickname: "小素",
     qq: "673822943",
@@ -98,7 +98,7 @@ const moments = [
   {
     id: "6",
     title: "一起养的绿萝发芽了",
-    userId: 2,
+    userId: "2",
     username: "li",
     nickname: "小栗",
     qq: "2623669948",
@@ -119,7 +119,7 @@ const moments = [
   {
     id: "7",
     title: "跨年的第一场雪",
-    userId: 3,
+    userId: "3",
     username: "su",
     nickname: "小素",
     qq: "673822943",
@@ -136,7 +136,7 @@ const moments = [
   {
     id: "8",
     title: "周末拍的小短片",
-    userId: 3,
+    userId: "3",
     username: "su",
     nickname: "小素",
     qq: "673822943",
@@ -153,7 +153,7 @@ const moments = [
   {
     id: "9",
     title: "写给未来的旅行清单",
-    userId: 2,
+    userId: "2",
     username: "li",
     nickname: "小栗",
     qq: "2623669948",
@@ -180,8 +180,9 @@ export default defineFakeRoute([
   {
     url: "/portal/moments/detail/:id",
     method: "get",
-    response: ({ query }) => {
-      const item = moments.find(m => m.id === String(query?.id ?? "")) ?? null;
+    response: ({ params }) => {
+      const item =
+        moments.find(m => m.id === String(params?.id ?? "")) ?? null;
       return {
         success: true,
         code: 200,

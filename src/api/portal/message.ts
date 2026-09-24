@@ -1,13 +1,13 @@
 import { http } from "@/utils/http";
 import { portalPage } from "./utils";
 
-/** 留言-留言项 */
+/** 留言-留言项(avatar/location 后端均可为 null:头像快照 fail-soft、归属地未知) */
 export type MessageItem = {
   nickname: string;
-  avatar: string;
+  avatar: string | null;
   content: string;
   date: string;
-  location: string;
+  location: string | null;
 };
 
 /** 留言分页(GET /portal/message,仅审核通过的留言) */

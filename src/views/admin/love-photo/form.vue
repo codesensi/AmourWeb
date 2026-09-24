@@ -52,7 +52,7 @@ defineExpose({ getRef });
             v-model="newFormInline.caption"
             type="textarea"
             :rows="2"
-            maxlength="256"
+            maxlength="512"
             show-word-limit
             clearable
             placeholder="请输入照片文案"

@@ -1074,10 +1074,16 @@ function buildPage(
   const scope = logTypes.length
     ? domainTypes.filter(type => logTypes.includes(type))
     : domainTypes;
+  // 键集游标(对齐后端 LogPageRequest.lastId):连续翻下一页时仅取 id < lastId 的记录,
+  // 消除深翻页场景下与真实后端( id < lastId 定位)的分页行为差异;首页/跳页不下发,回退 offset 兜底
+  const lastId = String(query.lastId ?? "");
   const filtered = source
     .filter(item => scope.includes(item.logType))
     .filter(item => username === "" || item.username.includes(username))
-    .filter(item => status === "" || String(item.status) === status);
+    .filter(item => status === "" || String(item.status) === status)
+    .filter(
+      item => lastId === "" || Number(item.id) < Number(lastId)
+    );
   const records = [...filtered].sort((a, b) => Number(b.id) - Number(a.id));
   return {
     success: true,

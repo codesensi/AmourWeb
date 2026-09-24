@@ -15,7 +15,7 @@ export type UploadFileResult = ApiResult<{
 /**
  * 上传文件。
  * blob 由前端裁剪组件产出,以 multipart/form-data 提交;
- * bizType 路由业务类型(avatar-用户头像, photo-相册照片, markdown-点滴配图, logo-基础设施),
+ * bizType 路由业务类型(infra-基础设施, avatar-用户头像, photo-相册照片, markdown-点滴配图),
  * 扩展名与大小限制由后端 FileBizTypeEnum 按类型校验。
  */
 export const uploadFile = (
@@ -51,10 +51,10 @@ export type FileItem = {
   storageType: string;
   /** 存储路径(相对 key) */
   path: string;
-  /** 业务来源: avatar-用户头像, photo-相册照片, markdown-点滴配图 */
+  /** 业务来源: infra-基础设施, avatar-用户头像, photo-相册照片, markdown-点滴配图 */
   bizType: string;
-  /** 业务关联ID(文件被业务采纳时回填,后端序列化为字符串) */
-  bizId: string;
+  /** 业务关联ID(文件被业务采纳时回填,后端序列化为字符串;未采纳时为 null) */
+  bizId: string | null;
   /** 上传人ID(后端序列化为字符串) */
   creator: string;
   /** 上传人用户名 */
@@ -89,7 +89,7 @@ export const getFilePage = (params?: FileQuery) => {
 };
 
 /**
- * 删除文件(DELETE /sys/file/{id};登录态,system:file:delete 权限)。
+ * 删除文件到回收站(DELETE /sys/file/{id};登录即可,服务端按归属校验:上传人本人或具备 system:file:delete 权限)。
  * 仅逻辑删除,物理文件保留,可在回收站恢复或彻底删除。
  */
 export const deleteFile = (id: string) => {

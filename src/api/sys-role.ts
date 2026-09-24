@@ -60,8 +60,8 @@ export type RoleInsertRequest = {
   name: string;
   /** 角色编码 */
   code: string;
-  /** 角色排序 */
-  sort?: number;
+  /** 角色排序(后端 @NotNull 必填) */
+  sort: number;
   /** 备注 */
   remark?: string;
 };
@@ -72,8 +72,8 @@ export type RoleUpdateRequest = {
   id: string;
   /** 角色名称 */
   name: string;
-  /** 角色排序 */
-  sort?: number;
+  /** 角色排序(后端 @NotNull 必填) */
+  sort: number;
   /** 备注 */
   remark?: string;
 };

@@ -149,7 +149,7 @@ const configs = [
   },
   {
     id: "5005",
-    configKey: "rate-limit.qq.limit",
+    configKey: "rate-limit.qq-info.limit",
     configValue: "10",
     valueType: "INTEGER",
     configGroup: "rate-limit",
@@ -159,7 +159,7 @@ const configs = [
   },
   {
     id: "5006",
-    configKey: "rate-limit.qq.window",
+    configKey: "rate-limit.qq-info.window",
     configValue: "60",
     valueType: "INTEGER",
     configGroup: "rate-limit",
@@ -185,6 +185,46 @@ const configs = [
     configGroup: "rate-limit",
     sensitive: 0,
     remark: "高德服务代理接口-时间窗口(秒)",
+    updateTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "5009",
+    configKey: "rate-limit.saying.limit",
+    configValue: "10",
+    valueType: "INTEGER",
+    configGroup: "rate-limit",
+    sensitive: 0,
+    remark: "一言接口-窗口内最大请求数(0 表示拒绝全部请求)",
+    updateTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "5010",
+    configKey: "rate-limit.saying.window",
+    configValue: "60",
+    valueType: "INTEGER",
+    configGroup: "rate-limit",
+    sensitive: 0,
+    remark: "一言接口-时间窗口(秒)",
+    updateTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "5011",
+    configKey: "rate-limit.message.limit",
+    configValue: "3",
+    valueType: "INTEGER",
+    configGroup: "rate-limit",
+    sensitive: 0,
+    remark: "留言提交接口-窗口内最大请求数(0 表示拒绝全部请求)",
+    updateTime: "2026-01-01 00:00:00"
+  },
+  {
+    id: "5012",
+    configKey: "rate-limit.message.window",
+    configValue: "60",
+    valueType: "INTEGER",
+    configGroup: "rate-limit",
+    sensitive: 0,
+    remark: "留言提交接口-时间窗口(秒)",
     updateTime: "2026-01-01 00:00:00"
   },
   {
@@ -269,6 +309,12 @@ export default defineFakeRoute([
           (configGroup === "" || item.configGroup === configGroup)
         );
       });
+      // 排序对齐后端 CONFIG_GROUP asc → ID asc
+      filtered.sort(
+        (a, b) =>
+          a.configGroup.localeCompare(b.configGroup) ||
+          Number(a.id) - Number(b.id)
+      );
       return ok({
         records: filtered.slice(
           (pageNumber - 1) * pageSize,

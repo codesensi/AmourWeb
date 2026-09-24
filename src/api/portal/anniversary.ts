@@ -8,7 +8,8 @@ export type AnniversaryType = "birthday" | "anniversary" | "festival";
 
 /** 纪念日-纪念日项(GET /portal/anniversary/page 分页,免登录;按下一次发生日升序) */
 export type AnniversaryItem = {
-  id: number;
+  /** 纪念日ID(后端 Long 序列化为字符串) */
+  id: string;
   /** 纪念日名称 */
   name: string;
   /** 纪念日类型(字典 anniversary-type) */

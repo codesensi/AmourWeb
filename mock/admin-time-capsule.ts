@@ -1,6 +1,6 @@
 // 时间胶囊管理 mock(对齐后端 /admin/time-capsule 接口)
 // page 契约对齐 TimeCapsulePageResponse:id/title/content/openTime/hidden/createTime
-// insert/update 契约对齐 TimeCapsuleSaveRequest:hidden 仅新增传入,修改走 change-hidden
+// insert/update 契约对齐 TimeCapsuleInsertRequest/TimeCapsuleUpdateRequest:hidden 仅新增传入,修改走 change-hidden
 // delete 契约对齐 DELETE /admin/time-capsule/delete/{ids}:批量逻辑删除(ids 逗号拼接)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 import { fakePageResponse } from "./utils";
@@ -72,7 +72,10 @@ export default defineFakeRoute([
             hidden === "" ||
             item.hidden === Number(hidden))
       );
-      filtered.sort((a, b) => a.openTime.localeCompare(b.openTime));
+      // 排序对齐后端 OPEN_TIME asc → ID asc
+      filtered.sort(
+        (a, b) => a.openTime.localeCompare(b.openTime) || Number(a.id) - Number(b.id)
+      );
       return fakePageResponse(filtered, { pageNumber, pageSize });
     }
   },
@@ -124,8 +127,8 @@ export default defineFakeRoute([
   {
     url: "/admin/time-capsule/delete/:ids",
     method: "delete",
-    response: ({ query }) => {
-      const ids = String(query.ids).split(",");
+    response: ({ params }) => {
+      const ids = String(params.ids).split(",");
       const missing = ids.some(
         id => !timeCapsules.some(item => item.id === id)
       );

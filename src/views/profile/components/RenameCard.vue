@@ -18,7 +18,10 @@ const nameFormRef = ref<FormInstance>();
 const nameLoading = ref(false);
 const nameForm = reactive({ username: props.username });
 const nameRules = reactive<FormRules<{ username: string }>>({
-  username: [{ required: true, message: "请输入用户名", trigger: "blur" }]
+  username: [
+    { required: true, message: "请输入用户名", trigger: "blur" },
+    { max: 64, message: "用户名长度不能超过 64 位", trigger: "blur" }
+  ]
 });
 
 /** 内容无更改(与当前用户名一致或为空)时按钮禁用 */
@@ -72,7 +75,7 @@ async function saveName() {
       <el-form-item label="用户名" prop="username">
         <el-input
           v-model="nameForm.username"
-          maxlength="128"
+          maxlength="64"
           clearable
           placeholder="请输入新的用户名"
         />
