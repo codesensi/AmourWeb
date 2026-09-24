@@ -7,6 +7,16 @@ Amour（爱慕情侣小站）项目的前端工程，包含 **门户站点** 与
 
 基于 [vue-pure-admin](https://github.com/pure-admin/vue-pure-admin) 二次开发。
 
+## 在线体验
+
+演示站点：<https://amour-demo.codesensi.cn:1443/>（已开启演示模式，仅开放只读操作，密码均为 `123456`）
+
+| 账号    | 角色       |
+| ------- | ---------- |
+| `admin` | 超级管理员 |
+| `li`    | 男主       |
+| `su`    | 女主       |
+
 ## 技术栈
 
 - Vue 3 + TypeScript + Vite
