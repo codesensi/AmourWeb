@@ -12,6 +12,16 @@ npm-debug.log*
 .pnpm-debug.log
 tests/**/coverage/
 
+# 本地开发/预发环境文件(容器内构建仅使用 .env 与 .env.production)
+.env.development
+.env.staging
+
+# Docker 自身文件与版本控制元数据(避免构建上下文无谓膨胀)
+Dockerfile
+.dockerignore
+.gitignore
+.gitattributes
+
 # Editor directories and files
 .idea
 *.suo

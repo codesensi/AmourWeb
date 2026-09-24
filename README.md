@@ -133,19 +133,25 @@ pnpm build
 
 ## Docker 支持
 
-1. 自定义镜像名为 `vue-pure-admin` 的镜像（请注意下面命令末尾有一个点 `.` 表示使用当前路径下的 `Dockerfile` 文件，可根据实际情况指定路径）
+镜像内 nginx 除承载静态资源外，还把后端接口前缀（`/sys` `/admin` `/portal` `/file` `/captcha` `/login` `/logout` `/qq-info` `/_AMapService`）反代到后端，生产为同源部署。
+
+1. 构建镜像（末尾的 `.` 表示使用当前路径下的 `Dockerfile`，可根据实际情况指定路径）
 
 ```bash
-docker build -t vue-pure-admin .
+docker build -t amour-web .
 ```
 
-2. 端口映射并启动 `docker` 容器（`8080:80`：表示在容器中使用 `80` 端口，并将该端口转发到主机的 `8080` 端口；`pure-admin`：表示自定义容器名；`vue-pure-admin`：表示自定义镜像名）
+2. 端口映射并启动容器（`8080:80`：容器内 `80` 端口转发到主机 `8080` 端口）
 
 ```bash
-docker run -dp 8080:80  --name pure-admin vue-pure-admin
+# BACKEND_ORIGIN 为后端接口反代上游(仅协议+主机+端口,不带路径);
+# 与后端容器同网络时指向后端容器名,前端容器直连本机后端时用 host.docker.internal
+docker run -dp 8080:80 --name amour-web -e BACKEND_ORIGIN=http://host.docker.internal:9666 amour-web
 ```
 
-操作完上面两个命令后，在浏览器打开 `http://localhost:8080` 即可预览
+操作完上面两个命令后，在浏览器打开 `http://localhost:8080` 即可预览。
+
+容器内置 `HEALTHCHECK`（本地 `/healthz` 自检），`docker ps` 可见健康状态。
 
 当然也可以通过 [Docker Desktop](https://www.docker.com/products/docker-desktop/) 可视化界面去操作 `docker` 项目，如下图
 

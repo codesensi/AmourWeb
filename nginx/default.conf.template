@@ -1,0 +1,49 @@
+# 前端运行时 nginx 配置(模板:容器启动时由官方镜像的 envsubst 渲染 ${BACKEND_ORIGIN};
+# 渲染发生在 nginx 加载配置之前,属纯文本替换,不支持运行时变量解析)
+server {
+    listen       80;
+    server_name  _;
+
+    # 文件上传等接口放宽请求体限制(对齐后端文件上传能力)
+    client_max_body_size 100m;
+
+    # 动态 gzip 压缩文本类产物(构建未启用预压缩时的兜底)
+    gzip on;
+    gzip_comp_level 5;
+    gzip_min_length 1k;
+    gzip_vary on;
+    gzip_types text/plain text/css application/javascript application/json image/svg+xml;
+
+    # 健康检查自检端点(docker HEALTHCHECK 使用)
+    location = /healthz {
+        access_log off;
+        default_type text/plain;
+        return 200 "ok";
+    }
+
+    # 带内容哈希的静态产物:长缓存(vite 文件名含内容 hash,内容变更即改名,可放心 immutable)
+    location ^~ /static/ {
+        add_header Cache-Control "public, max-age=2592000, immutable";
+        try_files $uri =404;
+    }
+
+    # 后端接口反代(前缀与后端全部控制器根路径一致:/sys /admin /portal /file /captcha /login
+    # /logout /qq-info /_AMapService,新增后端接口前缀时需同步维护此清单)
+    location ~ ^/(_AMapService|sys|admin|portal|file|captcha|login|logout|qq-info)(/|$) {
+        proxy_pass ${BACKEND_ORIGIN};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_connect_timeout 10s;
+        proxy_read_timeout 60s;
+    }
+
+    # SPA 兜底:hash 路由下浏览器只访问 /;切换 h5 模式后深链接刷新同样可用
+    location / {
+        try_files $uri $uri/ /index.html;
+        # 入口不缓存,静态产物带 hash 长缓存,保证发版后立即生效
+        add_header Cache-Control "no-cache";
+    }
+}
