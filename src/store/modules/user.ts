@@ -26,6 +26,8 @@ export const useUserStore = defineStore("pure-user", {
       roles: storedUserInfo?.roles ?? [],
       // 按钮级别权限
       permissions: storedUserInfo?.permissions ?? [],
+      // 是否更新密码(初始按已更新处理,装配路由时由 current-user 接口同步真实值)
+      passwordUpdated: true,
       // 判断登录页面显示哪个组件（0：登录（默认）、1：手机登录、2：二维码登录、3：注册、4：忘记密码）
       currentPage: 0,
       // 是否勾选了登录页的「记住密码」
@@ -52,6 +54,10 @@ export const useUserStore = defineStore("pure-user", {
     /** 存储按钮级别权限 */
     SET_PERMS(permissions: Array<string>) {
       this.permissions = permissions;
+    },
+    /** 存储是否更新密码 */
+    SET_PASSWORD_UPDATED(value: boolean) {
+      this.passwordUpdated = value;
     },
     /** 存储页面显示哪个组件 */
     SET_CURRENTPAGE(value: number) {
@@ -95,7 +101,9 @@ export const useUserStore = defineStore("pure-user", {
       queryClient.clear();
       useMultiTagsStoreHook().handleTags("equal", [...routerArrays]);
       resetRouter();
-      router.push(redirect ? { path: "/login", query: { redirect } } : "/login");
+      router.push(
+        redirect ? { path: "/login", query: { redirect } } : "/login"
+      );
     },
     /** 退出系统:先通知后端作废 token(尽力而为,失败不阻塞本地清理),再做前端登出 */
     async logOutWithServer() {
@@ -113,12 +121,15 @@ export const useUserStore = defineStore("pure-user", {
       nickname?: string;
       roles?: Array<string>;
       permissions?: Array<string>;
+      passwordUpdated?: number;
     }) {
       this.SET_AVATAR(userInfo.avatar ?? "");
       this.SET_USERNAME(userInfo.username ?? "");
       this.SET_NICKNAME(userInfo.nickname ?? "");
       this.SET_ROLES(userInfo.roles ?? []);
       this.SET_PERMS(userInfo.permissions ?? []);
+      // 后端 0-否, 1-是;字段缺失时按已更新处理,避免误报警告
+      this.SET_PASSWORD_UPDATED(userInfo.passwordUpdated !== 0);
     }
   }
 });

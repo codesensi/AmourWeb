@@ -74,7 +74,8 @@ function filterTree(data: RouteComponent[]) {
     (v: { meta: { showLink: boolean } }) => v.meta?.showLink !== false
   );
   newTree.forEach(
-    (v: { children: any }) => v.children && (v.children = filterTree(v.children))
+    (v: { children: any }) =>
+      v.children && (v.children = filterTree(v.children))
   );
   return newTree;
 }
@@ -83,7 +84,8 @@ function filterTree(data: RouteComponent[]) {
 function filterChildrenTree(data: RouteComponent[]) {
   const newTree = cloneDeep(data).filter((v: any) => v?.children?.length !== 0);
   newTree.forEach(
-    (v: { children: any }) => v.children && (v.children = filterTree(v.children))
+    (v: { children: any }) =>
+      v.children && (v.children = filterTree(v.children))
   );
   return newTree;
 }
@@ -278,7 +280,8 @@ function initRouter() {
             username: data.username,
             nickname: data.nickname,
             roles: data.roles,
-            permissions: data.perms ?? []
+            permissions: data.perms ?? [],
+            passwordUpdated: data.passwordUpdated
           });
           handleAsyncRoutes(cloneDeep(transformMenus(data.menus)));
         }
@@ -402,11 +405,16 @@ function addAsyncRoutes(arrRoutes: Array<RouteRecordRaw>) {
       // 全部未命中时告警并保持 component 为空，避免静默渲染空白页且无日志可查
       const rawComponent = v.component as unknown;
       const keyword = typeof rawComponent === "string" ? rawComponent : v.path;
-      const hit = modulesRoutesKeys.find(
-          ev => ev === `/src/views/${keyword}.vue` || ev === `/src/views/${keyword}.tsx`
-        )
-        ?? modulesRoutesKeys.find(ev => ev.endsWith(`/${keyword}.vue`) || ev.endsWith(`/${keyword}.tsx`))
-        ?? modulesRoutesKeys.find(ev => ev.includes(keyword));
+      const hit =
+        modulesRoutesKeys.find(
+          ev =>
+            ev === `/src/views/${keyword}.vue` ||
+            ev === `/src/views/${keyword}.tsx`
+        ) ??
+        modulesRoutesKeys.find(
+          ev => ev.endsWith(`/${keyword}.vue`) || ev.endsWith(`/${keyword}.tsx`)
+        ) ??
+        modulesRoutesKeys.find(ev => ev.includes(keyword));
       if (!hit) {
         console.warn(
           `动态路由装配未命中组件：component=${v.component ?? "-"}，path=${v.path}，请检查菜单配置；候选组件=`,

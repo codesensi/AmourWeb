@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import ReCol from "@/components/ReCol";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import { useUserStoreHook } from "@/store/modules/user";
 import {
   type DashboardSummary,
   type DashboardTimelineItem,
@@ -96,6 +97,7 @@ const quickActions = [
 ] as const;
 
 const router = useRouter();
+const userStore = useUserStoreHook();
 const loading = ref(true);
 const summary = ref<DashboardSummary | null>(null);
 
@@ -177,6 +179,21 @@ onMounted(() => {
 
 <template>
   <div class="p-2">
+    <!-- 默认密码警告:当前登录用户未更新过密码时置顶提醒 -->
+    <el-alert
+      v-if="userStore.passwordUpdated === false"
+      type="warning"
+      show-icon
+      :closable="false"
+      class="mb-3"
+    >
+      <template #title>
+        当前仍在使用默认密码，存在安全风险，请前往
+        <RouterLink class="alert-link" to="/admin/profile">个人中心</RouterLink>
+        修改
+      </template>
+    </el-alert>
+
     <!-- ① 概览卡:问候 + 在一起天数 + 下一个纪念日倒计时 -->
     <el-card shadow="never" class="mb-3">
       <el-skeleton :loading="loading" animated :rows="2">
@@ -468,6 +485,13 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
+/* 警告条跳转链接:主题色 + 下划线,明示可点击跳转 */
+.alert-link {
+  color: var(--el-color-primary);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 /* 统计卡等高填充:header 固定,body 撑满剩余高度并将留言贴底 */
 .stat-card {
   display: flex;

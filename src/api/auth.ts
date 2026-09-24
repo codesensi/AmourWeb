@@ -70,6 +70,8 @@ export type CurrentUserResult = ApiResult<{
   gender?: string;
   remark?: string;
   builtin?: number;
+  /** 是否更新密码: 0-否(仍为默认密码), 1-是 */
+  passwordUpdated?: number;
   roles: Array<string>;
   perms: Array<string>;
   menus: Array<MenuItem>;
@@ -77,5 +79,8 @@ export type CurrentUserResult = ApiResult<{
 
 /** 获取当前登录用户信息(含菜单) */
 export const getCurrentUser = () => {
-  return http.request<CurrentUserResult["data"]>("get", "/sys/user/current-user");
+  return http.request<CurrentUserResult["data"]>(
+    "get",
+    "/sys/user/current-user"
+  );
 };

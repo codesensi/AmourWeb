@@ -12,6 +12,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    ElAlert: typeof import('element-plus/es')['ElAlert']
     ElAutocomplete: typeof import('element-plus/es')['ElAutocomplete']
     ElAvatar: typeof import('element-plus/es')['ElAvatar']
     ElBacktop: typeof import('element-plus/es')['ElBacktop']
@@ -74,6 +75,7 @@ declare module 'vue' {
 
 // For TSX support
 declare global {
+  const ElAlert: typeof import('element-plus/es')['ElAlert']
   const ElAutocomplete: typeof import('element-plus/es')['ElAutocomplete']
   const ElAvatar: typeof import('element-plus/es')['ElAvatar']
   const ElBacktop: typeof import('element-plus/es')['ElBacktop']
