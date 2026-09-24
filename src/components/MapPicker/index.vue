@@ -467,7 +467,7 @@ async function ensureDistricts(): Promise<
 > {
   if (districtCache) return districtCache;
   try {
-    const res = await fetch(`${import.meta.env.BASE_URL}city-districts.json`);
+    const res = await fetch(`${import.meta.env.BASE_URL}map/city-districts.json`);
     const data: Array<{
       name: string;
       parent: string;

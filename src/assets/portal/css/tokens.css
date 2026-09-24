@@ -65,7 +65,7 @@
   --am-shadow-hover: 0 12px 28px rgb(225 29 72 / 12%);
 
   /* 封面:晨光插画 + 提亮薄纱(浅色模式用奶油纱保淡雅,文字走墨色令牌) */
-  --am-cover-img: url("/portal-cover.svg");
+  --am-cover-img: url("../img/portal-cover.svg");
   --am-cover-veil: linear-gradient(
     180deg,
     rgb(255 251 245 / 30%),

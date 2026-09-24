@@ -1,5 +1,5 @@
 // 中国地级市坐标表(来源:阿里 DataV GeoJSON,GCJ-02 坐标系;2026-09-18 生成)
-// 由临时脚本生成,勿手改;区县级数据见 public/city-districts.json(MapPicker 无 key 时懒加载)
+// 由临时脚本生成,勿手改;区县级数据见 public/map/city-districts.json(MapPicker 无 key 时懒加载)
 
 export interface CityLevelEntry {
   name: string;
