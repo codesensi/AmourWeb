@@ -36,6 +36,9 @@ const fileInputRef = ref<HTMLInputElement>();
 /** 上传中防抖:图片按钮置灰避免并发上传重复插入 */
 const uploading = ref(false);
 
+/** 图片链接判定:http(s) 地址且以常见图片后缀结尾(粘贴时自动转为图片节点) */
+const IMAGE_URL_PATTERN = /^https?:\/\/\S+\.(?:png|jpe?g|gif|webp|svg)$/i;
+
 /** 字数统计与空态(工具栏右侧反馈 + 空态占位渲染) */
 const charCount = ref(0);
 const isEmpty = ref(true);
@@ -58,6 +61,15 @@ const editor = shallowRef(
         class: "rich-editor-content",
         "aria-label": props.placeholder,
         "data-placeholder": props.placeholder
+      },
+      // 粘贴纯文本图片链接时直接转为图片节点;含图 HTML 与普通文本走默认粘贴处理
+      handlePaste: (_view, event) => {
+        const text = event.clipboardData?.getData("text/plain")?.trim() ?? "";
+        if (!IMAGE_URL_PATTERN.test(text)) {
+          return false;
+        }
+        editor.value.chain().focus().setImage({ src: text }).run();
+        return true;
       }
     },
     onCreate: ({ editor }) => syncState(editor),
