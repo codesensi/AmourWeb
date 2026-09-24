@@ -60,7 +60,7 @@ pnpm build:staging
 
 ## 后端联调
 
-- 后端工程位于同级目录 `Amour/`（Java 21 + Spring Boot 4 + MyBatis-Flex），默认端口 `9666`
+- 配套后端工程：[Amour](https://github.com/codesensi/Amour)（Java 21 + Spring Boot 4 + MyBatis-Flex），默认端口 `9666`
 - 开发态请求分两层：mock 路由由 `vite-plugin-fake-server` 拦截（`mock/` 目录），未命中的请求经 `build/backendFallback.ts` 兜底代理转发到 `VITE_PROXY_TARGET`
 - 建议全开（纯 mock 调试）或全关（联调真实后端），避免"登录是假的、部分数据是真的"混合态
 - 生产构建不含 mock 与代理逻辑，为同源部署：由 nginx/后端把接口前缀转发到后端
