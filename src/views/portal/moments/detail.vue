@@ -378,7 +378,7 @@ function goBack() {
 }
 
 /* 首字下沉:杂志开篇仪式感,仅首个段落生效 */
-.moment-content :deep(p:first-of-type)::first-letter {
+.moment-content :deep(> p:first-of-type)::first-letter {
   float: left;
   margin: 6px 10px 0 0;
   font-family: var(--am-font-display);
