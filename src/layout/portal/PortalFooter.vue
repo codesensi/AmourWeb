@@ -118,8 +118,24 @@ onMounted(async () => {
             href="https://beian.miit.gov.cn/#/Integrated/index"
             target="_blank"
             rel="noopener"
-            class="colophon-link"
-            >{{ icpText }}</a
+            class="colophon-link colophon-icp-link"
+            ><!-- 备案徽标:盾形线描小图,与门户图标风格统一 -->
+            <svg
+              class="colophon-icp-badge"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"
+              />
+              <path d="m9 12 2 2 4-4" />
+            </svg>
+            {{ icpText }}</a
           >
         </p>
 
@@ -129,9 +145,46 @@ onMounted(async () => {
             :href="adminHref"
             target="_blank"
             rel="noopener"
-            class="colophon-link"
-            >管理后台</a
+            class="colophon-link colophon-admin-link"
           >
+            <!-- 管理后台:齿轮线描小图,与门户图标风格统一 -->
+            <svg
+              class="colophon-admin-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
+              />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            管理后台
+          </a>
+          <span class="colophon-admin-divider">·</span>
+          <!-- GitHub 仓库:octocat 实心徽标(品牌图形,不在线描图标体系内) -->
+          <a
+            href="https://github.com/codesensi/Amour"
+            target="_blank"
+            rel="noopener"
+            class="colophon-link colophon-github"
+          >
+            <svg
+              class="colophon-github-icon"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.304 3.495.997.108-.775.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.51-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.295-1.552 3.3-1.23 3.3-1.23.615 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"
+              />
+            </svg>
+            开源仓库
+          </a>
         </p>
       </div>
     </div>
@@ -205,5 +258,47 @@ onMounted(async () => {
   color: var(--am-rose);
   text-decoration: underline;
   text-underline-offset: 4px;
+}
+
+/* 备案行:徽标与文案垂直居中 */
+.colophon-icp-link {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.colophon-icp-badge {
+  width: 14px;
+  height: 14px;
+}
+
+/* 管理后台 + GitHub 仓库:行内并排居中,间隔点与版权行同款 */
+.colophon-admin {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+}
+
+.colophon-admin-link {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.colophon-admin-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.colophon-github {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.colophon-github-icon {
+  width: 14px;
+  height: 14px;
 }
 </style>
