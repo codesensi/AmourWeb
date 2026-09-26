@@ -97,7 +97,7 @@ defineExpose({ getRef });
           <ReAvatarUpload
             v-model="newFormInline.photoUrl"
             :size="96"
-            biz-type="photo"
+            biz-type="footprint"
             label="足迹照片"
           />
         </el-form-item>

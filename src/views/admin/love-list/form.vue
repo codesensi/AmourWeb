@@ -80,7 +80,7 @@ defineExpose({ getRef });
           <ReAvatarUpload
             v-model="newFormInline.photo"
             :size="96"
-            biz-type="photo"
+            biz-type="lovelist"
             label="纪念照"
           />
         </el-form-item>
