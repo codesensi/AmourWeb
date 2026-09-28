@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useFootprint } from "./utils/hook";
+import FootprintStatsCard from "./components/FootprintStatsCard.vue";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { DictSelect } from "@/components/DictSelect";
 import { DICT_CODES } from "@/api/sys-dict";
@@ -39,6 +40,8 @@ const {
 
 <template>
   <div>
+    <!-- 年度统计卡:总览磁贴 + 月度柱状图(带权限码口径与列表一致) -->
+    <FootprintStatsCard class="mb-2" />
     <el-form
       ref="formRef"
       :inline="true"

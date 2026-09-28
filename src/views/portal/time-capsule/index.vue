@@ -4,6 +4,7 @@ import {
   getTimeCapsule,
   type TimeCapsuleItem
 } from "@/api/portal/time-capsule";
+import { countdownText } from "@/utils/date";
 import { queryKeys } from "@/hooks/query-keys";
 import { usePortalList } from "@/hooks/usePortalQuery";
 import PortalLoadMore from "@/components/PortalLoadMore/index.vue";
@@ -34,17 +35,9 @@ const tick = window.setInterval(() => {
 }, 30_000);
 onBeforeUnmount(() => window.clearInterval(tick));
 
-/** 剩余倒计时文案(锁定中返回「N 天 N 时 N 分」) */
+/** 剩余倒计时文案(共用工具实现,首页预告卡同源);锁定中返回「N 天 N 时 N 分」 */
 function countdown(item: TimeCapsuleItem): string {
-  // 后端 openTime 为空格分隔(yyyy-MM-dd HH:mm:ss);补 T 再解析,Safari 仅认显式 T 分隔
-  const open = new Date(item.openTime.replace(" ", "T")).getTime();
-  const diff = Math.max(0, open - now.value);
-  const days = Math.floor(diff / (24 * 60 * 60 * 1000));
-  const hours = Math.floor((diff % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
-  const minutes = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000));
-  return days > 0
-    ? `${days} 天 ${hours} 时 ${minutes} 分`
-    : `${hours} 时 ${minutes} 分`;
+  return countdownText(item.openTime, new Date(now.value)) ?? "";
 }
 
 /** 展开一封信(仅已到期的信可展开) */

@@ -42,9 +42,18 @@ export const queryKeys = {
     ({ key: ["moment", id], staleTime: 30_000 }) as PortalResource,
   /** 恋爱日记分页 */
   diary: () => ({ key: ["diary"], staleTime: 60_000 }) as PortalResource,
-  /** 恋爱画册分页 */
-  lovePhoto: () =>
-    ({ key: ["love-photo"], staleTime: 5 * 60_000 }) as PortalResource,
+  /** 恋爱画册分页(year 携带年份参数化 key,切年份即换 key 重置分页) */
+  lovePhoto: (year?: number) =>
+    ({
+      key: ["love-photo", year ?? "all"],
+      staleTime: 5 * 60_000
+    }) as PortalResource,
+  /** 画册年份归档(年份导航,按年份聚合计数;独立于画册分页缓存) */
+  lovePhotoArchive: () =>
+    ({
+      key: ["love-photo", "archive"],
+      staleTime: 5 * 60_000
+    }) as PortalResource,
   /** 恋爱清单分页 */
   loveList: () =>
     ({ key: ["love-list"], staleTime: 5 * 60_000 }) as PortalResource,
@@ -55,6 +64,9 @@ export const queryKeys = {
   /** 时间胶囊分页 */
   timeCapsule: () =>
     ({ key: ["time-capsule"], staleTime: 60_000 }) as PortalResource,
+  /** 即将解封的胶囊(首页预告卡,取最近一封;数据形状与胶囊分页不同,必须独立 key) */
+  timeCapsuleNext: () =>
+    ({ key: ["time-capsule", "next"], staleTime: 60_000 }) as PortalResource,
   /** 画册封面照片(首页封面卡,sort 首位,独立于画册分页缓存) */
   latestPhoto: () =>
     ({ key: ["love-photo", "latest"], staleTime: 60_000 }) as PortalResource,

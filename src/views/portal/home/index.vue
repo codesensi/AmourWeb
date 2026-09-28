@@ -2,11 +2,13 @@
 import { computed } from "vue";
 import { getAnniversaryNext } from "@/api/portal/anniversary";
 import { getLovePhotoCover } from "@/api/portal/love-photo";
+import { getNextTimeCapsule } from "@/api/portal/time-capsule";
 import { nextOccurrenceDays } from "@/utils/anniversary";
 import reveal from "@/directives/reveal";
 import { queryKeys } from "@/hooks/query-keys";
 import { usePortalQuery } from "@/hooks/usePortalQuery";
 import HomeAnniversaryCard from "./components/HomeAnniversaryCard.vue";
+import HomeCapsuleCard from "./components/HomeCapsuleCard.vue";
 import HomeCover from "./components/HomeCover.vue";
 import HomeFootprintCard from "./components/HomeFootprintCard.vue";
 import HomePhotoCard from "./components/HomePhotoCard.vue";
@@ -42,6 +44,15 @@ const { data: latestPhoto } = usePortalQuery(
   queryKeys.latestPhoto(),
   getLovePhotoCover
 );
+
+/* ---------------- 时光信箱:即将解封预告 ---------------- */
+
+/** 最近一封待解封胶囊(独立 key timeCapsuleNext:数据形状与胶囊分页不同);
+ * 无待解封时整卡不渲染 */
+const { data: nextCapsule } = usePortalQuery(
+  queryKeys.timeCapsuleNext(),
+  getNextTimeCapsule
+);
 </script>
 
 <template>
@@ -71,6 +82,13 @@ const { data: latestPhoto } = usePortalQuery(
         </div>
       </div>
     </section>
+
+    <!-- 即将解封预告:最近一封待解封胶囊(无待解封时整卡不渲染) -->
+    <section v-if="nextCapsule" class="capsule-section">
+      <div class="am-page">
+        <HomeCapsuleCard v-reveal :capsule="nextCapsule" />
+      </div>
+    </section>
   </div>
 </template>
 
@@ -78,6 +96,11 @@ const { data: latestPhoto } = usePortalQuery(
 /* ---------------- 足迹地图 + 纪念日预告 ---------------- */
 .editorial {
   padding-top: var(--am-space-2xl, 64px);
+}
+
+/* 即将解封预告:独立横幅卡,与上方 bento 区留出呼吸间距 */
+.capsule-section {
+  padding-top: var(--am-space-md, 24px);
 }
 
 /* Bento 三卡组:左大卡跨两行,右侧倒计时/一言两小卡;统一卡体配平视觉重量 */

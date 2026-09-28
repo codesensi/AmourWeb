@@ -40,11 +40,13 @@ const photos = Array.from({ length: 48 }, (_, i) => {
   const gradient = PHOTO_GRADIENTS[i % PHOTO_GRADIENTS.length];
   const month = String((i % 12) + 1).padStart(2, "0");
   const day = String((i % 27) + 1).padStart(2, "0");
+  // 年份跨 2025-2023,演示年份归档分册的过滤效果
+  const year = 2025 - (i % 3);
   return {
     id: String(1000 + i),
     img: mockPhoto(label, gradient[0], gradient[1]),
     text: label,
-    date: `2025-${month}-${day}`,
+    date: `${year}-${month}-${day}`,
     // 每 6 张追加一个「节日」标签,演示一张照片归入多个分册的效果
     tags:
       i % 6 === 5
@@ -53,12 +55,42 @@ const photos = Array.from({ length: 48 }, (_, i) => {
   };
 });
 
+/** 年份归档(对齐后端 archive 语义:按照片日期前四位聚合计数,年份降序) */
+const archive = Object.entries(
+  photos.reduce<Record<string, number>>((acc, photo) => {
+    const year = photo.date.slice(0, 4);
+    acc[year] = (acc[year] ?? 0) + 1;
+    return acc;
+  }, {})
+)
+  .map(([year, count]) => ({ year: Number(year), count }))
+  .sort((a, b) => b.year - a.year);
+
 export default defineFakeRoute([
-  // 相册分页(GET /portal/love-photo/page;对齐后端 PortalLovePhotoController 路由)
+  // 相册分页(GET /portal/love-photo/page;对齐后端 PortalLovePhotoController 路由,支持 year/tag 服务端过滤)
   {
     url: "/portal/love-photo/page",
     method: "get",
-    response: ({ query }) => fakePageResponse(photos, query, { canEdit: false })
+    response: ({ query }) => {
+      const year = Number(query.year ?? 0);
+      const tag = String(query.tag ?? "");
+      const filtered = photos
+        .filter(item => !year || item.date.slice(0, 4) === String(year))
+        .filter(item => !tag || (item.tags ?? []).includes(tag));
+      return fakePageResponse(filtered, query, { canEdit: false });
+    }
+  },
+  // 年份归档(GET /portal/love-photo/archive;按年份降序)
+  {
+    url: "/portal/love-photo/archive",
+    method: "get",
+    response: () => ({
+      success: true,
+      code: 200,
+      msg: "操作成功",
+      timestamp: Date.now(),
+      data: archive
+    })
   },
   // 画册封面(GET /portal/love-photo/cover;sort 首位即 photos[0],画册为空时 data 为 null)
   {

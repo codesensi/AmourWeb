@@ -1,3 +1,4 @@
+import { http } from "@/utils/http";
 import { portalPage } from "./utils";
 
 /** 时间胶囊-胶囊项(GET /portal/time-capsule 分页) */
@@ -20,3 +21,11 @@ export type TimeCapsuleItem = {
 export const getTimeCapsule = portalPage<TimeCapsuleItem>(
   "/portal/time-capsule/page"
 );
+
+/** 即将解封的胶囊(GET /portal/time-capsule/next,免登录;无待解封时 data 为 null) */
+export const getNextTimeCapsule = () => {
+  return http.request<TimeCapsuleItem | null>(
+    "get",
+    "/portal/time-capsule/next"
+  );
+};

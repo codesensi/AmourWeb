@@ -67,6 +67,8 @@ export interface DashboardSummary {
   footprintsCityCount: number | null;
   /** 恋爱画册最近照片地址(最多 9 张;无照片时为 null) */
   recentPhotos: string[] | null;
+  /** 待审核留言数 */
+  pendingMessages: number | null;
 }
 
 /** 时间线条目类型(与来源表对应) */
@@ -96,5 +98,77 @@ export const getDashboardTimeline = () => {
   return http.request<PageResult<DashboardTimelineItem>>(
     "get",
     "/admin/dashboard/timeline"
+  );
+};
+
+/** 访问趋势条目(日期区间逐日补齐,无访问的日期计 0) */
+export interface DashboardVisitTrendItem {
+  /** 统计日期(yyyy-MM-dd) */
+  statDate: string;
+  /** 当日访问量(PV) */
+  pv: number;
+  /** 当日独立访客数(UV) */
+  uv: number;
+}
+
+/** 留言地区分布条目(审核通过口径,无法识别归并为「未知」) */
+export interface DashboardMessageRegion {
+  /** IP 归属地 */
+  region: string;
+  /** 留言条数 */
+  count: number;
+}
+
+/** 年度恋爱回顾(各字段均可为 null,按空状态渲染) */
+export interface AnnualReview {
+  /** 统计年份 */
+  year: number;
+  /** 当年情侣日志篇数 */
+  diaryCount: number;
+  /** 当年点点滴滴文章数 */
+  momentsCount: number;
+  /** 当年恋爱画册照片数 */
+  photoCount: number;
+  /** 当年足迹到访次数 */
+  footprintCount: number;
+  /** 当年首次到访的城市 */
+  newCities: string[] | null;
+  /** 出现次数最多的心情标识(sunny/rainy/starry 等;当年无日志时为 null) */
+  topMood: string | null;
+  /** 恋爱清单完成数(当前累计值) */
+  loveListDone: number | null;
+  /** 恋爱清单总条数(当前累计值) */
+  loveListTotal: number | null;
+  /** 当年访问量合计(PV) */
+  pv: number | null;
+  /** 当年独立访客数合计(UV) */
+  uv: number | null;
+  /** 当年精选回忆(最多 6 条) */
+  highlights: DashboardTimelineItem[] | null;
+}
+
+/** 访问趋势(GET /admin/dashboard/visit-trend;登录态,按日期升序逐日补齐) */
+export const getDashboardVisitTrend = (days = 30) => {
+  return http.request<DashboardVisitTrendItem[]>(
+    "get",
+    "/admin/dashboard/visit-trend",
+    { params: { days } }
+  );
+};
+
+/** 留言地区分布(GET /admin/dashboard/message-region;审核通过口径,按条数降序) */
+export const getDashboardMessageRegion = (top = 10) => {
+  return http.request<DashboardMessageRegion[]>(
+    "get",
+    "/admin/dashboard/message-region",
+    { params: { top } }
+  );
+};
+
+/** 年度恋爱回顾(GET /admin/dashboard/annual-review/{year};登录态) */
+export const getAnnualReview = (year: number) => {
+  return http.request<AnnualReview>(
+    "get",
+    `/admin/dashboard/annual-review/${year}`
   );
 };

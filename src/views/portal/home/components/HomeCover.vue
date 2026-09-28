@@ -83,6 +83,14 @@ const loveTime = computed(() => {
   return { days, hours: hrsold, minutes: minsold, seconds };
 });
 
+/** 恋爱里程碑预告:下一个 100 天整数倍(配置未就绪/非法时随计时器一并隐藏) */
+const milestone = computed(() => {
+  const t = loveTime.value;
+  if (!t) return null;
+  const next = (Math.floor(t.days / 100) + 1) * 100;
+  return { next, days: next - t.days };
+});
+
 /** 计时器单元格:时/分/秒个位自动补 0(滚轮数字组件处理) */
 const timerCells = computed(() => {
   const t = loveTime.value;
@@ -175,6 +183,13 @@ const coverHearts = [
         </div>
       </div>
       <p v-if="loveTime" class="cover-note">我们已经相爱了这么久</p>
+      <p v-if="milestone" class="cover-milestone" aria-live="polite">
+        💗 距第
+        <span class="milestone-num">{{ milestone.next }}</span>
+        天还有
+        <span class="milestone-num">{{ milestone.days }}</span>
+        天
+      </p>
     </div>
     <!-- 向下滚动提示:hash 路由下不能用 href="#toc" 锚点(会被当成 /toc 路由),
          改为脚本平滑滚动;箭头用线描 SVG 与全站图标风格一致 -->
@@ -420,6 +435,21 @@ const coverHearts = [
   animation: hero-in 0.7s var(--am-ease) 0.45s backwards;
 }
 
+/* 里程碑预告:数字以主题色强调,随计时器入场节奏最后浮现 */
+.cover-milestone {
+  margin-top: 8px;
+  font-size: var(--am-text-sm);
+  color: var(--am-ink-secondary);
+  animation: hero-in 0.7s var(--am-ease) 0.55s backwards;
+}
+
+.milestone-num {
+  font-family: var(--am-font-mono);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--am-rose);
+}
+
 @keyframes hero-in {
   from {
     opacity: 0;
@@ -438,6 +468,7 @@ const coverHearts = [
   .cover-title,
   .cover-timer,
   .cover-note,
+  .cover-milestone,
   .cover-avatar-heart {
     animation: none;
   }

@@ -112,13 +112,12 @@ export default defineFakeRoute([
         .filter(item => item.delFlag === 0)
         .filter(item => !city || item.city.includes(city))
         .filter(item => hidden === null || item.hidden === hidden)
-        .filter(
-          item => !begin || (item.arrivalDate ?? "") >= begin
-        )
+        .filter(item => !begin || (item.arrivalDate ?? "") >= begin)
         .filter(item => !end || (item.arrivalDate ?? "") <= end)
-        .sort((a, b) =>
-          (a.arrivalDate ?? "").localeCompare(b.arrivalDate ?? "") ||
-          Number(a.id) - Number(b.id)
+        .sort(
+          (a, b) =>
+            (a.arrivalDate ?? "").localeCompare(b.arrivalDate ?? "") ||
+            Number(a.id) - Number(b.id)
         )
         .map(toItem);
       return fakePageResponse(records, { pageNumber, pageSize });
@@ -199,6 +198,41 @@ export default defineFakeRoute([
         item.delFlag = 1;
       });
       return ok(null, "删除成功");
+    }
+  },
+  // 年度统计(GET /admin/footprint/stats;按 query.year 对内存数据聚合,契约对齐 FootprintStatsResponse)
+  {
+    url: "/admin/footprint/stats",
+    method: "get",
+    response: ({ query }) => {
+      const year = Number(query.year ?? new Date().getFullYear());
+      const rows = footprints.filter(
+        item =>
+          item.delFlag === 0 &&
+          (item.arrivalDate ?? "").startsWith(String(year))
+      );
+      const citySet = new Set(rows.map(item => item.city).filter(city => city));
+      const cityTopMap = new Map<string, number>();
+      rows.forEach(item => {
+        if (!item.city) return;
+        cityTopMap.set(item.city, (cityTopMap.get(item.city) ?? 0) + 1);
+      });
+      const topCities = [...cityTopMap.entries()]
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+        .slice(0, 10)
+        .map(([city, count]) => ({ city, count }));
+      return ok({
+        year,
+        totalVisits: rows.length,
+        totalCities: citySet.size,
+        byMonth: Array.from({ length: 12 }, (_, index) => ({
+          month: index + 1,
+          count: rows.filter(
+            item => Number(item.arrivalDate?.slice(5, 7)) === index + 1
+          ).length
+        })),
+        topCities
+      });
     }
   }
 ]);

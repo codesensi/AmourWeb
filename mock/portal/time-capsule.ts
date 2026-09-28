@@ -43,5 +43,34 @@ export default defineFakeRoute([
     method: "get",
     response: ({ query }) =>
       fakePageResponse(capsules, query, { canEdit: false })
+  },
+  // 即将解封的胶囊(GET /portal/time-capsule/next;openTime 大于当前时间的最近一封,无待解封时 data 为 null)
+  {
+    url: "/portal/time-capsule/next",
+    method: "get",
+    response: () => {
+      const now = new Date();
+      const next = capsules
+        .filter(item => new Date(item.openTime.replace(" ", "T")) > now)
+        .sort(
+          (a, b) =>
+            new Date(a.openTime.replace(" ", "T")).getTime() -
+            new Date(b.openTime.replace(" ", "T")).getTime()
+        )[0];
+      return {
+        success: true,
+        code: 200,
+        msg: "操作成功",
+        timestamp: Date.now(),
+        data: next
+          ? {
+              id: next.id,
+              title: next.title,
+              content: null,
+              openTime: next.openTime
+            }
+          : null
+      };
+    }
   }
 ]);

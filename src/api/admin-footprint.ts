@@ -107,3 +107,24 @@ export const changeFootprintHidden = (id: string, hidden: number) => {
 export const deleteFootprint = (ids: string) => {
   return http.request<null>("delete", `/admin/footprint/delete/${ids}`);
 };
+
+/** 足迹年度统计(各统计字段均可为空状态) */
+export interface FootprintStats {
+  /** 统计年份 */
+  year: number;
+  /** 当年到访次数 */
+  totalVisits: number;
+  /** 当年到访城市数(去重) */
+  totalCities: number;
+  /** 月度到访次数(1-12 月逐月补齐) */
+  byMonth: Array<{ month: number; count: number }>;
+  /** 城市到访次数排行(降序) */
+  topCities: Array<{ city: string; count: number }>;
+}
+
+/** 足迹年度统计(GET /admin/footprint/stats;year 缺省为当前年份) */
+export const getFootprintStats = (year: number) => {
+  return http.request<FootprintStats>("get", "/admin/footprint/stats", {
+    params: { year }
+  });
+};

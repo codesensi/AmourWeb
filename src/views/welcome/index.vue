@@ -5,11 +5,18 @@ import ReCol from "@/components/ReCol";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { useUserStoreHook } from "@/store/modules/user";
 import {
+  type AnnualReview,
+  type DashboardMessageRegion,
   type DashboardSummary,
   type DashboardTimelineItem,
+  type DashboardVisitTrendItem,
+  getAnnualReview,
+  getDashboardMessageRegion,
   getDashboardSummary,
-  getDashboardTimeline
+  getDashboardTimeline,
+  getDashboardVisitTrend
 } from "@/api/dashboard";
+import { useECharts } from "@/hooks/useECharts";
 
 defineOptions({
   name: "Welcome"
@@ -171,9 +178,131 @@ function typeLabel(type: string) {
   return typeLabels[type] ?? "回忆";
 }
 
+/* ---------------- 访问趋势(近 30 天,PV/UV 双线) ---------------- */
+
+const visitTrendLoading = ref(true);
+const visitTrendItems = ref<DashboardVisitTrendItem[]>([]);
+const trendChartRef = ref<HTMLElement>();
+const { setOptions: setTrendOptions } = useECharts(trendChartRef);
+
+/** 趋势图渲染:日期为 X 轴(月/日),PV/UV 双折线 */
+function renderTrend() {
+  const items = visitTrendItems.value;
+  setTrendOptions({
+    grid: { left: 8, right: 8, top: 40, bottom: 0, containLabel: true },
+    legend: { data: ["访问量(PV)", "访客数(UV)"], top: 0 },
+    tooltip: { trigger: "axis" },
+    xAxis: {
+      type: "category",
+      boundaryGap: false,
+      data: items.map(item => item.statDate.slice(5))
+    },
+    yAxis: { type: "value", minInterval: 1 },
+    series: [
+      {
+        name: "访问量(PV)",
+        type: "line",
+        smooth: true,
+        showSymbol: false,
+        data: items.map(item => item.pv),
+        areaStyle: { opacity: 0.08 }
+      },
+      {
+        name: "访客数(UV)",
+        type: "line",
+        smooth: true,
+        showSymbol: false,
+        data: items.map(item => item.uv)
+      }
+    ]
+  });
+}
+
+/** 加载访问趋势并渲染(数据为空时保持空态,不渲染图表) */
+async function loadVisitTrend() {
+  try {
+    visitTrendItems.value = (await getDashboardVisitTrend(30)).data;
+    if (visitTrendItems.value.length) {
+      renderTrend();
+    }
+  } finally {
+    visitTrendLoading.value = false;
+  }
+}
+
+/* ---------------- 留言地区分布(审核通过口径,TOP10) ---------------- */
+
+const messageRegionLoading = ref(true);
+const messageRegions = ref<DashboardMessageRegion[]>([]);
+const regionChartRef = ref<HTMLElement>();
+const { setOptions: setRegionOptions } = useECharts(regionChartRef);
+
+/** 加载地区分布并渲染(条数降序,横向柱图自上而下) */
+async function loadMessageRegion() {
+  try {
+    messageRegions.value = (await getDashboardMessageRegion(10)).data;
+    if (messageRegions.value.length) {
+      setRegionOptions({
+        grid: { left: 8, right: 16, top: 8, bottom: 0, containLabel: true },
+        tooltip: { trigger: "axis" },
+        xAxis: { type: "value", minInterval: 1 },
+        yAxis: {
+          type: "category",
+          data: messageRegions.value.map(item => item.region).reverse(),
+          axisLabel: { width: 72, overflow: "truncate" }
+        },
+        series: [
+          {
+            type: "bar",
+            barMaxWidth: 14,
+            data: messageRegions.value.map(item => item.count),
+            itemStyle: { borderRadius: [0, 4, 4, 0] }
+          }
+        ]
+      });
+    }
+  } finally {
+    messageRegionLoading.value = false;
+  }
+}
+
+/* ---------------- 年度恋爱回顾 ---------------- */
+
+/** 回顾年份(默认当前年份;切换即重拉) */
+const reviewYear = ref(new Date().getFullYear());
+const reviewLoading = ref(false);
+const annualReview = ref<AnnualReview | null>(null);
+
+/** 年份选项(当前年份往前推 4 年) */
+const reviewYearOptions = computed(() => {
+  const current = new Date().getFullYear();
+  return [current, current - 1, current - 2, current - 3, current - 4];
+});
+
+/** 切换年份即重拉回顾 */
+async function loadAnnualReview() {
+  if (reviewLoading.value) return;
+  reviewLoading.value = true;
+  try {
+    annualReview.value = (await getAnnualReview(reviewYear.value)).data;
+  } finally {
+    reviewLoading.value = false;
+  }
+}
+
+/** 切换年份(重置型操作) */
+function switchReviewYear(year: number) {
+  if (year === reviewYear.value) return;
+  reviewYear.value = year;
+  loadAnnualReview();
+}
+
 onMounted(() => {
   loadSummary();
   loadTimeline();
+  loadVisitTrend();
+  loadMessageRegion();
+  loadAnnualReview();
 });
 </script>
 
@@ -197,7 +326,7 @@ onMounted(() => {
     <!-- ① 概览卡:问候 + 在一起天数 + 下一个纪念日倒计时 -->
     <el-card shadow="never" class="mb-3">
       <el-skeleton :loading="loading" animated :rows="2">
-        <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="flex-bc flex-wrap gap-4">
           <div>
             <div class="text-lg font-medium">{{ greeting }}，欢迎回来</div>
             <div
@@ -269,7 +398,7 @@ onMounted(() => {
           class="entry-card"
           @click="router.push(entry.path)"
         >
-          <div class="flex items-center justify-between">
+          <div class="flex-bc">
             <div class="flex items-center gap-3">
               <el-icon :size="22" style="color: var(--el-color-primary)">
                 <component :is="useRenderIcon(entry.icon)" />
@@ -291,6 +420,54 @@ onMounted(() => {
               {{ entryCount(entry.countKey) }}
             </span>
           </div>
+        </el-card>
+      </re-col>
+    </el-row>
+
+    <!-- ②⑤ 访问趋势 + 留言地区分布:数据驱动的两张图,空数据整卡隐藏 -->
+    <el-row :gutter="16">
+      <re-col :value="16" :md="16" :sm="24" :xs="24" class="mb-4">
+        <el-card shadow="never" class="h-full">
+          <template #header>
+            <span class="font-medium">访问趋势</span>
+            <span
+              class="ml-2 text-xs"
+              style="color: var(--el-text-color-secondary)"
+            >
+              近 30 天
+            </span>
+          </template>
+          <el-skeleton :loading="visitTrendLoading" animated :rows="5">
+            <div
+              v-show="visitTrendItems.length"
+              ref="trendChartRef"
+              class="chart-line"
+            />
+            <el-empty
+              v-if="!visitTrendLoading && !visitTrendItems.length"
+              description="暂无访问数据"
+              :image-size="80"
+            />
+          </el-skeleton>
+        </el-card>
+      </re-col>
+      <re-col :value="8" :md="8" :sm="24" :xs="24" class="mb-4">
+        <el-card shadow="never" class="h-full">
+          <template #header>
+            <span class="font-medium">留言地区分布</span>
+          </template>
+          <el-skeleton :loading="messageRegionLoading" animated :rows="5">
+            <div
+              v-show="messageRegions.length"
+              ref="regionChartRef"
+              class="region-chart"
+            />
+            <el-empty
+              v-if="!messageRegionLoading && !messageRegions.length"
+              description="暂无留言数据"
+              :image-size="80"
+            />
+          </el-skeleton>
         </el-card>
       </re-col>
     </el-row>
@@ -428,6 +605,18 @@ onMounted(() => {
                   </div>
                   <div class="stat-label">时间胶囊</div>
                 </div>
+                <div class="stat-cell">
+                  <div
+                    class="stat-value pending-value"
+                    role="link"
+                    tabindex="0"
+                    @click="router.push('/admin/message')"
+                    @keydown.enter="router.push('/admin/message')"
+                  >
+                    {{ summary?.pendingMessages ?? 0 }}
+                  </div>
+                  <div class="stat-label">待审留言</div>
+                </div>
               </div>
               <div v-if="summary?.latestMessage" class="mt-5">
                 <div class="mb-1 text-sm">最新留言</div>
@@ -453,6 +642,123 @@ onMounted(() => {
       </re-col>
     </el-row>
 
+    <!-- ⑥ 年度恋爱回顾:年份切换 + 年度计数 + 精选回忆(隐私数据仅登录态可见) -->
+    <el-card shadow="never" class="mb-4">
+      <template #header>
+        <div class="flex-bc gap-3">
+          <span class="whitespace-nowrap font-medium">
+            {{ reviewYear }} 年度回顾
+          </span>
+          <el-select
+            :model-value="reviewYear"
+            class="w-30!"
+            @update:model-value="switchReviewYear"
+          >
+            <el-option
+              v-for="year in reviewYearOptions"
+              :key="year"
+              :label="`${year} 年`"
+              :value="year"
+            />
+          </el-select>
+        </div>
+      </template>
+      <el-skeleton :loading="reviewLoading" animated :rows="5">
+        <template v-if="annualReview">
+          <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <div class="stat-cell">
+              <div class="stat-value">{{ annualReview.diaryCount }}</div>
+              <div class="stat-label">日志({{ annualReview.year }})</div>
+            </div>
+            <div class="stat-cell">
+              <div class="stat-value">{{ annualReview.momentsCount }}</div>
+              <div class="stat-label">点滴</div>
+            </div>
+            <div class="stat-cell">
+              <div class="stat-value">{{ annualReview.photoCount }}</div>
+              <div class="stat-label">照片</div>
+            </div>
+            <div class="stat-cell">
+              <div class="stat-value">{{ annualReview.footprintCount }}</div>
+              <div class="stat-label">到访足迹</div>
+            </div>
+            <div class="stat-cell">
+              <div class="stat-value">
+                {{ annualReview.newCities?.length ?? 0 }}
+              </div>
+              <div class="stat-label">新到访城市</div>
+            </div>
+            <div class="stat-cell">
+              <div class="stat-value">
+                <template v-if="annualReview.pv != null">
+                  {{ annualReview.pv }}
+                </template>
+                <template v-else>-</template>
+              </div>
+              <div class="stat-label">
+                门户访问量(UV {{ annualReview.uv ?? "-" }})
+              </div>
+            </div>
+            <div class="stat-cell">
+              <div class="stat-value">
+                <template v-if="annualReview.loveListTotal">
+                  {{
+                    Math.round(
+                      ((annualReview.loveListDone ?? 0) * 100) /
+                        annualReview.loveListTotal
+                    )
+                  }}%
+                </template>
+                <template v-else>-</template>
+              </div>
+              <div class="stat-label">恋爱清单进度</div>
+            </div>
+            <div class="stat-cell">
+              <div class="stat-value">
+                {{ annualReview.topMood || "-" }}
+              </div>
+              <div class="stat-label">最常见心情</div>
+            </div>
+          </div>
+          <div v-if="annualReview.newCities?.length" class="mt-4">
+            <span class="text-sm" style="color: var(--el-text-color-secondary)">
+              年度新城市：
+            </span>
+            <el-tag
+              v-for="city in annualReview.newCities"
+              :key="city"
+              class="ml-1"
+              effect="plain"
+              size="small"
+            >
+              {{ city }}
+            </el-tag>
+          </div>
+          <div v-if="annualReview.highlights?.length" class="mt-4">
+            <div class="mb-2 text-sm">精选回忆</div>
+            <el-timeline>
+              <el-timeline-item
+                v-for="(item, index) in annualReview.highlights"
+                :key="index"
+                :timestamp="item.time"
+                placement="top"
+              >
+                <el-tag size="small" effect="plain">
+                  {{ typeLabel(item.type) }}
+                </el-tag>
+                <span class="ml-2 font-medium">{{ item.title }}</span>
+              </el-timeline-item>
+            </el-timeline>
+          </div>
+        </template>
+        <el-empty
+          v-else-if="!reviewLoading"
+          description="该年份还没有留下回忆"
+          :image-size="80"
+        />
+      </el-skeleton>
+    </el-card>
+
     <!-- ⑤ 快捷操作:三个最高频动作的收尾入口 -->
     <el-row :gutter="16">
       <re-col
@@ -469,7 +775,7 @@ onMounted(() => {
           class="quick-action-card"
           @click="router.push(action.path)"
         >
-          <div class="flex items-center justify-center gap-2">
+          <div class="flex-c gap-2">
             <el-icon :size="18" style="color: var(--el-color-primary)">
               <component :is="useRenderIcon(action.icon)" />
             </el-icon>
@@ -489,6 +795,23 @@ onMounted(() => {
 .alert-link {
   color: var(--el-color-primary);
   text-decoration: underline;
+  cursor: pointer;
+}
+
+/* 趋势/分布图表容器:固定高度,避免 0 高度不渲染 */
+.chart-line {
+  width: 100%;
+  height: 300px;
+}
+
+.region-chart {
+  width: 100%;
+  height: 300px;
+}
+
+/* 待审留言数字可点击:警告色提示待办存在 */
+.pending-value {
+  color: var(--el-color-warning);
   cursor: pointer;
 }
 

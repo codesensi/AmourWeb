@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { getLovePhoto, type LovePhotoItem } from "@/api/portal/love-photo";
+import { computed, ref, watch } from "vue";
+import {
+  getLovePhoto,
+  getLovePhotoArchive,
+  type LovePhotoItem
+} from "@/api/portal/love-photo";
 import { queryKeys } from "@/hooks/query-keys";
-import { usePortalList } from "@/hooks/usePortalQuery";
+import { usePortalList, usePortalQuery } from "@/hooks/usePortalQuery";
 import PortalLoadMore from "@/components/PortalLoadMore/index.vue";
 import PortalGhostTile from "@/components/PortalGhostTile/index.vue";
 import { useLightbox } from "@/hooks/useLightbox";
@@ -13,10 +17,45 @@ defineOptions({ name: "PortalLovePhoto" });
 
 const vReveal = reveal;
 
-/** 门户「加载更多」分页加载(每页 6 张);首拉与 KeepAlive 激活校验由查询层接管 */
+/* ---------------- 年份归档(服务端过滤):archive 驱动,切换即换 queryKey 重置分页 ---------------- */
+
+/** 「全部年份」哨兵值;模板中按钮文案单独使用「全部」文案 */
+const ALL_YEAR = "all";
+const activeYear = ref<number | "all">("all");
+
+/** 年份归档数据(GET /portal/love-photo/archive,按年份降序);画册为空时为空列表 */
+const { data: archive } = usePortalQuery(
+  queryKeys.lovePhotoArchive(),
+  getLovePhotoArchive
+);
+
+/** 年份分册选项(archive 驱动,按年份降序);「全部」固定首位 */
+const yearOptions = computed(() => archive.value ?? []);
+
+/** 指定年份的照片数(分册按钮上的计数徽标) */
+function yearCount(year: number): number {
+  return archive.value?.find(item => item.year === year)?.count ?? 0;
+}
+
+/** 切换年份:重置型操作,回到页首欣赏新年份(尊重 reduced-motion) */
+function switchYear(year: number | "all") {
+  if (year === activeYear.value) return;
+  activeYear.value = year;
+  scrollToTop();
+}
+
+/** 门户「加载更多」分页加载(每页 6 张);年份经 fetcher 注入服务端过滤,
+ * queryKey 携带年份参数化(切年份自动重置分页) */
 const { items, loading, hasMore, loadMore } = usePortalList<LovePhotoItem>(
-  queryKeys.lovePhoto(),
-  getLovePhoto
+  () =>
+    queryKeys.lovePhoto(
+      activeYear.value === "all" ? undefined : activeYear.value
+    ),
+  params =>
+    getLovePhoto({
+      ...params,
+      year: activeYear.value === "all" ? undefined : activeYear.value
+    })
 );
 
 /** 图片加载失败兜底:隐藏破图,回落占位底色 */
@@ -58,6 +97,11 @@ function switchTag(tag: string) {
   scrollToTop();
 }
 
+/** 切换年份后重置标签分册:不同年份的标签池不同,避免停留在失效分册上 */
+watch(activeYear, () => {
+  activeTag.value = ALL_TAG;
+});
+
 /* ---------------- 影院模式 ---------------- */
 
 /** 影院模式数据源:带图注的图片列表 */
@@ -93,7 +137,30 @@ function spanClass(i: number) {
       <p class="album-intro">记录最美瞬间,把时间折进相纸里。</p>
     </header>
 
-    <!-- tag 分册(mock 无 tag 时仅「全部」,不渲染) -->
+    <!-- 年份归档分册(archive 驱动;仅单一年份时与「全部」等价,不渲染) -->
+    <div v-if="yearOptions.length > 1" class="album-tags">
+      <button
+        class="album-tag"
+        :class="{ active: activeYear === ALL_YEAR }"
+        type="button"
+        @click="switchYear(ALL_YEAR)"
+      >
+        全部
+      </button>
+      <button
+        v-for="year in yearOptions"
+        :key="year.year"
+        class="album-tag"
+        :class="{ active: year.year === activeYear }"
+        type="button"
+        @click="switchYear(year.year)"
+      >
+        {{ year.year }}
+        <span class="album-year-count">{{ yearCount(year.year) }}</span>
+      </button>
+    </div>
+
+    <!-- tag 分册(本地聚合过滤,与服务端年份过滤叠加生效;mock 无 tag 时仅「全部」,不渲染) -->
     <div v-if="tagOptions.length > 1" class="album-tags">
       <button
         v-for="tag in tagOptions"
@@ -108,9 +175,13 @@ function spanClass(i: number) {
     </div>
 
     <!-- 照片瀑布流:CSS columns 实现,悬浮浮现图注,点击/回车进影院模式;
-         分册切换整墙交叉淡入(CSS columns 下比逐项 FLIP 更稳) -->
+         分册/年份切换整墙交叉淡入(CSS columns 下比逐项 FLIP 更稳) -->
     <Transition name="album-fade" mode="out-in">
-      <div v-if="visibleItems.length" :key="activeTag" class="album-grid">
+      <div
+        v-if="visibleItems.length"
+        :key="`${activeYear}-${activeTag}`"
+        class="album-grid"
+      >
         <figure
           v-for="(it, i) in visibleItems"
           :key="`${it.img}-${i}`"
@@ -360,6 +431,15 @@ function spanClass(i: number) {
 .album-fade-enter-active,
 .album-fade-leave-active {
   transition: opacity var(--am-duration) ease;
+}
+
+/* 年份分册上的照片数徽标 */
+.album-year-count {
+  margin-left: 4px;
+  font-family: var(--am-font-mono);
+  font-size: var(--am-text-xs);
+  font-variant-numeric: tabular-nums;
+  opacity: 0.72;
 }
 
 .album-fade-enter-from,
