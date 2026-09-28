@@ -81,6 +81,7 @@ pnpm build:staging
 - 分页五字段：`records / pageNumber / pageSize / totalRow / totalPage`
 - 雪花 ID 防精度丢失：后端所有标识类 `Long` 字段（主键/外键/用户 ID 等）序列化为字符串，前端类型一律 `string`
 - 时间格式：`LocalDateTime` 为 `yyyy-MM-dd HH:mm:ss`，`LocalDate` 为 `yyyy-MM-dd`
+- 数据范围：业务模块分页行携带 `canEdit`（后端按「角色 × 业务模块」数据权限回填），操作列按钮与状态开关联动门控；mock 分页统一注入 `canEdit: true` 模拟"本人视角"
 - mock 数据必须与后端 DTO 同形，发现不一致先报告再修改
 
 ## Docker 部署
