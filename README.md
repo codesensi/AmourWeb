@@ -108,7 +108,35 @@ docker run -dp 8080:80 --name amour-web -e BACKEND_ORIGIN=http://host.docker.int
 
 ## Git 提交规范
 
-参考 [Angular](https://github.com/conventional-changelog/conventional-changelog/tree/master/packages/conventional-changelog-angular) 约定：`feat` 新功能、`fix` 修复、`style` 格式、`perf` 性能、`refactor` 重构、`revert` 撤销、`test` 测试、`docs` 文档、`chore` 工程配置、`types` 类型定义、`wip` 开发中。
+遵循 [Conventional Commits](https://www.conventionalcommits.org/zh-hans/)，格式为 `类型(可选作用域): 简述`：
+
+| 类型       | 说明                           | CHANGELOG 归类 |
+| ---------- | ------------------------------ | -------------- |
+| `feat`     | 新功能                         | 新增           |
+| `fix`      | 缺陷修复                       | 修复           |
+| `perf`     | 性能优化                       | 变更           |
+| `refactor` | 重构（不改外部行为）           | 变更           |
+| `revert`   | 撤销既有提交                   | 修复           |
+| `docs`     | 文档                           | 不入           |
+| `style`    | 格式（空格、分号等，不改逻辑） | 不入           |
+| `test`     | 测试                           | 不入           |
+| `chore`    | 工程配置、依赖                 | 不入           |
+| `types`    | 类型定义                       | 不入           |
+| `wip`      | 开发中                         | 不入           |
+
+- 作用域建议携带模块名（如 `feat(data-scope): 角色数据权限分配抽屉`）；
+- 不兼容变更在类型后加 `!`（如 `refactor!:`），并在提交正文说明 `BREAKING CHANGE:`，版本号 MAJOR 位随之递增；
+- 每个正式版本的变更沉淀于 [CHANGELOG.md](CHANGELOG.md)（Keep a Changelog 结构），版本号遵循语义化版本。
+
+- 作用域建议携带模块名（如 `feat(data-scope): 角色数据权限分配抽屉`）；
+- 不兼容变更在类型后加 `!`（如 `refactor!:`），并在提交正文说明 `BREAKING CHANGE:`，版本号 MAJOR 位随之递增；
+- 每个正式版本的变更沉淀于 [CHANGELOG.md](CHANGELOG.md)（Keep a Changelog 结构），版本号遵循语义化版本。
+
+## 分支与发版
+
+- **分支模型**：单主干——`main` 为长期分支，功能以短生命周期分支开发，合入后删除
+- **提交校验**：推送的提交信息由 CI（`Commit Lint`）自动校验
+- **发版流程**：`CHANGELOG.md` 定稿版本段 → 在 `main` 上创建 `v*` 附注标签并推送 → Actions 自动创建 GitHub Release（正文为对应版本段落，tag 含 `-` 的预发布标识自动标记 pre-release）
 
 ## 源项目
 
