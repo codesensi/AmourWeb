@@ -22,6 +22,8 @@ export interface DiaryPageItem {
   createTime?: string;
   /** 创建人用户名(服务层批量回填) */
   creatorName?: string;
+  /** 当前登录人是否可修改本行(数据范围策略判定,服务层回填) */
+  canEdit?: boolean;
 }
 
 /** 情侣日记分页查询参数 */

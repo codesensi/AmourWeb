@@ -173,7 +173,7 @@ const handleTabChange = useLazyTabs(
                   下载
                 </el-button>
                 <el-button
-                  v-if="hasPerms('system:file:delete')"
+                  v-if="hasPerms('system:file:delete') && row.canEdit === true"
                   class="reset-margin"
                   link
                   type="danger"

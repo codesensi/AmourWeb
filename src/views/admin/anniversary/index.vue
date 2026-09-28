@@ -137,7 +137,9 @@ const {
         >
           <template #operation="{ row, size }">
             <el-button
-              v-if="hasPerms('admin:anniversary:update')"
+              v-if="
+                hasPerms('admin:anniversary:update') && row.canEdit === true
+              "
               class="reset-margin"
               link
               type="primary"
@@ -148,7 +150,9 @@ const {
               修改
             </el-button>
             <el-button
-              v-if="hasPerms('admin:anniversary:delete')"
+              v-if="
+                hasPerms('admin:anniversary:delete') && row.canEdit === true
+              "
               class="reset-margin"
               link
               type="primary"

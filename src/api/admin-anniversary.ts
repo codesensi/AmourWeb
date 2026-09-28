@@ -25,6 +25,8 @@ export interface AnniversaryPageItem {
   createTime?: string;
   /** 创建人用户名(服务层批量回填;未登录来源记录为空) */
   creatorName?: string;
+  /** 当前登录人是否可修改本行(数据范围策略判定,服务层回填) */
+  canEdit?: boolean;
 }
 
 /** 纪念日分页查询参数 */

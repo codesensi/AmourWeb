@@ -17,9 +17,11 @@ import Delete from "~icons/ep/delete";
 import EditPen from "~icons/ep/edit-pen";
 import Refresh from "~icons/ep/refresh";
 import Menu from "~icons/ep/menu";
+import Lock from "~icons/ep/lock";
 import AddFill from "~icons/ri/add-circle-line";
 import Close from "~icons/ep/close";
 import Check from "~icons/ep/check";
+import DataScopeDrawer from "./data-scope.vue";
 
 defineOptions({
   name: "AdminSystemRole"
@@ -44,6 +46,16 @@ const formRef = ref();
 const tableRef = ref();
 const contentRef = ref();
 const treeHeight = ref();
+/** 数据权限抽屉 */
+const scopeVisible = ref(false);
+const scopeRoleId = ref();
+const scopeRoleName = ref();
+
+const openDataScope = (row: { id: string; name: string }) => {
+  scopeRoleId.value = row.id;
+  scopeRoleName.value = row.name;
+  scopeVisible.value = true;
+};
 
 const {
   form,
@@ -242,6 +254,17 @@ onMounted(() => {
               >
                 权限
               </el-button>
+              <el-button
+                v-if="hasPerms('system:role:scope')"
+                class="reset-margin"
+                link
+                type="primary"
+                :size="size"
+                :icon="useRenderIcon(Lock)"
+                @click="openDataScope(row)"
+              >
+                数据权限
+              </el-button>
             </template>
           </pure-table>
         </template>
@@ -310,6 +333,12 @@ onMounted(() => {
         </el-tree-v2>
       </div>
     </div>
+
+    <DataScopeDrawer
+      v-model:visible="scopeVisible"
+      :role-id="scopeRoleId"
+      :role-name="scopeRoleName"
+    />
   </div>
 </template>
 

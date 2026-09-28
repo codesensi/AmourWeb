@@ -181,7 +181,8 @@ export function useTimeCapsule(tableRef: Ref) {
         title: row?.title ?? "",
         content: row?.content ?? "",
         openTime: row?.openTime ?? "",
-        hidden: row?.hidden ?? 0
+        hidden: row?.hidden ?? 0,
+        canEdit: row?.canEdit
       },
       submit: async curData => {
         if (title === "新增") {

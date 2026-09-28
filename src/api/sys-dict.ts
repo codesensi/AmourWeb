@@ -53,7 +53,11 @@ export const DICT_CODES = {
   /** 通用完成状态(不带业务语义,如恋爱清单的已完成/未完成) */
   done: "done",
   /** 日记心情(与 DiaryMoodEnum 对齐) */
-  diaryMood: "diary-mood"
+  diaryMood: "diary-mood",
+  /** 数据范围档位(与 DataScopeEnum 对齐) */
+  dataScope: "data-scope",
+  /** 数据权限业务模块(与 DataModuleEnum 对齐) */
+  dataModule: "data-module"
 } as const;
 
 /** 字典批量查询(GET /portal/dict/list-by-codes,免登录;codes 逗号分隔) */

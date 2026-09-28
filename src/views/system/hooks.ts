@@ -157,7 +157,9 @@ export function collapseNames(names: string[], unit: string): string {
 /**
  * 状态开关列 cellRenderer —— 收敛用户/角色/菜单/字典/画册五页同构的开关列渲染。
  * 开关文案缺省由 sys_dict(enable) 驱动(画册显隐列传 hidden 字典);
- * 内置行禁用启停,无权限时与操作列门控对齐同步禁用。
+ * 内置行禁用启停,无权限时与操作列门控对齐同步禁用;
+ * 行数据携带 canEdit 时(业务模块的数据范围回填)按其值禁用,
+ * 缺省(系统管理等无数据范围概念的页)不受影响。
  *
  * @param options.perms 状态修改权限码(无权限时开关禁用)
  * @param options.switchLoadMap 各行开关提交加载态(来自 useStatusSwitch)
@@ -191,7 +193,10 @@ export function useStatusColumn<
       inactiveValue: 1,
       activeText: labelOf(0),
       inactiveText: labelOf(1),
-      disabled: data.row.builtin === 1 || !hasPerms(options.perms),
+      disabled:
+        data.row.builtin === 1 ||
+        data.row.canEdit === false ||
+        !hasPerms(options.perms),
       inlinePrompt: true,
       style: switchStyle.value,
       onChange: () => options.onChange(data.row)

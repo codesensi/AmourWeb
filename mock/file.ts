@@ -124,10 +124,14 @@ let files: MockFile[] = [
   }
 ];
 
-/** 剔除 mock 内部字段,对齐 FileItem 展示字段 */
+/**
+ * 剔除 mock 内部字段,对齐 FileItem 展示字段;
+ * 注入 canEdit=true(mock 环境无登录态区分,模拟"本人视角"的全可改,
+ * 对齐后端分页行的数据范围回填契约)
+ */
 const toItem = (file: MockFile) => {
   const { delFlag: _delFlag, ...rest } = file;
-  return rest;
+  return { ...rest, canEdit: true };
 };
 
 /** 下一个自增 ID(字符串下发,对齐后端雪花 ID 序列化) */

@@ -25,6 +25,11 @@ const isUnlocked = computed(
     new Date(newFormInline.value.openTime.replace(" ", "T")) <= new Date()
 );
 
+/** 信件内容是否被数据范围遮罩:编辑态下行不可改(后端已将 content 置空防剧透),只读展示 */
+const contentMasked = computed(
+  () => !!newFormInline.value.id && newFormInline.value.canEdit === false
+);
+
 function getRef() {
   return ruleFormRef.value;
 }
@@ -70,15 +75,20 @@ defineExpose({ getRef });
             :rows="6"
             maxlength="5000"
             show-word-limit
-            :disabled="isUnlocked"
+            :disabled="isUnlocked || contentMasked"
             :placeholder="
               isUnlocked
                 ? '胶囊已解锁，信件内容封存生效，不再支持修改'
-                : '请输入信件内容'
+                : contentMasked
+                  ? '无权查看该信件内容'
+                  : '请输入信件内容'
             "
           />
           <span v-if="isUnlocked" class="content-note">
             胶囊已解锁，信件内容封存生效，不再支持修改
+          </span>
+          <span v-if="contentMasked" class="content-note">
+            该信件未解锁且归属他人，内容已按数据权限遮罩
           </span>
         </el-form-item>
       </re-col>

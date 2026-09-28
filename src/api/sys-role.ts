@@ -130,3 +130,50 @@ export const assignMenus = (data: AssignMenusRequest) => {
     data
   });
 };
+
+/** 角色数据权限-单模块档位配置项(对齐后端 RoleDataScopeSaveRequest.RoleDataScopeItemDTO) */
+export type RoleDataScopeItem = {
+  /** 业务模块键(后端 DataModuleEnum) */
+  module: string;
+  /** 可见范围:all/self */
+  visibleScope: string;
+  /** 可改范围:all/self(不得宽于可见范围) */
+  editableScope: string;
+};
+
+/** 角色数据权限-分配请求参数(对齐后端 RoleDataScopeAssignRequest,整角色覆盖式保存) */
+export type RoleDataScopeSaveRequest = {
+  /** 角色ID(后端 Long 序列化为字符串) */
+  roleId: string;
+  /** 各模块的范围档位配置(未提交的模块按未配置处理,判定层兜底 self) */
+  items?: Array<RoleDataScopeItem>;
+};
+
+/** 角色数据权限-行数据(对齐后端 RoleDataScopeResponse) */
+export type RoleDataScopeRow = {
+  /** 业务模块键(后端 DataModuleEnum) */
+  module: string;
+  /** 模块说明 */
+  moduleDesc: string;
+  /** 可见范围:all/self(未配置行由后端按最小权限兜底 self) */
+  visibleScope: string;
+  /** 可改范围:all/self */
+  editableScope: string;
+  /** 是否超级管理员角色(数据范围硬编码 all/all,前端置灰展示) */
+  superAdmin: boolean;
+};
+
+/** 角色管理-查询数据权限配置(GET /sys/role/data-scope/{id}) */
+export const getRoleDataScope = (id: string) => {
+  return http.request<Array<RoleDataScopeRow>>(
+    "get",
+    `/sys/role/data-scope/${id}`
+  );
+};
+
+/** 角色管理-分配数据权限(PUT /sys/role/assign-data-scope,整角色覆盖式保存) */
+export const saveRoleDataScope = (data: RoleDataScopeSaveRequest) => {
+  return http.request<null>("put", "/sys/role/assign-data-scope", {
+    data
+  });
+};

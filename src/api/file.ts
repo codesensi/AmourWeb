@@ -61,6 +61,8 @@ export type FileItem = {
   creatorName: string;
   /** 上传时间(yyyy-MM-dd HH:mm:ss) */
   createTime: string;
+  /** 当前登录人是否可修改本行(数据范围策略判定,服务层回填) */
+  canEdit?: boolean;
 };
 
 /** 文件分页查询参数 */
