@@ -18,6 +18,8 @@ export interface TimeCapsulePageItem {
   createTime?: string;
   /** 创建人用户名(服务层批量回填) */
   creatorName?: string;
+  /** 更新人用户名(服务层批量回填;未发生过更新的记录为空) */
+  updaterName?: string;
   /** 当前登录人是否可修改本行(数据范围策略判定,服务层回填) */
   canEdit?: boolean;
 }
@@ -30,14 +32,23 @@ export type TimeCapsuleQuery = PageQuery & {
   hidden?: number;
 };
 
-/** 时间胶囊新增/修改参数(修改时 id 必填;hidden 显隐仅新增传入,修改走 change-hidden) */
-export type TimeCapsuleSave = {
-  id?: string;
+/** 时间胶囊新增参数(对齐后端 TimeCapsuleInsertRequest;hidden 后端 @NotNull 必填) */
+export type TimeCapsuleInsertRequest = {
   title: string;
   content: string;
   /** 解锁时间(yyyy-MM-dd HH:mm:ss;到点后门户可见全文) */
   openTime: string;
-  hidden?: number;
+  /** 显隐标识: 0-显示, 1-隐藏 */
+  hidden: number;
+};
+
+/** 时间胶囊修改参数(对齐后端 TimeCapsuleUpdateRequest;显隐走 change-hidden 独立端点) */
+export type TimeCapsuleUpdateRequest = {
+  id: string;
+  title: string;
+  content: string;
+  /** 解锁时间(yyyy-MM-dd HH:mm:ss;到点后门户可见全文) */
+  openTime: string;
 };
 
 /** 时间胶囊分页查询(GET /admin/time-capsule/page;登录态) */
@@ -52,14 +63,14 @@ export const getTimeCapsulePage = (params?: TimeCapsuleQuery) => {
 };
 
 /** 新增时间胶囊(POST /admin/time-capsule/insert) */
-export const insertTimeCapsule = (data: TimeCapsuleSave) => {
+export const insertTimeCapsule = (data: TimeCapsuleInsertRequest) => {
   return http.request<null>("post", "/admin/time-capsule/insert", {
     data
   });
 };
 
 /** 修改时间胶囊(PUT /admin/time-capsule/update;按 id 覆盖全部可编辑字段,显隐除外) */
-export const updateTimeCapsule = (data: TimeCapsuleSave) => {
+export const updateTimeCapsule = (data: TimeCapsuleUpdateRequest) => {
   return http.request<null>("put", "/admin/time-capsule/update", {
     data
   });

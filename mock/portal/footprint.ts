@@ -176,7 +176,8 @@ export default defineFakeRoute([
   {
     url: "/portal/footprint/page",
     method: "get",
-    response: ({ query }) => fakePageResponse(visibleFootprints, query)
+    response: ({ query }) =>
+      fakePageResponse(visibleFootprints, query, { canEdit: false })
   },
   // 足迹地图全量点集(GET /portal/footprint/list/map-points;按到访日期升序)
   {

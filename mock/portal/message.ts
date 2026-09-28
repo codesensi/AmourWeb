@@ -68,7 +68,8 @@ export default defineFakeRoute([
   {
     url: "/portal/message",
     method: "get",
-    response: ({ query }) => fakePageResponse(messages, query)
+    response: ({ query }) =>
+      fakePageResponse(messages, query, { canEdit: false })
   },
   // 提交留言(POST /portal/message;mock 不落库,提交后列表不变化)
   {

@@ -623,6 +623,7 @@ export default defineFakeRoute([
           id: "1",
           username: "admin",
           nickname: "超级管理员",
+          avatar: "",
           idCard: "",
           email: "admin@amour.com",
           phone: "",
@@ -630,6 +631,7 @@ export default defineFakeRoute([
           gender: "U",
           remark: "系统内置超级管理员",
           builtin: 1,
+          passwordUpdated: 1,
           roles: ["admin"],
           perms: ["*:*:*"],
           menus

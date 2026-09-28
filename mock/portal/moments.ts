@@ -174,15 +174,15 @@ export default defineFakeRoute([
   {
     url: "/portal/moments/page",
     method: "get",
-    response: ({ query }) => fakePageResponse(moments, query)
+    response: ({ query }) =>
+      fakePageResponse(moments, query, { canEdit: false })
   },
   // 文章详情(GET /portal/moments/detail/:id)
   {
     url: "/portal/moments/detail/:id",
     method: "get",
     response: ({ params }) => {
-      const item =
-        moments.find(m => m.id === String(params?.id ?? "")) ?? null;
+      const item = moments.find(m => m.id === String(params?.id ?? "")) ?? null;
       return {
         success: true,
         code: 200,

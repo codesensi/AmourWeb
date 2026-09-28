@@ -41,6 +41,7 @@ export default defineFakeRoute([
   {
     url: "/portal/time-capsule/page",
     method: "get",
-    response: ({ query }) => fakePageResponse(capsules, query)
+    response: ({ query }) =>
+      fakePageResponse(capsules, query, { canEdit: false })
   }
 ]);

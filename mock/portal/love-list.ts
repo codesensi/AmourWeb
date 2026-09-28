@@ -18,6 +18,7 @@ export default defineFakeRoute([
   {
     url: "/portal/love-list",
     method: "get",
-    response: ({ query }) => fakePageResponse(loveList, query)
+    response: ({ query }) =>
+      fakePageResponse(loveList, query, { canEdit: false })
   }
 ]);

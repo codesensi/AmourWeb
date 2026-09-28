@@ -20,6 +20,8 @@ export interface LoveListPageItem {
   createTime?: string;
   /** 创建人用户名(服务层批量回填;未登录来源记录为空) */
   creatorName?: string;
+  /** 更新人用户名(服务层批量回填;未发生过更新的记录为空) */
+  updaterName?: string;
   /** 当前登录人是否可修改本行(数据范围策略判定,服务层回填) */
   canEdit?: boolean;
 }
@@ -34,14 +36,23 @@ export type LoveListQuery = PageQuery & {
   hidden?: number;
 };
 
-/** 恋爱清单新增/修改参数(修改时 id 必填;hidden 显隐仅新增传入,修改走 change-hidden) */
-export type LoveListSave = {
-  id?: string;
+/** 恋爱清单新增参数(对齐后端 LoveListInsertRequest;hidden 后端 @NotNull 必填) */
+export type LoveListInsertRequest = {
   content: string;
   done: number;
   photo?: string;
   sort: number;
-  hidden?: number;
+  /** 显隐标识: 0-显示, 1-隐藏 */
+  hidden: number;
+};
+
+/** 恋爱清单修改参数(对齐后端 LoveListUpdateRequest,按 id 覆盖可编辑字段;显隐走 change-hidden 独立端点) */
+export type LoveListUpdateRequest = {
+  id: string;
+  content: string;
+  done: number;
+  photo?: string;
+  sort: number;
 };
 
 /** 恋爱清单分页查询(GET /admin/love-list/page;登录态) */
@@ -56,14 +67,14 @@ export const getLoveListPage = (params?: LoveListQuery) => {
 };
 
 /** 新增清单项(POST /admin/love-list/insert) */
-export const insertLoveList = (data: LoveListSave) => {
+export const insertLoveList = (data: LoveListInsertRequest) => {
   return http.request<null>("post", "/admin/love-list/insert", {
     data
   });
 };
 
 /** 修改清单项(PUT /admin/love-list/update;按 id 覆盖全部可编辑字段,显隐除外) */
-export const updateLoveList = (data: LoveListSave) => {
+export const updateLoveList = (data: LoveListUpdateRequest) => {
   return http.request<null>("put", "/admin/love-list/update", {
     data
   });

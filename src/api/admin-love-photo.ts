@@ -22,6 +22,8 @@ export interface LovePhotoPageItem {
   createTime?: string;
   /** 创建人用户名(服务层批量回填;未登录来源记录为空) */
   creatorName?: string;
+  /** 更新人用户名(服务层批量回填;未发生过更新的记录为空) */
+  updaterName?: string;
   /** 当前登录人是否可修改本行(数据范围策略判定,服务层回填) */
   canEdit?: boolean;
 }
@@ -45,27 +47,37 @@ export const getLovePhotoPage = (params?: LovePhotoQuery) => {
   );
 };
 
-/** 恋爱画册照片新增/修改参数(修改时 id 必填;标签集合由后端规范化为逗号分隔存储;显隐仅新增传入,修改走 change-hidden) */
-export type LovePhotoSave = {
-  id?: string;
+/** 恋爱画册照片新增参数(对齐后端 LovePhotoInsertRequest;caption/dateText/hidden 后端必填;标签集合由后端规范化为逗号分隔存储) */
+export type LovePhotoInsertRequest = {
   url: string;
-  caption?: string;
-  dateText?: string;
+  caption: string;
+  /** 照片日期(yyyy-MM-dd) */
+  dateText: string;
   tags?: Array<string>;
   sort: number;
   /** 显隐标识: 0-显示, 1-隐藏 */
-  hidden?: number;
+  hidden: number;
+};
+
+/** 恋爱画册照片修改参数(对齐后端 LovePhotoUpdateRequest;显隐走 change-hidden 独立端点) */
+export type LovePhotoUpdateRequest = {
+  id: string;
+  url: string;
+  caption: string;
+  dateText: string;
+  tags?: Array<string>;
+  sort: number;
 };
 
 /** 新增照片(POST /admin/love-photo/insert) */
-export const insertLovePhoto = (data: LovePhotoSave) => {
+export const insertLovePhoto = (data: LovePhotoInsertRequest) => {
   return http.request<null>("post", "/admin/love-photo/insert", {
     data
   });
 };
 
 /** 修改照片(PUT /admin/love-photo/update;按 id 覆盖全部可编辑字段) */
-export const updateLovePhoto = (data: LovePhotoSave) => {
+export const updateLovePhoto = (data: LovePhotoUpdateRequest) => {
   return http.request<null>("put", "/admin/love-photo/update", {
     data
   });

@@ -83,6 +83,7 @@ export default defineFakeRoute([
   {
     url: "/portal/diary/page",
     method: "get",
-    response: ({ query }) => fakePageResponse(diaryList, query)
+    response: ({ query }) =>
+      fakePageResponse(diaryList, query, { canEdit: false })
   }
 ]);

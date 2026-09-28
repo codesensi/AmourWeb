@@ -1,4 +1,4 @@
-// 恋爱相册 mock(GET /portal/love-photo 分页;48 张渐变占位照片,移植原站 PORTAL_MOCK.photos)
+// 恋爱相册 mock(GET /portal/love-photo/page 分页;48 张渐变占位照片,移植原站 PORTAL_MOCK.photos)
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 import { mockPhoto } from "./mock-photo";
 import { fakePageResponse } from "../utils";
@@ -58,7 +58,7 @@ export default defineFakeRoute([
   {
     url: "/portal/love-photo/page",
     method: "get",
-    response: ({ query }) => fakePageResponse(photos, query)
+    response: ({ query }) => fakePageResponse(photos, query, { canEdit: false })
   },
   // 画册封面(GET /portal/love-photo/cover;sort 首位即 photos[0],画册为空时 data 为 null)
   {

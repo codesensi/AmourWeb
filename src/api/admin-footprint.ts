@@ -26,6 +26,8 @@ export interface FootprintPageItem {
   createTime?: string;
   /** 创建人用户名(服务层批量回填;未登录来源记录为空) */
   creatorName?: string;
+  /** 更新人用户名(服务层批量回填;未发生过更新的记录为空) */
+  updaterName?: string;
   /** 当前登录人是否可修改本行(数据范围策略判定,服务层回填) */
   canEdit?: boolean;
 }
@@ -51,32 +53,44 @@ export const getFootprintPage = (params?: FootprintQuery) => {
   );
 };
 
-/** 足迹新增/修改参数(修改时 id 必填;经纬度由地图选点或手动录入;照片以 URL 直存;显隐仅新增传入,修改走 change-hidden) */
-export type FootprintSave = {
-  id?: string;
+/** 足迹新增参数(对齐后端 FootprintInsertRequest;arrivalDate 后端 @NotBlank 必填;经纬度由地图选点或手动录入;照片以 URL 直存) */
+export type FootprintInsertRequest = {
   city: string;
   /** 精确地点名称(地图选点搜索选中的地点,或手动录入;可空) */
   placeName?: string | null;
   longitude?: number | null;
   latitude?: number | null;
-  /** 到访日期(yyyy-MM-dd;可空) */
-  arrivalDate?: string | null;
+  /** 到访日期(yyyy-MM-dd;后端 @NotBlank 必填) */
+  arrivalDate: string;
   /** 显隐标识: 0-显示, 1-隐藏 */
-  hidden?: number;
+  hidden: number;
   /** 关联照片地址(上传组件返回的 /file/view/{id} 或外链;可空) */
   photoUrl?: string | null;
   remark?: string;
 };
 
+/** 足迹修改参数(对齐后端 FootprintUpdateRequest;显隐走 change-hidden 独立端点) */
+export type FootprintUpdateRequest = {
+  id: string;
+  city: string;
+  placeName?: string | null;
+  longitude?: number | null;
+  latitude?: number | null;
+  /** 到访日期(yyyy-MM-dd;后端 @NotBlank 必填) */
+  arrivalDate: string;
+  photoUrl?: string | null;
+  remark?: string;
+};
+
 /** 新增足迹(POST /admin/footprint/insert) */
-export const insertFootprint = (data: FootprintSave) => {
+export const insertFootprint = (data: FootprintInsertRequest) => {
   return http.request<null>("post", "/admin/footprint/insert", {
     data
   });
 };
 
 /** 修改足迹(PUT /admin/footprint/update;按 id 覆盖全部可编辑字段) */
-export const updateFootprint = (data: FootprintSave) => {
+export const updateFootprint = (data: FootprintUpdateRequest) => {
   return http.request<null>("put", "/admin/footprint/update", {
     data
   });

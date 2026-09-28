@@ -36,7 +36,7 @@ onBeforeUnmount(() => window.clearInterval(tick));
 
 /** 剩余倒计时文案(锁定中返回「N 天 N 时 N 分」) */
 function countdown(item: TimeCapsuleItem): string {
-  // 后端 openTime 为 ISO 格式(带 T);空格分隔时补 T 再解析,Safari 仅认显式 T 分隔
+  // 后端 openTime 为空格分隔(yyyy-MM-dd HH:mm:ss);补 T 再解析,Safari 仅认显式 T 分隔
   const open = new Date(item.openTime.replace(" ", "T")).getTime();
   const diff = Math.max(0, open - now.value);
   const days = Math.floor(diff / (24 * 60 * 60 * 1000));

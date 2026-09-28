@@ -28,7 +28,7 @@ type FootprintUpdatePayload = {
   placeName: string | null;
   longitude: number | null;
   latitude: number | null;
-  arrivalDate: string | null;
+  arrivalDate: string;
   photoUrl: string | null;
   remark: string;
 };
@@ -238,7 +238,7 @@ export function useFootprint(tableRef: Ref) {
           placeName: curData.placeName || null,
           longitude: curData.longitude,
           latitude: curData.latitude,
-          arrivalDate: curData.arrivalDate || null,
+          arrivalDate: curData.arrivalDate,
           photoUrl: curData.photoUrl || null,
           remark: curData.remark
         };

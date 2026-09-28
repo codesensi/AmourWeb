@@ -78,7 +78,8 @@ export default defineFakeRoute([
           b.createTime.localeCompare(a.createTime) ||
           Number(b.id) - Number(a.id)
       );
-      return fakePageResponse(filtered, query);
+      // MessagePageResponse 无 canEdit 契约字段,关闭注入保持响应形状
+      return fakePageResponse(filtered, query, { canEdit: false });
     }
   },
   // 审核留言(PUT /admin/message/audit)
