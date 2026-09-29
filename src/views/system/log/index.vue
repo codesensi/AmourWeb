@@ -239,6 +239,13 @@ const handleTabChange = useLazyTabs(
       width="720px"
     >
       <div class="detail-section">
+        <p class="detail-label">链路ID</p>
+        <span v-if="detail?.traceId" class="trace-id">{{
+          detail.traceId
+        }}</span>
+        <el-tag v-else type="info" effect="light">无链路记录</el-tag>
+      </div>
+      <div class="detail-section">
         <p class="detail-label">请求参数</p>
         <div
           v-if="detail?.param == null || detail?.param === ''"
@@ -292,5 +299,13 @@ const handleTabChange = useLazyTabs(
   font-size: 13px;
   font-weight: 500;
   color: var(--el-text-color-regular);
+}
+
+/* 链路ID完整展示:等宽字体便于与响应头 X-Trace-Id、服务端日志人工比对 */
+.trace-id {
+  font-family: var(--el-font-family-mono, monospace);
+  font-size: 13px;
+  word-break: break-all;
+  user-select: all;
 }
 </style>

@@ -61,30 +61,43 @@ export function useLogPage(tab: LogTab) {
     handleSizeChange,
     handleCurrentChange,
     resetForm
-  } = usePageQuery<SysLogItem>(query => {
-    // 仅连续下一页下发游标;size 变化/跳页/重置不满足连续性,回退 offset 兜底
-    const lastId =
-      query.pageNumber === prevPage + 1 ? lastIdOfPage.value : undefined;
-    return getLogPage(tab, { ...toRaw(form), ...query, lastId }).then(
-      result => {
-        // 仅成功响应推进游标:页码与本页末条 ID(空页清空游标,下页走 offset)
-        if (result.success && result.data) {
-          prevPage = result.data.pageNumber;
-          const records = result.data.records;
-          lastIdOfPage.value = records.length
-            ? records[records.length - 1].id
-            : undefined;
+  } = usePageQuery<SysLogItem>(
+    query => {
+      // 仅连续下一页下发游标;size 变化/跳页/重置不满足连续性,回退 offset 兜底
+      const lastId =
+        query.pageNumber === prevPage + 1 ? lastIdOfPage.value : undefined;
+      return getLogPage(tab, { ...toRaw(form), ...query, lastId }).then(
+        result => {
+          // 仅成功响应推进游标:页码与本页末条 ID(空页清空游标,下页走 offset)
+          if (result.success && result.data) {
+            prevPage = result.data.pageNumber;
+            const records = result.data.records;
+            lastIdOfPage.value = records.length
+              ? records[records.length - 1].id
+              : undefined;
+          }
+          return result;
         }
-        return result;
-      }
-    );
-  },
+      );
+    },
     // 懒加载页签:首次查询在页签激活时触发,激活前不展示加载态
     { loading: false }
   );
 
+  /** 链路ID列(两 Tab 共用,固定首列:32位UUID溢出省略,悬停可见全值,报障时凭此检索服务端日志) */
+  function traceIdColumn(): TableColumnList[number] {
+    return {
+      label: "链路ID",
+      prop: "traceId",
+      minWidth: 110,
+      showOverflowTooltip: true,
+      formatter: ({ traceId }) => traceId || "-"
+    };
+  }
+
   /** 登录日志列:用户名/IP/归属地/状态/描述/时间/操作 */
   const loginColumns: TableColumnList = [
+    traceIdColumn(),
     {
       label: "用户名",
       prop: "username",
@@ -126,6 +139,7 @@ export function useLogPage(tab: LogTab) {
 
   /** 操作日志列:用户名/模块/操作/类型/IP/归属地/耗时/状态/时间/操作 */
   const operateColumns: TableColumnList = [
+    traceIdColumn(),
     {
       label: "用户名",
       prop: "username",

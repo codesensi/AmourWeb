@@ -24,6 +24,8 @@ export type SysLogItem = {
   status: number;
   /** 描述/失败原因 */
   msg: string;
+  /** 链路追踪ID(本次请求服务端生成,响应头 X-Trace-Id 同源;报障时凭此检索服务端日志) */
+  traceId?: string;
   /** 请求接口地址 */
   url: string;
   /** 请求参数(JSON,脱敏后截断存储) */
@@ -49,14 +51,10 @@ export type LogQuery = PageQuery & {
 /** 日志分页查询(GET /sys/log/login/page、/sys/log/operate/page;登录态;logTypes 多选时逗号分隔下发,对齐 dict codes 惯例) */
 export const getLogPage = (type: "login" | "operate", params?: LogQuery) => {
   const { logTypes, ...rest } = params ?? {};
-  return http.request<PageResult<SysLogItem>>(
-    "get",
-    `/sys/log/${type}/page`,
-    {
-      params: omitEmpty({
-        ...rest,
-        ...(logTypes?.length ? { logTypes: logTypes.join(",") } : {})
-      })
-    }
-  );
+  return http.request<PageResult<SysLogItem>>("get", `/sys/log/${type}/page`, {
+    params: omitEmpty({
+      ...rest,
+      ...(logTypes?.length ? { logTypes: logTypes.join(",") } : {})
+    })
+  });
 };
