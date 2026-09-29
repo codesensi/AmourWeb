@@ -106,6 +106,14 @@ watch(
           triggerLabelOf(row.triggerType)
         }}</template>
       </el-table-column>
+      <el-table-column
+        label="链路ID"
+        prop="traceId"
+        min-width="110"
+        show-overflow-tooltip
+      >
+        <template #default="{ row }">{{ row.traceId || "-" }}</template>
+      </el-table-column>
       <el-table-column label="结果" width="80">
         <template #default="{ row }">
           <el-tag

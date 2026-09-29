@@ -108,6 +108,8 @@ export interface JobLogItem {
   jobName?: string | null;
   /** 触发方式(与 TriggerTypeEnum 对齐: cron-cron调度, manual-手动执行) */
   triggerType: string;
+  /** 链路追踪ID(手动触发沿用发起请求的 traceId, cron 触发执行时新建;凭此检索服务端日志) */
+  traceId?: string | null;
   /** 开始时间(yyyy-MM-dd HH:mm:ss) */
   startTime?: string | null;
   /** 耗时(毫秒) */
