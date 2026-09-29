@@ -157,7 +157,9 @@ export function collapseNames(names: string[], unit: string): string {
 /**
  * 状态开关列 cellRenderer —— 收敛用户/角色/菜单/字典/画册五页同构的开关列渲染。
  * 开关文案缺省由 sys_dict(enable) 驱动(画册显隐列传 hidden 字典);
- * 内置行禁用启停,无权限时与操作列门控对齐同步禁用;
+ * 内置行缺省禁用启停(用户/角色等页内置数据为部署期约定),
+ * 通过 builtinEditable 声明内置行可启停(如定时任务页)后放行;
+ * 无权限时与操作列门控对齐同步禁用;
  * 行数据携带 canEdit 时(业务模块的数据范围回填)按其值禁用,
  * 缺省(系统管理等无数据范围概念的页)不受影响。
  *
@@ -166,6 +168,7 @@ export function collapseNames(names: string[], unit: string): string {
  * @param options.onChange 开关切换回调(来自 useStatusSwitch 的 onChange)
  * @param options.field 状态字段名,缺省 status(画册显隐列传 hidden)
  * @param options.labelOf 开关文案取值,缺省 sys_dict(enable) 驱动
+ * @param options.builtinEditable 内置行(builtin=1)是否允许启停,缺省禁用
  */
 export function useStatusColumn<
   /** 行数据类型:各页列表行,公共骨架仅依赖 id/状态字段/builtin 字段(无内置概念的页可缺省) */
@@ -176,6 +179,7 @@ export function useStatusColumn<
   onChange: (row: T) => void;
   field?: "status" | "hidden";
   labelOf?: (value: number) => string;
+  builtinEditable?: boolean;
 }) {
   const { switchStyle } = usePublicHooks();
   const { labelOf: enableLabelOf } = useDict(DICT_CODES.enable);
@@ -194,7 +198,7 @@ export function useStatusColumn<
       activeText: labelOf(0),
       inactiveText: labelOf(1),
       disabled:
-        data.row.builtin === 1 ||
+        (!options.builtinEditable && data.row.builtin === 1) ||
         data.row.canEdit === false ||
         !hasPerms(options.perms),
       inlinePrompt: true,

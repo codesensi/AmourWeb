@@ -57,7 +57,13 @@ export const DICT_CODES = {
   /** 数据范围档位(与 DataScopeEnum 对齐) */
   dataScope: "data-scope",
   /** 数据权限业务模块(与 DataModuleEnum 对齐) */
-  dataModule: "data-module"
+  dataModule: "data-module",
+  /** 通用允许/禁止状态(与 PermitEnum 对齐) */
+  permit: "permit",
+  /** 任务触发方式(与 TriggerTypeEnum 对齐) */
+  triggerType: "trigger-type",
+  /** 任务分组(与 JobGroupEnum 对齐) */
+  jobGroup: "job-group"
 } as const;
 
 /** 字典批量查询(GET /portal/dict/list-by-codes,免登录;codes 逗号分隔) */
